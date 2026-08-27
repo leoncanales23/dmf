@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demian Muller — Electronic Artist · DJ · Live Act</title>
+<meta name="description" content="Demian Muller — Electronic music artist, DJ and Live Act. 20+ years touring, 500+ tracks & remixes. DMF Academy. Booking worldwide.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:#0a0806;color:#f2ede6;font-family:'Archivo',sans-serif;overflow-x:hidden;min-height:100vh}
+::selection{background:#ff5b1e;color:#0a0806}
+a{color:#ff5b1e;text-decoration:none;transition:color .2s}
+a:hover{color:#ff7a45}
+img{display:block;max-width:100%}
+ul{list-style:none}
+@keyframes floatCue{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(8px);opacity:1}}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:18px clamp(20px,5vw,64px);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:linear-gradient(to bottom,rgba(10,8,6,.85),rgba(10,8,6,0));transition:background .3s}
+.nav-logo{font-family:'Anton',sans-serif;font-size:20px;letter-spacing:.14em;color:#f2ede6;text-transform:uppercase;white-space:nowrap}
+.nav-links{display:flex;align-items:center;gap:clamp(12px,2vw,30px)}
+.nav-link{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#8a8178;transition:color .2s}
+.nav-link:hover{color:#ff5b1e}
+.lang-btn{cursor:pointer;font-family:'Archivo',sans-serif;font-weight:700;font-size:12px;letter-spacing:.14em;color:#f2ede6;background:transparent;border:1px solid rgba(242,237,230,.25);border-radius:999px;padding:7px 14px;transition:border-color .2s,background .2s}
+.lang-btn:hover{border-color:#ff5b1e;background:rgba(255,91,30,.1)}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}
+.hamburger span{display:block;width:24px;height:2px;background:#f2ede6;transition:transform .3s,opacity .3s}
+
+/* HERO */
+.hero{position:relative;z-index:2;min-height:100vh;display:grid;grid-template-columns:1.15fr .85fr;align-items:center;gap:clamp(24px,4vw,60px);padding:120px clamp(20px,5vw,64px) 60px}
+.hero-kicker{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.hero-kicker-line{width:44px;height:1px;background:#ff5b1e}
+.hero-kicker-text{font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:#ff5b1e}
+.hero h1{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(64px,11vw,168px);line-height:.86;letter-spacing:.01em;text-transform:uppercase}
+.hero-role{margin:26px 0 0;font-size:clamp(15px,1.5vw,20px);letter-spacing:.28em;text-transform:uppercase;color:#c9c0b6}
+.hero-stats{display:flex;flex-wrap:wrap;gap:36px;margin-top:44px}
+.stat-num{font-family:'Anton',sans-serif;font-size:44px;color:#ff5b1e;line-height:1}
+.stat-label{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#8a8178;margin-top:6px}
+.hero-img{position:relative;aspect-ratio:3/4;width:100%;border:1px solid rgba(242,237,230,.14);overflow:hidden}
+.hero-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:82% 14%}
+.hero-img-overlay{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 -80px 90px -30px rgba(10,8,6,.9)}
+.scroll-cue{position:absolute;left:clamp(20px,5vw,64px);bottom:26px;display:flex;align-items:center;gap:10px;color:#8a8178;animation:floatCue 2.4s ease-in-out infinite;font-size:11px;letter-spacing:.24em;text-transform:uppercase}
+
+/* SECTIONS */
+.section{position:relative;z-index:2;padding:clamp(70px,10vw,140px) clamp(20px,5vw,64px);border-top:1px solid rgba(242,237,230,.1)}
+.section-head{display:flex;align-items:baseline;gap:18px;margin-bottom:48px}
+.section-num{font-family:'Anton',sans-serif;font-size:16px;color:#ff5b1e}
+.section-title{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(34px,6vw,72px);text-transform:uppercase;letter-spacing:.01em}
+
+/* BIO */
+.bio-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:clamp(24px,4vw,64px);max-width:1200px}
+.bio-text{display:flex;flex-direction:column;gap:20px}
+.bio-text p{font-size:clamp(15px,1.3vw,18px);line-height:1.7;color:#d8d0c6;text-wrap:pretty}
+.fly-card{margin-top:6px;border:1px solid rgba(255,91,30,.4);background:rgba(255,91,30,.06);overflow:hidden}
+.fly-card-img{position:relative;aspect-ratio:16/10;overflow:hidden}
+.fly-card-img img{width:100%;height:100%;object-fit:cover;object-position:center 30%}
+.fly-card-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(10,8,6,.85),transparent 55%)}
+.fly-card-body{padding:20px 24px 22px}
+.fly-card-title{font-family:'Anton',sans-serif;font-size:22px;letter-spacing:.06em;text-transform:uppercase;color:#ff5b1e}
+.fly-card-body p{margin:10px 0 0;font-size:14px;line-height:1.6;color:#c9c0b6}
+
+/* BAND */
+.band{position:relative;z-index:2;overflow:hidden;background:#070605}
+.band img{display:block;width:100%;height:auto}
+.band-overlay{position:absolute;left:0;right:0;bottom:0;height:60%;background:linear-gradient(to top,rgba(7,6,5,.94),rgba(7,6,5,0) 100%);pointer-events:none}
+.band-text{position:absolute;left:0;bottom:0;padding:clamp(24px,5vw,64px);max-width:900px}
+.band-text p{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(24px,3.4vw,48px);line-height:1.05;text-transform:uppercase;color:#f2ede6}
+
+/* RELEASES */
+.releases-sub{margin:0 0 44px;max-width:640px;color:#8a8178;font-size:15px;line-height:1.6}
+.releases-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px}
+.release-card{border:1px solid rgba(242,237,230,.12);background:rgba(255,255,255,.02);padding:16px}
+.release-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.release-label{font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:#ff5b1e}
+.release-tag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8178}
+.release-title{font-size:15px;font-weight:600;color:#f2ede6;margin-bottom:12px;line-height:1.35}
+.release-embed iframe{display:block;border-radius:2px;width:100%;height:120px;border:none}
+.beatport-link{margin:28px 0 0;font-size:14px;color:#8a8178}
+
+/* LABELS */
+.labels-section{margin-top:clamp(48px,7vw,90px)}
+.labels-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+.labels-head-line{width:32px;height:1px;background:#ff5b1e}
+.labels-head h3{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(22px,3vw,38px);text-transform:uppercase;letter-spacing:.02em}
+.labels-sub{margin:0 0 30px;max-width:620px;color:#8a8178;font-size:14px;line-height:1.6}
+.labels-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.label-item{display:flex;flex-direction:column;align-items:center;gap:10px}
+.label-img{width:100%;aspect-ratio:3/2;background:#f4f2ee;border:1px solid rgba(242,237,230,.1);display:flex;align-items:center;justify-content:center;padding:14px}
+.label-img img{max-width:100%;max-height:100%;object-fit:contain}
+.label-name{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#8a8178;text-align:center}
+
+/* SETS */
+.sets-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px}
+.set-card{border:1px solid rgba(242,237,230,.12)}
+.set-card iframe{display:block;width:100%;height:220px;border:none;background:#000}
+.set-info{padding:16px 18px}
+.set-title{font-size:15px;font-weight:600;color:#f2ede6}
+.set-meta{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#8a8178;margin-top:6px}
+
+/* PLATFORMS */
+.plat-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,4vw,56px);align-items:start}
+.plat-grid iframe{display:block;width:100%;height:352px;border:none;border-radius:8px}
+.plat-links{display:flex;flex-direction:column}
+.plat-link{display:flex;align-items:center;justify-content:space-between;padding:20px 4px;border-bottom:1px solid rgba(242,237,230,.12);transition:border-color .2s}
+.plat-link:hover{border-color:#ff5b1e}
+.plat-link-name{font-family:'Anton',sans-serif;font-size:clamp(20px,2.4vw,30px);text-transform:uppercase;color:#f2ede6;letter-spacing:.03em}
+.plat-link-handle{font-size:13px;color:#8a8178}
+
+/* RIDER */
+.rider-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:clamp(24px,3vw,44px)}
+.rider-card{border:1px solid rgba(242,237,230,.12);padding:28px}
+.rider-card-title{font-family:'Anton',sans-serif;font-size:22px;text-transform:uppercase;color:#ff5b1e;letter-spacing:.05em;margin-bottom:20px}
+.rider-label{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#8a8178;margin-bottom:12px}
+.rider-list{display:flex;flex-direction:column;gap:9px;margin-bottom:24px}
+.rider-list:last-child{margin-bottom:0}
+.rider-item{font-size:14px;color:#d8d0c6;padding-left:16px;position:relative;line-height:1.5}
+.rider-item::before{content:'';position:absolute;left:0;top:9px;width:5px;height:5px;background:#ff5b1e}
+
+/* ACADEMY */
+.acad-kicker{display:flex;align-items:baseline;gap:18px;margin-bottom:14px}
+.acad-tag{font-family:'Anton',sans-serif;font-size:clamp(14px,1.4vw,18px);letter-spacing:.22em;text-transform:uppercase;color:#ff5b1e;margin-bottom:14px}
+.acad-title{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(30px,5vw,64px);line-height:1.02;margin-bottom:22px;text-transform:uppercase;max-width:16ch}
+.acad-sub{margin-bottom:24px;max-width:680px;color:#d8d0c6;font-size:clamp(15px,1.3vw,18px);line-height:1.7;text-wrap:pretty}
+.acad-badge{display:inline-flex;align-items:center;gap:10px;padding:10px 18px;border:1px solid rgba(255,91,30,.5);background:rgba(255,91,30,.06);margin-bottom:clamp(40px,6vw,70px)}
+.acad-badge-dot{width:7px;height:7px;border-radius:50%;background:#ff5b1e}
+.acad-badge-text{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#ffb599}
+.acad-two-col{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:clamp(24px,4vw,56px);margin-bottom:clamp(44px,6vw,72px);align-items:start}
+.acad-col-head{font-family:'Anton',sans-serif;font-size:clamp(18px,2vw,26px);text-transform:uppercase;color:#f2ede6;letter-spacing:.03em;margin-bottom:18px}
+.acad-audience{display:flex;flex-direction:column;gap:16px}
+.acad-audience-item{display:flex;gap:14px;align-items:baseline}
+.acad-audience-dot{flex:none;width:8px;height:8px;background:#ff5b1e;margin-top:6px}
+.acad-audience-item span{font-weight:700;color:#f2ede6}
+.acad-audience-item .desc{font-weight:400;color:#8a8178}
+.acad-format p{font-size:15px;line-height:1.7;color:#d8d0c6;text-wrap:pretty}
+.acad-curri-head{font-family:'Anton',sans-serif;font-size:clamp(18px,2vw,26px);text-transform:uppercase;color:#f2ede6;letter-spacing:.03em;margin-bottom:24px}
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:clamp(18px,2.5vw,32px);margin-bottom:clamp(44px,6vw,72px)}
+.module-card{border-top:1px solid rgba(242,237,230,.16);padding-top:20px}
+.module-num{font-family:'Anton',sans-serif;font-size:15px;color:#ff5b1e;margin-bottom:12px}
+.module-title{font-size:18px;font-weight:700;color:#f2ede6;margin-bottom:10px;line-height:1.25}
+.module-desc{font-size:14px;line-height:1.6;color:#8a8178}
+.acad-boxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:clamp(18px,2.5vw,32px);margin-bottom:clamp(44px,6vw,72px)}
+.acad-box-bonus{padding:26px 28px;border:1px solid rgba(255,91,30,.4);background:rgba(255,91,30,.06)}
+.acad-box-tools{padding:26px 28px;border:1px solid rgba(242,237,230,.14)}
+.acad-box-title{font-family:'Anton',sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
+.acad-box-bonus .acad-box-title{color:#ff5b1e}
+.acad-box-tools .acad-box-title{color:#f2ede6}
+.acad-box-bonus p{font-size:14px;line-height:1.65;color:#d8d0c6}
+.acad-box-tools p{font-size:14px;line-height:1.65;color:#8a8178}
+.acad-before-after{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:rgba(242,237,230,.14);border:1px solid rgba(242,237,230,.14);margin-bottom:clamp(44px,6vw,72px)}
+.acad-ba-col{padding:28px;background:#0a0806}
+.acad-ba-label{font-size:11px;letter-spacing:.24em;text-transform:uppercase;margin-bottom:12px}
+.acad-ba-before .acad-ba-label{color:#8a8178}
+.acad-ba-before p{font-size:15px;line-height:1.65;color:#8a8178}
+.acad-ba-after .acad-ba-label{color:#ff5b1e}
+.acad-ba-after p{font-size:15px;line-height:1.65;color:#f2ede6}
+.acad-price-card{border:1px solid rgba(242,237,230,.14);background:rgba(255,255,255,.02)}
+.acad-price-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:22px clamp(20px,3vw,32px);border-bottom:1px solid rgba(242,237,230,.1)}
+.acad-price-head span:first-child{font-size:18px;font-weight:700;color:#f2ede6}
+.acad-price-badge{font-family:'Anton',sans-serif;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#ff5b1e;border:1px solid rgba(255,91,30,.5);padding:6px 12px}
+.acad-price-body{padding:clamp(28px,4vw,44px)}
+.acad-price-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#8a8178;margin-bottom:12px}
+.acad-price-value{font-family:'Anton',sans-serif;font-size:clamp(52px,8vw,104px);color:#ff5b1e;line-height:.95}
+.acad-price-value span{font-size:.4em;color:#f2ede6;letter-spacing:.04em}
+.acad-price-note{margin:16px 0 0;font-size:14px;color:#8a8178}
+.acad-addon{margin:22px 0 0;padding:18px 20px;border-left:2px solid #ff5b1e;background:rgba(255,91,30,.05);font-size:14px;line-height:1.6;color:#d8d0c6}
+.acad-close{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:24px;margin-top:clamp(40px,6vw,70px)}
+.acad-close p{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(22px,3vw,40px);line-height:1.05;text-transform:uppercase;max-width:20ch}
+.acad-cta{flex:none;display:inline-flex;align-items:center;gap:12px;padding:18px 34px;background:#ff5b1e;color:#0a0806;font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.08em;text-transform:uppercase;transition:background .2s}
+.acad-cta:hover{background:#ff7a45;color:#0a0806}
+
+/* DEMOS */
+.demos-sub{margin:0 0 44px;max-width:640px;color:#8a8178;font-size:15px;line-height:1.6}
+.demos-groups{display:flex;flex-direction:column;gap:clamp(40px,5vw,64px)}
+.demo-group-title{font-family:'Anton',sans-serif;font-size:clamp(16px,1.8vw,22px);text-transform:uppercase;color:#ff5b1e;letter-spacing:.04em;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid rgba(242,237,230,.14)}
+.demo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px}
+.demo-card{border:1px solid rgba(242,237,230,.12);background:rgba(255,255,255,.02)}
+.demo-card video{display:block;width:100%;aspect-ratio:16/9;background:#000;object-fit:cover}
+.demo-card-title{padding:14px 16px;font-size:14px;font-weight:600;color:#f2ede6}
+
+/* TIPS */
+.tips-intro{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:clamp(28px,4vw,60px);align-items:center;margin-bottom:clamp(48px,7vw,90px)}
+.tips-intro p{max-width:520px;color:#8a8178;font-size:clamp(15px,1.3vw,18px);line-height:1.7;text-wrap:pretty}
+.tips-img{position:relative;aspect-ratio:4/5;width:100%;border:1px solid rgba(242,237,230,.14);overflow:hidden}
+.tips-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%}
+.tips-img::after{content:'';position:absolute;inset:0;box-shadow:inset 0 -70px 80px -30px rgba(10,8,6,.9)}
+.tips-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:clamp(28px,4vw,56px)}
+.tip-group-head{display:flex;align-items:baseline;gap:14px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid rgba(255,91,30,.4)}
+.tip-group-num{font-family:'Anton',sans-serif;font-size:clamp(24px,3vw,40px);color:#ff5b1e;line-height:1}
+.tip-group-name{font-family:'Anton',sans-serif;font-size:clamp(18px,2vw,26px);text-transform:uppercase;color:#f2ede6;letter-spacing:.02em}
+.tip-items{display:flex;flex-direction:column;gap:20px}
+.tip-title{font-size:16px;font-weight:700;color:#f2ede6;margin-bottom:6px;line-height:1.3}
+.tip-desc{font-size:14px;line-height:1.6;color:#8a8178;text-wrap:pretty}
+
+/* CONTACT */
+.contact{position:relative;z-index:2;padding:clamp(80px,12vw,160px) clamp(20px,5vw,64px) clamp(60px,8vw,100px);border-top:1px solid rgba(242,237,230,.1)}
+.contact-sub{margin:0 0 40px;max-width:560px;color:#8a8178;font-size:16px;line-height:1.6}
+.contact-cards{display:flex;flex-wrap:wrap;gap:16px}
+.contact-card{display:flex;flex-direction:column;gap:6px;padding:22px 28px;border:1px solid rgba(242,237,230,.16);min-width:240px;transition:border-color .2s}
+.contact-card:hover{border-color:#ff5b1e}
+.contact-card-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#8a8178}
+.contact-card-value{font-size:18px;color:#f2ede6}
+
+/* FOOTER */
+.footer{margin-top:clamp(60px,9vw,120px);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;padding-top:28px;border-top:1px solid rgba(242,237,230,.1)}
+.footer-logo{font-family:'Anton',sans-serif;font-size:28px;letter-spacing:.1em;text-transform:uppercase;color:#f2ede6}
+.footer-copy{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6d655c}
+
+/* SMOKE BG */
+#smoke-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.radial-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 80% at 50% 120%,rgba(255,91,30,.16),transparent 60%)}
+
+/* MOBILE */
+@media(max-width:900px){
+  .nav-links .nav-link{display:none}
+  .hamburger{display:flex}
+  .nav-links.open .nav-link{display:block}
+  .nav-links.open{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,8,6,.97);flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:100}
+  .nav-links.open .nav-link{font-size:18px}
+  .hero{grid-template-columns:1fr;padding-top:100px}
+  .hero-img{max-width:400px;margin:0 auto}
+  .plat-grid{grid-template-columns:1fr}
+  .acad-close{flex-direction:column;align-items:flex-start}
+  .contact-cards{flex-direction:column}
+  .contact-card{min-width:auto}
+}
+@media(max-width:600px){
+  .hero h1{font-size:clamp(48px,16vw,80px)}
+  .hero-stats{gap:24px}
+  .stat-num{font-size:36px}
+  .releases-grid,.sets-grid,.demo-grid{grid-template-columns:1fr}
+  .labels-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<canvas id="smoke-canvas"></canvas>
+<div class="radial-overlay"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="#top" class="nav-logo">Demian&nbsp;Muller</a>
+  <div class="nav-links" id="navLinks">
+    <a href="#bio" class="nav-link" data-i18n="navBio">Bio</a>
+    <a href="#releases" class="nav-link" data-i18n="navReleases">Releases</a>
+    <a href="#sets" class="nav-link" data-i18n="navSets">DJ Sets</a>
+    <a href="#rider" class="nav-link" data-i18n="navRider">Rider</a>
+    <a href="#academy" class="nav-link" data-i18n="navAcademy">Academy</a>
+    <a href="#demos" class="nav-link" data-i18n="navDemos">Demos</a>
+    <a href="#tips" class="nav-link" data-i18n="navTips">Tips</a>
+    <a href="#contact" class="nav-link" data-i18n="navContact">Contact</a>
+    <button class="lang-btn" id="langBtn" onclick="toggleLang()">ES</button>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header id="top" class="hero">
+  <div>
+    <div class="hero-kicker">
+      <span class="hero-kicker-line"></span>
+      <span class="hero-kicker-text">Press Kit — EPK</span>
+    </div>
+    <h1>Demian<br>Muller</h1>
+    <p class="hero-role" data-i18n="role">Electronic Artist · DJ · Live Act</p>
+    <div class="hero-stats">
+      <div><div class="stat-num">20+</div><div class="stat-label" data-i18n="statYears">Years touring</div></div>
+      <div><div class="stat-num">500+</div><div class="stat-label" data-i18n="statTracks">Tracks & remixes</div></div>
+      <div><div class="stat-num">3&times;</div><div class="stat-label" data-i18n="statAwards">Beatport contest wins</div></div>
+    </div>
+  </div>
+  <div class="hero-img">
+    <img src="assets/images/jpg_0_19kb.jpg" alt="Demian Muller">
+    <div class="hero-img-overlay"></div>
+  </div>
+  <div class="scroll-cue">
+    <span data-i18n="scroll">Scroll</span>
+  </div>
+</header>
+
+<!-- BIO -->
+<section id="bio" class="section">
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <h2 class="section-title" data-i18n="bioTitle">Biography</h2>
+  </div>
+  <div class="bio-grid">
+    <div class="bio-text" data-i18n-html="bioA">
+      <p>Demian Muller is an electronic music artist, DJ and live act with an international career spanning more than 20 years.</p>
+      <p>Since 2008, he has released over 500 tracks and remixes on labels including Cadenza, 8Bit, Get Physical Music, Circus Recordings, Sincopat, CR2 Records and Cluber. His sound moves between house, tech house and minimal, with influences from afro house and organic house, focused on groove, atmosphere and club functionality.</p>
+      <p>A 3-time Beatport Remix Contest winner, Demian has collaborated on remixes with artists including John Digweed, Yousef, Djuma Soundsystem, DJ Pierre and Proudly People, among others.</p>
+    </div>
+    <div class="bio-text">
+      <div data-i18n-html="bioB">
+        <p>He has performed at venues and festivals including Creamfields, Ultra Music Festival, Pacha, Privilege, MAD Club Lausanne, D! Club Lausanne, Club La Feria, Buddha-Bar and Festival Nomade, among others.</p>
+        <p>He has also shared the stage with artists such as Carl Cox, Seth Troxler, The Martinez Brothers, Paul Kalkbrenner, Nicole Moudaber, Monolink, John Digweed and Damian Lazarus.</p>
+        <p>Demian performs both as a DJ and Live Act, presenting original productions and live vocal elements for clubs, festivals and boutique events.</p>
+      </div>
+      <div class="fly-card">
+        <div class="fly-card-img">
+          <img src="assets/images/jpg_12_51kb.jpg" alt="FLY O TECH">
+        </div>
+        <div class="fly-card-body">
+          <div class="fly-card-title">FLY O TECH</div>
+          <p data-i18n="flyBody">Frontman of FLY O TECH — a project blending electronic and organic elements, reaching millions of streams across digital platforms.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BAND -->
+<section class="band">
+  <img src="assets/images/jpg_11_52kb.jpg" alt="Demian Muller live">
+  <div class="band-overlay"></div>
+  <div class="band-text">
+    <p data-i18n="bandLine">DJ & Live Act — original productions and live vocals for clubs, festivals and boutique events worldwide.</p>
+  </div>
+</section>
+
+<!-- RELEASES -->
+<section id="releases" class="section">
+  <div class="section-head" style="margin-bottom:14px">
+    <span class="section-num">02</span>
+    <h2 class="section-title" data-i18n="relTitle">Releases</h2>
+  </div>
+  <p class="releases-sub" data-i18n="relSub">Selected releases and remixes across the labels that shaped his catalogue. Play a track from each below.</p>
+  <div class="releases-grid" id="releasesGrid"></div>
+  <p class="beatport-link">CR2 Records — <a href="https://www.beatport.com/es/track/melnoly/3916800" target="_blank" rel="noopener">"Melnoly" on Beatport &#8599;</a></p>
+
+  <div class="labels-section">
+    <div class="labels-head">
+      <span class="labels-head-line"></span>
+      <h3 data-i18n="labelsTitle">The labels</h3>
+    </div>
+    <p class="labels-sub" data-i18n="labelsSub">A selection of labels associated with Demian Muller's releases and DMF Academy student results.</p>
+    <div class="labels-grid" id="labelsGrid"></div>
+  </div>
+</section>
+
+<!-- SETS -->
+<section id="sets" class="section">
+  <div class="section-head">
+    <span class="section-num">03</span>
+    <h2 class="section-title" data-i18n="setsTitle">DJ Sets</h2>
+  </div>
+  <div class="sets-grid" id="setsGrid"></div>
+</section>
+
+<!-- PLATFORMS -->
+<section id="platforms" class="section">
+  <div class="section-head">
+    <span class="section-num">04</span>
+    <h2 class="section-title" data-i18n="platTitle">Platforms</h2>
+  </div>
+  <div class="plat-grid">
+    <iframe src="https://open.spotify.com/embed/artist/1elzKNBiiP8qRl02oQECqC?utm_source=generator&theme=0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+    <div class="plat-links" id="platLinks"></div>
+  </div>
+</section>
+
+<!-- RIDER -->
+<section id="rider" class="section">
+  <div class="section-head">
+    <span class="section-num">05</span>
+    <h2 class="section-title" data-i18n="riderTitle">Technical Rider</h2>
+  </div>
+  <div class="rider-grid">
+    <div class="rider-card">
+      <div class="rider-card-title" data-i18n="riderDjHead">DJ Set</div>
+      <div class="rider-label" data-i18n="reqLabel">Requirements</div>
+      <ul class="rider-list">
+        <li class="rider-item">4&times; CDJ-3000 or 4&times; CDJ-2000NXS2 (must be LINKED)</li>
+        <li class="rider-item">1&times; DJM-V10 or 1&times; DJM-900NXS2</li>
+        <li class="rider-item">1&times; RMX-1000</li>
+        <li class="rider-item">1&times; stand for RMX-1000, or a laptop stand</li>
+        <li class="rider-item">Stereo monitors</li>
+      </ul>
+      <div class="rider-label" data-i18n="hospLabel">Hospitality</div>
+      <ul class="rider-list">
+        <li class="rider-item">8 &times; sparkling water</li>
+        <li class="rider-item">4 &times; sugar-free Red Bull</li>
+        <li class="rider-item">2 &times; bottles of sparkling wine (Brut)</li>
+      </ul>
+    </div>
+    <div class="rider-card">
+      <div class="rider-card-title" data-i18n="riderLiveHead">Live Act</div>
+      <div class="rider-label" data-i18n="reqLabel2">Requirements</div>
+      <ul class="rider-list">
+        <li class="rider-item" data-i18n="liveReq1">Minimum space &asymp; one CDJ next to the DJ setup</li>
+        <li class="rider-item">RCA cable for direct connection to a mixer channel</li>
+        <li class="rider-item" data-i18n="liveReq3">Microphone stand</li>
+        <li class="rider-item">2 &times; XLR cables</li>
+        <li class="rider-item" data-i18n="liveReq5">Power outlet on the booth with at least 5 free sockets</li>
+      </ul>
+      <div class="rider-label" data-i18n="providedLabel">Provided by Demian Muller</div>
+      <ul class="rider-list">
+        <li class="rider-item">Akai APC40</li>
+        <li class="rider-item">Audio interface</li>
+        <li class="rider-item">MacBook Pro 15"</li>
+        <li class="rider-item">TC-Helicon VoiceLive Touch</li>
+        <li class="rider-item">Shure Beta 57A microphone</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ACADEMY -->
+<section id="academy" class="section">
+  <div class="acad-kicker">
+    <span class="section-num">06</span>
+    <span style="font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:#8a8178" data-i18n="acadKicker">DMF Academy — Dynamic Music Formula</span>
+  </div>
+  <div class="acad-tag" data-i18n="acadTag">From idea to finished track</div>
+  <h2 class="acad-title" data-i18n="acadTitle">Learn to produce electronic music with a professional methodology</h2>
+  <p class="acad-sub" data-i18n="acadSub">A practical program designed to help you create, finish and improve real music — built from more than two decades of professional studio experience.</p>
+  <div class="acad-badge">
+    <span class="acad-badge-dot"></span>
+    <span class="acad-badge-text" data-i18n="acadBadge">8 private classes · live on Zoom · 1-on-1</span>
+  </div>
+
+  <div class="acad-two-col">
+    <div>
+      <div class="acad-col-head" data-i18n="acadWhoHead">Who it's for</div>
+      <div class="acad-audience" id="audienceList"></div>
+    </div>
+    <div class="acad-format">
+      <div class="acad-col-head" data-i18n="acadFormatHead">Format</div>
+      <p data-i18n="acadFormatBody">8 LIVE classes on Zoom, ~60–90 min each. Personalized 1-on-1 or small groups — in 1-on-1 the content adapts to your level, style, projects and goals. Practical from day one: we work on real music, find the problems and apply the solutions.</p>
+    </div>
+  </div>
+
+  <div class="acad-curri-head" data-i18n="acadCurriHead">The curriculum</div>
+  <div class="modules-grid" id="modulesGrid"></div>
+
+  <div class="acad-boxes">
+    <div class="acad-box-bonus">
+      <div class="acad-box-title" data-i18n="acadBonusHead">Bonus · Free mastering</div>
+      <p data-i18n="acadBonusBody">Tracks you finish during the course can receive free mastering — so the process ends with music ready to present or release, not just a class.</p>
+    </div>
+    <div class="acad-box-tools">
+      <div class="acad-box-title" data-i18n="acadToolsHead">Tools</div>
+      <p data-i18n="acadToolsBody">Common production and sound tools such as Ableton Live and Loopcloud. Teaching doesn't depend on a specific plugin collection — the focus is judgment and transferable skills.</p>
+    </div>
+  </div>
+
+  <div class="acad-before-after">
+    <div class="acad-ba-col acad-ba-before">
+      <div class="acad-ba-label" data-i18n="acadBeforeH">Before</div>
+      <p data-i18n="acadBefore">You have ideas, loops or started projects, but you don't know how to develop them, finish them or make them sound the way you want.</p>
+    </div>
+    <div class="acad-ba-col acad-ba-after">
+      <div class="acad-ba-label" data-i18n="acadAfterH">After</div>
+      <p data-i18n="acadAfter">You understand structure, sound selection, bass, mixing, workflow and the creative process — and you have a method to take ideas to finished tracks.</p>
+    </div>
+  </div>
+
+  <div class="acad-price-card">
+    <div class="acad-price-head">
+      <span>DMF Academy · 8 Private 1-on-1 Classes</span>
+      <span class="acad-price-badge">Flagship Program</span>
+    </div>
+    <div class="acad-price-body">
+      <div class="acad-price-label" data-i18n="acadPriceLabel">Program value</div>
+      <div class="acad-price-value">$400.000 <span>CLP</span></div>
+      <p class="acad-price-note" data-i18n="acadPriceNote">Ask about payment options and schedule availability.</p>
+    </div>
+  </div>
+  <p class="acad-addon" data-i18n="acadAddon">Add-on · How to reach labels — a focused session (~USD $80) on presenting your music and contacting labels: approach strategy and track presentation.</p>
+
+  <div class="acad-close">
+    <p data-i18n="acadClose">This isn't just another course. It's a system to finish music.</p>
+    <a href="mailto:Demian.muller@gmail.com?subject=DMF%20Academy" class="acad-cta"><span data-i18n="acadCta">Book your spot</span> &rarr;</a>
+  </div>
+</section>
+
+<!-- DEMOS -->
+<section id="demos" class="section">
+  <div class="section-head" style="margin-bottom:14px">
+    <span class="section-num">07</span>
+    <h2 class="section-title" data-i18n="demosTitle">Course demos</h2>
+  </div>
+  <p class="demos-sub" data-i18n="demosSub">Real lessons from the program — a look inside DMF Academy, module by module.</p>
+  <div class="demos-groups" id="demosGroups"></div>
+</section>
+
+<!-- TIPS -->
+<section id="tips" class="section">
+  <div class="tips-intro">
+    <div>
+      <div class="section-head" style="margin-bottom:20px">
+        <span class="section-num">08</span>
+        <h2 class="section-title" style="line-height:.95" data-i18n="tipsTitle">Tips for DJs & producers</h2>
+      </div>
+      <p data-i18n="tipsSub">Two decades of studio and booth experience, distilled into working principles — by Demian Muller.</p>
+    </div>
+    <div class="tips-img">
+      <img src="assets/images/jpg_13_lookup.jpg" alt="Demian Muller">
+    </div>
+  </div>
+  <div class="tips-grid" id="tipsGrid"></div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="contact">
+  <div class="section-head" style="margin-bottom:32px">
+    <span class="section-num">09</span>
+    <h2 style="font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(40px,8vw,110px);text-transform:uppercase;line-height:.9" data-i18n="contactTitle">Booking</h2>
+  </div>
+  <p class="contact-sub" data-i18n="contactSub">Available worldwide for clubs, festivals and boutique events — as DJ or Live Act.</p>
+  <div class="contact-cards">
+    <a href="mailto:Demian.muller@gmail.com" class="contact-card">
+      <span class="contact-card-label">Email</span>
+      <span class="contact-card-value">Demian.muller@gmail.com</span>
+    </a>
+    <a href="tel:+56958547068" class="contact-card">
+      <span class="contact-card-label" data-i18n="phoneLabel">Phone / WhatsApp</span>
+      <span class="contact-card-value">+56 9 5854 7068</span>
+    </a>
+    <a href="https://www.instagram.com/demian_muller_music/" target="_blank" rel="noopener" class="contact-card">
+      <span class="contact-card-label">Instagram</span>
+      <span class="contact-card-value">@demian_muller_music</span>
+    </a>
+  </div>
+  <div class="footer">
+    <div class="footer-logo">DEMIAN MULLER</div>
+    <div class="footer-copy" data-i18n="footerRole">&copy; 2026 — Electronic Artist · DJ · Live Act</div>
+  </div>
+</section>
+
+<script>
+(function(){
+  var lang = 'en';
+
+  var dict = {
+    en: {
+      navBio:'Bio', navReleases:'Releases', navSets:'DJ Sets', navRider:'Rider', navContact:'Contact',
+      navAcademy:'Academy', navDemos:'Demos', navTips:'Tips',
+      role:'Electronic Artist · DJ · Live Act',
+      scroll:'Scroll',
+      statYears:'Years touring', statTracks:'Tracks & remixes', statAwards:'Beatport contest wins',
+      bioTitle:'Biography',
+      bioA:'<p>Demian Muller is an electronic music artist, DJ and live act with an international career spanning more than 20 years.</p><p>Since 2008, he has released over 500 tracks and remixes on labels including Cadenza, 8Bit, Get Physical Music, Circus Recordings, Sincopat, CR2 Records and Cluber. His sound moves between house, tech house and minimal, with influences from afro house and organic house, focused on groove, atmosphere and club functionality.</p><p>A 3-time Beatport Remix Contest winner, Demian has collaborated on remixes with artists including John Digweed, Yousef, Djuma Soundsystem, DJ Pierre and Proudly People, among others.</p>',
+      bioB:'<p>He has performed at venues and festivals including Creamfields, Ultra Music Festival, Pacha, Privilege, MAD Club Lausanne, D! Club Lausanne, Club La Feria, Buddha-Bar and Festival Nómade, among others.</p><p>He has also shared the stage with artists such as Carl Cox, Seth Troxler, The Martinez Brothers, Paul Kalkbrenner, Nicole Moudaber, Monolink, John Digweed and Damian Lazarus.</p><p>Demian performs both as a DJ and Live Act, presenting original productions and live vocal elements for clubs, festivals and boutique events.</p>',
+      flyBody:'Frontman of FLY O TECH — a project blending electronic and organic elements, reaching millions of streams across digital platforms.',
+      bandLine:'DJ & Live Act — original productions and live vocals for clubs, festivals and boutique events worldwide.',
+      relTitle:'Releases', relSub:'Selected releases and remixes across the labels that shaped his catalogue. Play a track from each below.',
+      labelsTitle:'The labels', labelsSub:'A selection of labels associated with Demian Muller’s releases and DMF Academy student results.',
+      setsTitle:'DJ Sets',
+      platTitle:'Platforms',
+      riderTitle:'Technical Rider', riderDjHead:'DJ Set', riderLiveHead:'Live Act',
+      reqLabel:'Requirements', reqLabel2:'Requirements', hospLabel:'Hospitality', providedLabel:'Provided by Demian Muller',
+      liveReq1:'Minimum space ≈ one CDJ next to the DJ setup', liveReq3:'Microphone stand', liveReq5:'Power outlet on the booth with at least 5 free sockets',
+      acadKicker:'DMF Academy — Dynamic Music Formula',
+      acadTag:'From idea to finished track',
+      acadTitle:'Learn to produce electronic music with a professional methodology',
+      acadSub:'A practical program designed to help you create, finish and improve real music — built from more than two decades of professional studio experience.',
+      acadBadge:'8 private classes · live on Zoom · 1-on-1',
+      acadWhoHead:'Who it’s for',
+      acadFormatHead:'Format',
+      acadFormatBody:'8 LIVE classes on Zoom, ~60–90 min each. Personalized 1-on-1 or small groups — in 1-on-1 the content adapts to your level, style, projects and goals. Practical from day one: we work on real music, find the problems and apply the solutions.',
+      acadCurriHead:'The curriculum',
+      acadBonusHead:'Bonus · Free mastering',
+      acadBonusBody:'Tracks you finish during the course can receive free mastering — so the process ends with music ready to present or release, not just a class.',
+      acadToolsHead:'Tools',
+      acadToolsBody:'Teaching doesn’t depend on a specific plugin collection — the focus is judgment and transferable skills. Common tools: Ableton Live, Loopcloud.',
+      acadBeforeH:'Before', acadAfterH:'After',
+      acadBefore:'You have ideas, loops or started projects, but you don’t know how to develop them, finish them or make them sound the way you want.',
+      acadAfter:'You understand structure, sound selection, bass, mixing, workflow and the creative process — and you have a method to take ideas to finished tracks.',
+      acadPriceLabel:'Program value', acadPriceNote:'Ask about payment options and schedule availability.',
+      acadAddon:'Add-on · How to reach labels — a focused session (~USD $80) on presenting your music and contacting labels: approach strategy and track presentation.',
+      acadClose:'This isn’t just another course. It’s a system to finish music.',
+      acadCta:'Book your spot',
+      demosTitle:'Course demos', demosSub:'Real lessons from the program — a look inside DMF Academy, module by module.',
+      tipsTitle:'Tips for DJs & producers', tipsSub:'Two decades of studio and booth experience, distilled into working principles — by Demian Muller.',
+      contactTitle:'Booking', contactSub:'Available worldwide for clubs, festivals and boutique events — as DJ or Live Act.',
+      phoneLabel:'Phone / WhatsApp',
+      footerRole:'© 2026 — Electronic Artist · DJ · Live Act'
+    },
+    es: {
+      navBio:'Bio', navReleases:'Lanzam.', navSets:'DJ Sets', navRider:'Rider', navContact:'Contacto',
+      navAcademy:'Academy', navDemos:'Demos', navTips:'Consejos',
+      role:'Artista Electrónico · DJ · Live Act',
+      scroll:'Desliza',
+      statYears:'Años de carrera', statTracks:'Tracks y remixes', statAwards:'Premios Beatport',
+      bioTitle:'Biografía',
+      bioA:'<p>Demian Muller es artista de música electrónica, DJ y live act, con una carrera internacional de más de 20 años.</p><p>Desde 2008 ha publicado más de 500 tracks y remixes en sellos como Cadenza, 8Bit, Get Physical Music, Circus Recordings, Sincopat, CR2 Records y Cluber. Su sonido se mueve entre house, tech house y minimal, con influencias del afro house y el organic house, centrado en el groove, la atmósfera y la funcionalidad de club.</p><p>Ganador tres veces del Beatport Remix Contest, ha colaborado en remixes con artistas como John Digweed, Yousef, Djuma Soundsystem, DJ Pierre y Proudly People, entre otros.</p>',
+      bioB:'<p>Se ha presentado en salas y festivales como Creamfields, Ultra Music Festival, Pacha, Privilege, MAD Club Lausanne, D! Club Lausanne, Club La Feria, Buddha-Bar y Festival Nómade, entre otros.</p><p>También ha compartido escenario con artistas como Carl Cox, Seth Troxler, The Martinez Brothers, Paul Kalkbrenner, Nicole Moudaber, Monolink, John Digweed y Damian Lazarus.</p><p>Demian se presenta tanto como DJ como en formato Live Act, con producciones originales y elementos vocales en vivo para clubes, festivales y eventos boutique.</p>',
+      flyBody:'Frontman de FLY O TECH — un proyecto que combina elementos electrónicos y orgánicos, alcanzando millones de reproducciones en plataformas digitales.',
+      bandLine:'DJ y Live Act — producciones originales y voces en vivo para clubes, festivales y eventos boutique en todo el mundo.',
+      relTitle:'Lanzamientos', relSub:'Lanzamientos y remixes seleccionados en los sellos que dieron forma a su catálogo. Reproduce un track de cada uno abajo.',
+      labelsTitle:'Los sellos', labelsSub:'Una selección de sellos asociados a los lanzamientos de Demian Muller y a los resultados de alumnos de DMF Academy.',
+      setsTitle:'DJ Sets',
+      platTitle:'Plataformas',
+      riderTitle:'Rider Técnico', riderDjHead:'DJ Set', riderLiveHead:'Live Act',
+      reqLabel:'Requerimientos', reqLabel2:'Requerimientos', hospLabel:'Hospitalidad', providedLabel:'Aporta Demian Muller',
+      liveReq1:'Espacio mínimo ≈ un CDJ al lado del setup del DJ', liveReq3:'Soporte de micrófono', liveReq5:'Enchufe en la cabina con al menos 5 tomas libres',
+      acadKicker:'DMF Academy — Dynamic Music Formula',
+      acadTag:'De la idea al track terminado',
+      acadTitle:'Aprende a producir música electrónica con una metodología profesional',
+      acadSub:'Un programa práctico diseñado para ayudarte a crear, terminar y mejorar música real — construido sobre más de dos décadas de experiencia profesional de estudio.',
+      acadBadge:'8 clases privadas · en vivo por Zoom · 1-a-1',
+      acadWhoHead:'Para quién es',
+      acadFormatHead:'Formato',
+      acadFormatBody:'8 clases LIVE por Zoom, de ~60–90 min cada una. Formato 1-a-1 personalizado o grupos reducidos — en 1-a-1 el contenido se adapta a tu nivel, estilo, proyectos y objetivos. Práctica desde el día uno: trabajamos sobre música real, identificamos los problemas y aplicamos las soluciones.',
+      acadCurriHead:'El programa de contenidos',
+      acadBonusHead:'Bonus · Mastering gratuito',
+      acadBonusBody:'Los tracks que termines durante el curso pueden recibir mastering gratuito — para que el proceso termine con música lista para presentar o lanzar, no solo con una clase.',
+      acadToolsHead:'Herramientas',
+      acadToolsBody:'La enseñanza no depende de una colección específica de plugins — el foco está en el criterio y las habilidades transferibles. Herramientas habituales: Ableton Live, Loopcloud.',
+      acadBeforeH:'Antes', acadAfterH:'Después',
+      acadBefore:'Tienes ideas, loops o proyectos empezados, pero no sabes cómo desarrollarlos, terminarlos o hacer que suenen como quieres.',
+      acadAfter:'Entiendes estructura, selección de sonidos, bajos, mezcla, workflow y proceso creativo — y tienes una metodología para llevar tus ideas a tracks terminados.',
+      acadPriceLabel:'Valor del programa', acadPriceNote:'Consulta por las formas de pago y disponibilidad de horarios.',
+      acadAddon:'Adicional · Cómo llegar a los labels — una sesión enfocada (~USD $80) sobre cómo presentar tu música y contactar sellos: estrategia de acercamiento y presentación de tracks.',
+      acadClose:'Esto no es un curso más. Es un sistema para terminar música.',
+      acadCta:'Reserva tu cupo',
+      demosTitle:'Demos del curso', demosSub:'Clases reales del programa — un vistazo dentro de DMF Academy, módulo por módulo.',
+      tipsTitle:'Consejos para DJs y productores', tipsSub:'Dos décadas de estudio y cabina destiladas en principios de trabajo — por Demian Muller.',
+      contactTitle:'Booking', contactSub:'Disponible en todo el mundo para clubes, festivales y eventos boutique — como DJ o Live Act.',
+      phoneLabel:'Teléfono / WhatsApp',
+      footerRole:'© 2026 — Artista Electrónico · DJ · Live Act'
+    }
+  };
+
+  function sc(u){return 'https://w.soundcloud.com/player/?url='+encodeURIComponent(u)+'&color=%23ff5b1e&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false';}
+
+  var releases = [
+    {label:'META POP',tag:'Remix',title:'John Digweed, Darren Emerson, Nick Muir — Fanfare (Demian Muller Remix)',embed:sc('https://soundcloud.com/demianmuller/john-digweed-darren-emerson-nick-muir-fanfare-demian-muller-remix')},
+    {label:'CADENZA',tag:'EP',title:'André Butano & Demian Muller',embed:sc('https://soundcloud.com/cadenzarecords/sets/andre-butano-demian-muller')},
+    {label:'GET PHYSICAL',tag:'Single',title:'Djuma Soundsystem & Demian Muller feat. Yoga Mamey',embed:sc('https://soundcloud.com/demianmuller/djuma-soundsystem-demian-muller-feat-yoga-mamey')},
+    {label:'8BIT',tag:'EP',title:'Demian Muller — Puma EP',embed:sc('https://soundcloud.com/8bit-records-mannheim/sets/demian-muller-puma-ep')},
+    {label:'CIRCUS RECORDINGS',tag:'Remix',title:'Demian Muller — Isolation (incl. DJ Pierre Remix)',embed:sc('https://soundcloud.com/circusrecordings/demian-muller-isolation-incl-dj-pierre-remix')},
+  ];
+
+  var sets = [
+    {embed:'https://www.youtube.com/embed/0OZDYTka6co',title:'Live Set — Misa, 25 Dic 2022',meta:'YouTube · Live'},
+    {embed:'https://www.youtube.com/embed/Jp2TUuyaBmk',title:'Demian Muller — Live Act',meta:'YouTube · Live Act'},
+    {embed:sc('https://soundcloud.com/demianmuller/live-dj-set-fonda-onaciu-18092021'),title:'Live DJ Set — Fonda Onaciu',meta:'SoundCloud · 18.09.2021'},
+  ];
+
+  var platforms = [
+    {name:'Beatport',handle:'/demian-muller',url:'https://www.beatport.com/es/artist/demian-muller/114924'},
+    {name:'Spotify',handle:'Demian Muller',url:'https://open.spotify.com/artist/1elzKNBiiP8qRl02oQECqC'},
+    {name:'SoundCloud',handle:'@demianmuller',url:'https://soundcloud.com/demianmuller'},
+    {name:'Instagram',handle:'@demian_muller_music',url:'https://www.instagram.com/demian_muller_music/'},
+  ];
+
+  var labels = [
+    {name:'8Bit Records',img:'assets/logos/8bit.png'},
+    {name:'Get Physical Music',img:'assets/logos/getphysical.png'},
+    {name:'Cadenza',img:'assets/logos/cadenza.png'},
+    {name:'Circus Recordings',img:'assets/logos/circus.png'},
+    {name:'CR2',img:'assets/logos/cr2.png'},
+    {name:'Happy Techno',img:'assets/logos/happytechno.png'},
+    {name:'Deeperfect',img:'assets/logos/deeperfect.png'},
+    {name:'Great Stuff',img:'assets/logos/greatstuff.png'},
+    {name:'Rawthentic',img:'assets/logos/rawthentic.png'},
+    {name:'Elated Music',img:'assets/logos/elated.png'},
+    {name:'Mindshake',img:'assets/logos/mindshake.png'},
+    {name:'Elrow Music',img:'assets/logos/elrow.png'},
+  ];
+
+  var modulesEn = [
+    {n:'01',t:'Track structure & development',d:'Turn a loop or idea into a finished song: structure, intro, break, build-up, drop, outro and energy development.'},
+    {n:'02',t:'Mixing & balance',d:'A cleaner, more powerful mix: element balance, kick/bass relationship, EQ, dynamics, space and frequencies.'},
+    {n:'03',t:'Sound Selection',d:'Choosing sounds that actually work in the track — kicks, bass, percussion, synths, textures and FX. Not thousands of samples: the right sound.'},
+    {n:'04',t:'Bass creation',d:'Building and choosing bass, the kick/bass relationship, groove and low frequencies for a solid foundation.'},
+    {n:'05',t:'Workflow & efficiency',d:'Organize your process to produce faster and decide better. Stop losing hours without progress.'},
+    {n:'06',t:'Producer Mindset',d:'Finish projects, beat perfectionism and build a results-oriented mindset.'},
+    {n:'07',t:'Music Market',d:'How the ecosystem works: labels, releases, presenting your music and career development.'},
+    {n:'08',t:'Mastering & final prep',d:'Mastering fundamentals and how to prepare a track before presenting or releasing it.'},
+  ];
+  var modulesEs = [
+    {n:'01',t:'Estructura y desarrollo de un track',d:'Convierte un loop o una idea en una canción completa: estructura, intro, break, build-up, drop, outro y desarrollo de energía.'},
+    {n:'02',t:'Mixing y balance',d:'Una mezcla más limpia y potente: balance de elementos, relación kick/bass, EQ, dinámica, espacio y frecuencias.'},
+    {n:'03',t:'Sound Selection',d:'Elegir sonidos que funcionen dentro del track — kicks, bajos, percusión, synths, texturas y FX. No miles de samples: el sonido correcto.'},
+    {n:'04',t:'Creación de bajos',d:'Construcción y selección de bajos, relación kick/bass, groove y frecuencias bajas para una base sólida.'},
+    {n:'05',t:'Workflow y eficiencia',d:'Organiza tu proceso para producir más rápido y decidir mejor. Deja de perder horas sin avanzar.'},
+    {n:'06',t:'Producer Mindset',d:'Terminar proyectos, combatir el perfeccionismo y desarrollar una mentalidad orientada a resultados.'},
+    {n:'07',t:'Music Market',d:'Cómo funciona el ecosistema: sellos, lanzamientos, presentación de música y desarrollo de carrera.'},
+    {n:'08',t:'Mastering y preparación final',d:'Conceptos básicos de mastering y cómo preparar un track antes de presentarlo o lanzarlo.'},
+  ];
+
+  var audienceEn = [
+    {t:'Beginners',d:'You want to start producing and need a clear method so you don’t get lost between software, plugins and samples.'},
+    {t:'Intermediate',d:'You already produce but struggle to finish tracks, get a professional sound or develop your ideas.'},
+    {t:'Advanced',d:'You want professional feedback, better workflow and mixing, sonic identity and market understanding.'},
+  ];
+  var audienceEs = [
+    {t:'Principiantes',d:'Quieres empezar a producir y necesitas una metodología clara para no perderte entre software, plugins y samples.'},
+    {t:'Intermedios',d:'Ya produces pero te cuesta terminar tracks, conseguir un sonido profesional o desarrollar tus ideas.'},
+    {t:'Avanzados',d:'Buscas feedback profesional, mejorar workflow y mezcla, tu identidad sonora y entender el mercado.'},
+  ];
+
+  var tipsEn = [
+    {g:'I',h:'Technical fundamentals',items:[
+      {t:'Know your music deeply',d:'Listen to your tracks and others’ in different settings (headphones, monitors, car). Learn the breaks, drops and energy so you mix with intent.'},
+      {t:'Organize your library',d:'Folders, color tags and comments in your software. Sort by energy, genre or set moment (warm-up, peak, closing).'},
+      {t:'Master the EQ',d:'Cut clashing frequencies (two basses together) and balance mids/highs for smoother transitions.'},
+      {t:'Don’t overload on effects',d:'Effects are tools, not crutches. A delay or reverb at the right moment is magic; in excess it tires the listener.'},
+      {t:'Record your practice',d:'Record your sessions and review them critically. Fix beatmatching, EQ and transitions — it trains you more than any tutorial.'},
+    ]},
+    {g:'II',h:'Production & differentiation',items:[
+      {t:'Learn production to stand out',d:'Your own tracks or edits set you apart. Start with remixes or mashups. Ableton, FL Studio or Logic are good options.'},
+      {t:'VST tips',d:'Essential plugins: Serum, Massive, Kontakt, Ozone. Explore and choose for your style and needs.'},
+      {t:'Edit, Remix & Rework',d:'Rework: changes that boost the original. Edit: light tweaks. Remix: creative reinterpretation with notable structure and sound changes.'},
+      {t:'Production vs. DJing',d:'Production is studio creation; DJing is live performance. Many artists combine both.'},
+    ]},
+    {g:'III',h:'Professional growth',items:[
+      {t:'Invest in yourself, not just gear',d:'Courses, mentoring or playing small bars pay off far more long-term than falling into the tech trap.'},
+      {t:'Seeking guidance matters',d:'Even the greats have teams behind them. Asking for help isn’t a mistake — music is collaborative.'},
+      {t:'Genuine networking',d:'Collaborate, share, support. Real opportunities come from genuine relationships, not persistence.'},
+    ]},
+    {g:'IV',h:'Philosophy & mindset',items:[
+      {t:'Connect with the floor, not your ego',d:'Read the crowd. Sometimes your favorite track isn’t what the floor needs. Adapt.'},
+      {t:'Discipline',d:'Success doesn’t come from the party alone. Practice, keep a routine and commit to your growth.'},
+      {t:'Chase your dreams',d:'Being an artist is hard and criticism will come, but keep doing what you love. Your moment will arrive.'},
+      {t:'Move away from the 90%',d:'Don’t do what everyone does. Find your voice, blend elements and be authentic. Originality stands out.'},
+      {t:'Find your sound',d:'Trends pass. Stay true to your style and work your sound — you’ll stand out when least expected.'},
+      {t:'Music unites, not divides',d:'Enough criticizing other styles. Diversity is richness; every genre has value when done well.'},
+      {t:'Life is like a song',d:'Accept the ups and downs as part of the path. Every beat brings an opportunity. Keep dancing.'},
+    ]},
+  ];
+  var tipsEs = [
+    {g:'I',h:'Fundamentos técnicos',items:[
+      {t:'Conoce tu música a fondo',d:'Escucha tus tracks y los de otros en distintos entornos (audífonos, monitores, auto). Reconoce breaks, drops y energía para mezclar con intención.'},
+      {t:'Organiza tu biblioteca',d:'Carpetas, etiquetas de color y comentarios en tu software. Clasifica por energía, género o momento del set (warm-up, peak, cierre).'},
+      {t:'Domina el EQ',d:'Baja frecuencias que se chocan (dos bajos juntos) y equilibra medios/agudos para transiciones más suaves.'},
+      {t:'No sobrecargues de efectos',d:'Los efectos son herramientas, no muletas. Un delay o reverb en el momento justo es mágico; en exceso, fatiga.'},
+      {t:'Haz prácticas grabadas',d:'Graba tus sesiones y escúchalas con ojo crítico. Corrige beatmatching, EQ y transiciones. Entrena más que cualquier tutorial.'},
+    ]},
+    {g:'II',h:'Producción y diferenciación',items:[
+      {t:'Aprende producción para destacar',d:'Tus propios tracks o edits te diferencian. Empieza con remixes o mashups. Ableton, FL Studio o Logic son buenas opciones.'},
+      {t:'Tips VST',d:'Plugins esenciales: Serum, Massive, Kontakt, Ozone. Explora y elige según tu estilo y necesidades.'},
+      {t:'Edit, Remix y Rework',d:'Rework: ajustes que potencian lo original. Edit: cambios leves. Remix: reinterpretación con cambios notorios de estructura y sonido.'},
+      {t:'Producción vs. DJing',d:'Producción es creación en estudio; DJing es interpretación en vivo. Muchos artistas combinan ambas.'},
+    ]},
+    {g:'III',h:'Desarrollo profesional',items:[
+      {t:'Invierte en ti, no solo en equipo',d:'Cursos, mentorías o tocar en bares pequeños valen mucho más a largo plazo que caer en la trampa de la tecnología.'},
+      {t:'Buscar asesoría es clave',d:'Los grandes también tienen equipos detrás. Pedir ayuda no es un error: la música es colaborativa.'},
+      {t:'Networking genuino',d:'Colabora, comparte, apoya. Las oportunidades nacen de relaciones reales, no de la insistencia.'},
+    ]},
+    {g:'IV',h:'Filosofía y mentalidad',items:[
+      {t:'Conecta con la pista, no con tu ego',d:'Lee al público. A veces tu track favorito no es lo que la pista necesita. Adáptate.'},
+      {t:'La disciplina',d:'El éxito no viene solo de la fiesta. Practica, mantén rutina y comprómetete con tu crecimiento.'},
+      {t:'Persigue tus sueños',d:'Ser artista es duro y las críticas llegarán, pero sigue haciendo lo que amas. Tu momento llegará.'},
+      {t:'Aléjate del 90%',d:'No hagas lo que hacen todos. Encuentra tu voz, mezcla elementos y sé auténtico. La originalidad destaca.'},
+      {t:'Encuentra tu sonido',d:'Las modas pasan. Fiel a tu estilo y trabajando tu sonido, destacarás cuando menos lo esperes.'},
+      {t:'La música une, no divide',d:'Basta de criticar otros estilos. La diversidad es riqueza; todo género tiene valor si está bien hecho.'},
+      {t:'La vida es como una canción',d:'Acepta los altibajos como parte del camino. Cada beat trae una oportunidad. Sigue bailando.'},
+    ]},
+  ];
+
+  var demosEn = [
+    {h:'Module 1 · Ableton intro',items:[
+      {t:'1 · Intro Ableton — Part 1',src:'assets/videos/intro-ableton-p1.mp4'},
+      {t:'2 · Intro Ableton — Part 2',src:'assets/videos/intro-ableton-p2.mp4'},
+    ]},
+    {h:'Module 2 · Track foundation',items:[
+      {t:'2.1 · Kick, Snare & Hi-Hat',src:'assets/videos/kick-snare-hihat.mp4'},
+      {t:'2.2 · Structure',src:'assets/videos/estructura.mp4'},
+      {t:'2.3 · Bass line',src:'assets/videos/bass-line.mp4'},
+      {t:'2.4 · Loopcloud — Intro',src:'assets/videos/loopcloud-intro.mp4'},
+    ]},
+    {h:'Module 3 · Sound design & mixing',items:[
+      {t:'3.1 · Top Loops',src:'assets/videos/top-loops.mp4'},
+      {t:'3.2 · Synths & Categories',src:'assets/videos/synths-categorias.mp4'},
+      {t:'3.3 · Percussion',src:'assets/videos/percusion.mp4'},
+      {t:'3.4 · Shakers & Hi-hat open',src:'assets/videos/shakers-hihat.mp4'},
+      {t:'3.5 · Edit & mix',src:'assets/videos/edit-mix.mp4'},
+      {t:'3.6 · Vocals',src:'assets/videos/vocales.mp4'},
+      {t:'3.7 · Compression & dynamic range',src:'assets/videos/compression.mp4'},
+    ]},
+  ];
+  var demosEs = [
+    {h:'Módulo 1 · Intro a Ableton',items:demosEn[0].items.map(function(x,i){return{t:['1 · Intro Ableton — Parte 1','2 · Intro Ableton — Parte 2'][i],src:x.src};})},
+    {h:'Módulo 2 · Base del track',items:[
+      {t:'2.1 · Kick, Snare & Hi-Hat',src:demosEn[1].items[0].src},
+      {t:'2.2 · Estructura',src:demosEn[1].items[1].src},
+      {t:'2.3 · Bass line',src:demosEn[1].items[2].src},
+      {t:'2.4 · Loopcloud — Intro',src:demosEn[1].items[3].src},
+    ]},
+    {h:'Módulo 3 · Sound design & mezcla',items:[
+      {t:'3.1 · Top Loops',src:demosEn[2].items[0].src},
+      {t:'3.2 · Synths y Categorías',src:demosEn[2].items[1].src},
+      {t:'3.3 · Percusión',src:demosEn[2].items[2].src},
+      {t:'3.4 · Shakers & Hi-hat open',src:demosEn[2].items[3].src},
+      {t:'3.5 · Edit & mix',src:demosEn[2].items[4].src},
+      {t:'3.6 · Vocales',src:demosEn[2].items[5].src},
+      {t:'3.7 · Compresión y rango dinámico',src:demosEn[2].items[6].src},
+    ]},
+  ];
+
+  function renderReleases(){
+    var g=document.getElementById('releasesGrid');
+    g.innerHTML=releases.map(function(r){
+      return '<div class="release-card"><div class="release-head"><span class="release-label">'+r.label+'</span><span class="release-tag">'+r.tag+'</span></div><div class="release-title">'+r.title+'</div><div class="release-embed"><iframe src="'+r.embed+'" scrolling="no" allow="autoplay" loading="lazy"></iframe></div></div>';
+    }).join('');
+  }
+
+  function renderLabels(){
+    var g=document.getElementById('labelsGrid');
+    g.innerHTML=labels.map(function(l){
+      return '<div class="label-item"><div class="label-img"><img src="'+l.img+'" alt="'+l.name+'" loading="lazy"></div><span class="label-name">'+l.name+'</span></div>';
+    }).join('');
+  }
+
+  function renderSets(){
+    var g=document.getElementById('setsGrid');
+    g.innerHTML=sets.map(function(s){
+      return '<div class="set-card"><iframe src="'+s.embed+'" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe><div class="set-info"><div class="set-title">'+s.title+'</div><div class="set-meta">'+s.meta+'</div></div></div>';
+    }).join('');
+  }
+
+  function renderPlatforms(){
+    var g=document.getElementById('platLinks');
+    g.innerHTML=platforms.map(function(p){
+      return '<a href="'+p.url+'" target="_blank" rel="noopener" class="plat-link"><span class="plat-link-name">'+p.name+'</span><span class="plat-link-handle">'+p.handle+' ↗</span></a>';
+    }).join('');
+  }
+
+  function renderModules(){
+    var mods = lang==='es' ? modulesEs : modulesEn;
+    var g=document.getElementById('modulesGrid');
+    g.innerHTML=mods.map(function(m){
+      return '<div class="module-card"><div class="module-num">'+m.n+'</div><div class="module-title">'+m.t+'</div><p class="module-desc">'+m.d+'</p></div>';
+    }).join('');
+  }
+
+  function renderAudience(){
+    var aud = lang==='es' ? audienceEs : audienceEn;
+    var g=document.getElementById('audienceList');
+    g.innerHTML=aud.map(function(a){
+      return '<div class="acad-audience-item"><span class="acad-audience-dot"></span><div><span>'+a.t+'</span><span class="desc"> — '+a.d+'</span></div></div>';
+    }).join('');
+  }
+
+  function renderTips(){
+    var t = lang==='es' ? tipsEs : tipsEn;
+    var g=document.getElementById('tipsGrid');
+    g.innerHTML=t.map(function(grp){
+      return '<div><div class="tip-group-head"><span class="tip-group-num">'+grp.g+'</span><span class="tip-group-name">'+grp.h+'</span></div><div class="tip-items">'+grp.items.map(function(tip){
+        return '<div><div class="tip-title">'+tip.t+'</div><p class="tip-desc">'+tip.d+'</p></div>';
+      }).join('')+'</div></div>';
+    }).join('');
+  }
+
+  function renderDemos(){
+    var d = lang==='es' ? demosEs : demosEn;
+    var g=document.getElementById('demosGroups');
+    g.innerHTML=d.map(function(grp){
+      return '<div><div class="demo-group-title">'+grp.h+'</div><div class="demo-grid">'+grp.items.map(function(v){
+        return '<div class="demo-card"><video src="'+v.src+'" controls preload="metadata" playsinline></video><div class="demo-card-title">'+v.t+'</div></div>';
+      }).join('')+'</div></div>';
+    }).join('');
+  }
+
+  function applyLang(){
+    var d=dict[lang];
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var key=el.getAttribute('data-i18n');
+      if(d[key]!==undefined) el.textContent=d[key];
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(function(el){
+      var key=el.getAttribute('data-i18n-html');
+      if(d[key]!==undefined) el.innerHTML=d[key];
+    });
+    document.getElementById('langBtn').textContent = lang==='en'?'ES':'EN';
+    document.documentElement.lang = lang;
+    renderModules();
+    renderAudience();
+    renderTips();
+    renderDemos();
+  }
+
+  window.toggleLang = function(){
+    lang = lang==='en'?'es':'en';
+    applyLang();
+  };
+
+  window.toggleMenu = function(){
+    document.getElementById('navLinks').classList.toggle('open');
+  };
+
+  document.querySelectorAll('#navLinks a').forEach(function(a){
+    a.addEventListener('click',function(){
+      document.getElementById('navLinks').classList.remove('open');
+    });
+  });
+
+  // SMOKE
+  (function(){
+    var cv=document.getElementById('smoke-canvas');
+    if(!cv) return;
+    var ctx=cv.getContext('2d');
+    var W,H,dpr,raf;
+    function resize(){
+      dpr=Math.min(window.devicePixelRatio||1,2);
+      W=cv.clientWidth;H=cv.clientHeight;
+      cv.width=W*dpr;cv.height=H*dpr;
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+    }
+    resize();
+    window.addEventListener('resize',resize);
+    var rnd=function(a,b){return a+Math.random()*(b-a);};
+    var tint=[[255,91,30],[120,70,40],[70,70,80]];
+    function spawn(respawn){
+      return{x:rnd(0,W),y:respawn?H+rnd(0,120):rnd(0,H),vx:rnd(-.25,.25),vy:rnd(-.55,-.18),r:rnd(90,260),ba:rnd(.03,.10),life:0,ml:rnd(320,620),seed:rnd(0,1000),ti:Math.random()<.5?0:(Math.random()<.5?1:2)};
+    }
+    var parts=[];for(var i=0;i<34;i++)parts.push(spawn(false));
+    function frame(){
+      ctx.clearRect(0,0,W,H);
+      ctx.globalCompositeOperation='lighter';
+      for(var j=0;j<parts.length;j++){
+        var p=parts[j];
+        p.x+=p.vx+Math.sin((p.y+p.seed)*.006)*.35;
+        p.y+=p.vy;p.life++;
+        var t=p.life/p.ml;
+        var alpha=Math.sin(Math.min(t,1)*Math.PI)*p.ba;
+        var r=p.r*(.6+t*.9);
+        var c=tint[p.ti];
+        var g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r);
+        g.addColorStop(0,'rgba('+c[0]+','+c[1]+','+c[2]+','+alpha+')');
+        g.addColorStop(1,'rgba('+c[0]+','+c[1]+','+c[2]+',0)');
+        ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();
+        if(p.life>=p.ml||p.y<-r||p.x<-r||p.x>W+r) parts[j]=spawn(true);
+      }
+      raf=requestAnimationFrame(frame);
+    }
+    frame();
+  })();
+
+  // Init
+  renderReleases();
+  renderLabels();
+  renderSets();
+  renderPlatforms();
+  renderModules();
+  renderAudience();
+  renderTips();
+  renderDemos();
+})();
+</script>
+</body>
+</html>
