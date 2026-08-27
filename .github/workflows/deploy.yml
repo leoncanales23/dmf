@@ -1,0 +1,96 @@
+name: Deploy DMF Landing to Firebase
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Extract ZIP and organize files
+        run: |
+          rm -rf public extracted
+          mkdir -p public
+          unzip -o "Diseño landing y colores.zip" -d extracted/
+          mv extracted/*.html public/index.html
+          mv extracted/*.js public/
+          mv extracted/logos public/
+          mv extracted/pdf-images public/
+          mv extracted/uploads public/
+          rm -f public/.thumbnail public/.DS_Store 2>/dev/null || true
+          rm -f public/uploads/_.DS_Store public/uploads/"_ (1).DS_Store" 2>/dev/null || true
+          rm -rf extracted
+          echo "📁 Files extracted:"
+          ls -la public/
+
+      - name: Create firebase.json
+        run: |
+          cat > firebase.json << 'EOF'
+          {
+            "hosting": {
+              "site": "dmf-vibraalto",
+              "public": "public",
+              "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**"
+              ],
+              "rewrites": [
+                {
+                  "source": "**",
+                  "destination": "/index.html"
+                }
+              ],
+              "headers": [
+                {
+                  "source": "**/*.@(js|css|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot|pdf|mp4|webm)",
+                  "headers": [
+                    {
+                      "key": "Cache-Control",
+                      "value": "public, max-age=31536000, immutable"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+          EOF
+
+      - name: Create .firebaserc
+        run: |
+          cat > .firebaserc << 'EOF'
+          {
+            "projects": {
+              "default": "vibraaltoai-11f55"
+            }
+          }
+          EOF
+
+      - name: Commit extracted files to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/ firebase.json .firebaserc
+          git diff --cached --quiet || git commit -m "🤖 Auto-extract ZIP and update files [skip ci]"
+          git push origin main
+
+      - name: Deploy to Firebase Hosting
+        run: firebase deploy --only hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
