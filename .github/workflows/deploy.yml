@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -23,6 +25,7 @@ jobs:
 
       - name: Extract ZIP and organize files
         run: |
+          rm -rf public extracted
           mkdir -p public
           unzip -o "Diseño landing y colores.zip" -d extracted/
           mv extracted/*.html public/index.html
@@ -32,8 +35,9 @@ jobs:
           mv extracted/uploads public/
           rm -f public/.thumbnail public/.DS_Store 2>/dev/null || true
           rm -f public/uploads/_.DS_Store public/uploads/"_ (1).DS_Store" 2>/dev/null || true
-          echo "📁 Files ready:"
-          ls public/
+          rm -rf extracted
+          echo "📁 Files extracted:"
+          ls -la public/
 
       - name: Create firebase.json
         run: |
@@ -77,6 +81,14 @@ jobs:
             }
           }
           EOF
+
+      - name: Commit extracted files to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/ firebase.json .firebaserc
+          git diff --cached --quiet || git commit -m "🤖 Auto-extract ZIP and update files [skip ci]"
+          git push origin main
 
       - name: Deploy to Firebase Hosting
         run: firebase deploy --only hosting
