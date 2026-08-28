@@ -157,7 +157,67 @@ ul{list-style:none}
 .acad-ba-before p{font-size:15px;line-height:1.65;color:#8a8178}
 .acad-ba-after .acad-ba-label{color:#ff5b1e}
 .acad-ba-after p{font-size:15px;line-height:1.65;color:#f2ede6}
-.acad-price-card{border:1px solid rgba(242,237,230,.14);background:rgba(255,255,255,.02)}
+
+/* FREE MASTERCLASS BANNER */
+.acad-funnel{margin-bottom:clamp(44px,6vw,72px);padding:clamp(28px,4vw,48px);border:2px solid #ff5b1e;background:linear-gradient(135deg,rgba(255,91,30,.12),rgba(255,91,30,.03));text-align:center}
+.acad-funnel-tag{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#ff5b1e;margin-bottom:10px}
+.acad-funnel h3{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(26px,4vw,48px);text-transform:uppercase;color:#f2ede6;margin-bottom:14px;line-height:1.05}
+.acad-funnel p{max-width:600px;margin:0 auto 24px;color:#d8d0c6;font-size:clamp(14px,1.2vw,17px);line-height:1.65}
+.acad-cta-free{display:inline-flex;align-items:center;gap:12px;padding:16px 32px;background:#ff5b1e;color:#0a0806;font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.08em;text-transform:uppercase;transition:background .2s,transform .2s}
+.acad-cta-free:hover{background:#ff7a45;color:#0a0806;transform:translateY(-2px)}
+
+/* SOCIAL PROOF */
+.acad-proof{margin-bottom:clamp(44px,6vw,72px)}
+.acad-proof-head{font-family:'Anton',sans-serif;font-size:clamp(18px,2vw,26px);text-transform:uppercase;color:#f2ede6;letter-spacing:.03em;margin-bottom:24px}
+.acad-proof-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.acad-proof-card{padding:24px;border:1px solid rgba(242,237,230,.14);background:rgba(255,255,255,.02)}
+.acad-proof-stars{color:#ff5b1e;font-size:16px;letter-spacing:2px;margin-bottom:10px}
+.acad-proof-quote{font-size:15px;line-height:1.65;color:#d8d0c6;font-style:italic;margin-bottom:14px}
+.acad-proof-name{font-size:13px;font-weight:700;color:#f2ede6}
+.acad-proof-role{font-size:12px;color:#8a8178}
+.acad-proof-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-top:24px}
+.acad-proof-stat{text-align:center;padding:18px;border:1px solid rgba(255,91,30,.3);background:rgba(255,91,30,.04)}
+.acad-proof-stat-num{font-family:'Anton',sans-serif;font-size:clamp(28px,4vw,42px);color:#ff5b1e;line-height:1}
+.acad-proof-stat-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a8178;margin-top:6px}
+
+/* TIER PRICING */
+.tiers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:clamp(32px,4vw,48px)}
+.tier-card{border:1px solid rgba(242,237,230,.14);background:rgba(255,255,255,.02);display:flex;flex-direction:column;transition:border-color .3s,transform .3s}
+.tier-card:hover{border-color:rgba(255,91,30,.4);transform:translateY(-4px)}
+.tier-card.tier-featured{border-color:#ff5b1e;position:relative}
+.tier-featured-tag{position:absolute;top:0;left:50%;transform:translate(-50%,-50%);background:#ff5b1e;color:#0a0806;font-family:'Anton',sans-serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:6px 18px;white-space:nowrap}
+.tier-head{padding:clamp(24px,3vw,32px) clamp(20px,3vw,28px) 18px;text-align:center;border-bottom:1px solid rgba(242,237,230,.08)}
+.tier-name{font-family:'Anton',sans-serif;font-size:22px;text-transform:uppercase;letter-spacing:.06em;color:#f2ede6;margin-bottom:8px}
+.tier-tagline{font-size:13px;color:#8a8178;margin-bottom:16px}
+.tier-price{font-family:'Anton',sans-serif;font-size:clamp(40px,6vw,56px);color:#ff5b1e;line-height:.95}
+.tier-price span{font-size:.35em;color:#8a8178;letter-spacing:.04em}
+.tier-period{font-size:12px;color:#8a8178;margin-top:6px}
+.tier-body{padding:clamp(20px,3vw,28px);flex:1;display:flex;flex-direction:column}
+.tier-features{display:flex;flex-direction:column;gap:12px;margin-bottom:24px;flex:1}
+.tier-feat{font-size:14px;color:#d8d0c6;padding-left:22px;position:relative;line-height:1.5}
+.tier-feat::before{content:'';position:absolute;left:0;top:7px;width:10px;height:10px;border:2px solid #ff5b1e;border-radius:50%}
+.tier-feat.checked::before{background:#ff5b1e}
+.tier-cta{display:block;text-align:center;padding:16px;background:transparent;border:1px solid #ff5b1e;color:#ff5b1e;font-family:'Anton',sans-serif;font-size:14px;letter-spacing:.1em;text-transform:uppercase;transition:background .2s,color .2s}
+.tier-cta:hover{background:#ff5b1e;color:#0a0806}
+.tier-card.tier-featured .tier-cta{background:#ff5b1e;color:#0a0806}
+.tier-card.tier-featured .tier-cta:hover{background:#ff7a45;color:#0a0806}
+
+/* GUARANTEE */
+.acad-guarantee{display:flex;align-items:center;gap:clamp(16px,2vw,28px);padding:clamp(20px,3vw,32px);border:1px solid rgba(255,91,30,.3);background:rgba(255,91,30,.04);margin-bottom:clamp(32px,4vw,48px)}
+.acad-guarantee-icon{flex:none;width:56px;height:56px;border:2px solid #ff5b1e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Anton',sans-serif;font-size:18px;color:#ff5b1e;line-height:1;text-align:center}
+.acad-guarantee-text h4{font-family:'Anton',sans-serif;font-size:clamp(16px,1.6vw,20px);text-transform:uppercase;color:#f2ede6;letter-spacing:.04em;margin-bottom:6px}
+.acad-guarantee-text p{font-size:14px;line-height:1.6;color:#d8d0c6}
+
+/* URGENCY */
+.acad-urgency{text-align:center;margin-bottom:clamp(32px,4vw,48px)}
+.acad-urgency-badge{display:inline-flex;align-items:center;gap:10px;padding:12px 24px;border:1px solid rgba(255,91,30,.6);background:rgba(255,91,30,.08);animation:urgencyPulse 2s ease-in-out infinite}
+.acad-urgency-dot{width:8px;height:8px;border-radius:50%;background:#ff5b1e;animation:urgencyBlink 1.4s ease-in-out infinite}
+.acad-urgency-text{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#ffb599}
+@keyframes urgencyPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,91,30,.2)}50%{box-shadow:0 0 20px 4px rgba(255,91,30,.15)}}
+@keyframes urgencyBlink{0%,100%{opacity:1}50%{opacity:.3}}
+
+.acad-addon{margin:0 0 22px;padding:18px 20px;border-left:2px solid #ff5b1e;background:rgba(255,91,30,.05);font-size:14px;line-height:1.6;color:#d8d0c6}
+.acad-close{border:1px solid rgba(242,237,230,.14);background:rgba(255,255,255,.02)}
 .acad-price-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:22px clamp(20px,3vw,32px);border-bottom:1px solid rgba(242,237,230,.1)}
 .acad-price-head span:first-child{font-size:18px;font-weight:700;color:#f2ede6}
 .acad-price-badge{font-family:'Anton',sans-serif;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#ff5b1e;border:1px solid rgba(255,91,30,.5);padding:6px 12px}
@@ -461,22 +521,47 @@ ul{list-style:none}
     </div>
   </div>
 
-  <div class="acad-price-card">
-    <div class="acad-price-head">
-      <span>DMF Academy · 8 Private 1-on-1 Classes</span>
-      <span class="acad-price-badge">Flagship Program</span>
-    </div>
-    <div class="acad-price-body">
-      <div class="acad-price-label" data-i18n="acadPriceLabel">Program value</div>
-      <div class="acad-price-value">$400.000 <span>CLP</span></div>
-      <p class="acad-price-note" data-i18n="acadPriceNote">Ask about payment options and schedule availability.</p>
+  <!-- FREE MASTERCLASS FUNNEL -->
+  <div class="acad-funnel">
+    <div class="acad-funnel-tag" data-i18n="funnelTag">Free access</div>
+    <h3 data-i18n="funnelTitle">Free masterclass: 5 mistakes that keep you from finishing tracks</h3>
+    <p data-i18n="funnelSub">A 45-minute live session where Demian breaks down the most common blocks producers face — and how to fix them. No cost, no commitment.</p>
+    <a href="mailto:Demian.muller@gmail.com?subject=Free%20Masterclass%20DMF" class="acad-cta-free"><span data-i18n="funnelCta">Reserve your free spot</span> &rarr;</a>
+  </div>
+
+  <!-- SOCIAL PROOF -->
+  <div class="acad-proof">
+    <div class="acad-proof-head" data-i18n="proofHead">What students say</div>
+    <div class="acad-proof-grid" id="proofGrid"></div>
+    <div class="acad-proof-stats" id="proofStats"></div>
+  </div>
+
+  <!-- TIER PRICING -->
+  <div class="acad-curri-head" data-i18n="tiersHead">Choose your path</div>
+  <div class="tiers-grid" id="tiersGrid"></div>
+
+  <!-- GUARANTEE -->
+  <div class="acad-guarantee">
+    <div class="acad-guarantee-icon">30</div>
+    <div class="acad-guarantee-text">
+      <h4 data-i18n="guaranteeHead">30-day money-back guarantee</h4>
+      <p data-i18n="guaranteeBody">If you don’t see real progress in your first 30 days, we’ll refund 100% of your investment. No questions asked.</p>
     </div>
   </div>
+
+  <!-- URGENCY -->
+  <div class="acad-urgency">
+    <div class="acad-urgency-badge">
+      <span class="acad-urgency-dot"></span>
+      <span class="acad-urgency-text" data-i18n="urgencyText">Limited spots — only 8 students per month</span>
+    </div>
+  </div>
+
   <p class="acad-addon" data-i18n="acadAddon">Add-on · How to reach labels — a focused session (~USD $80) on presenting your music and contacting labels: approach strategy and track presentation.</p>
 
   <div class="acad-close">
-    <p data-i18n="acadClose">This isn't just another course. It's a system to finish music.</p>
-    <a href="mailto:Demian.muller@gmail.com?subject=DMF%20Academy" class="acad-cta"><span data-i18n="acadCta">Book your spot</span> &rarr;</a>
+    <p data-i18n="acadClose">Stop dreaming about releases. Start finishing tracks.</p>
+    <a href="mailto:Demian.muller@gmail.com?subject=DMF%20Academy" class="acad-cta"><span data-i18n="acadCta">Start now</span> &rarr;</a>
   </div>
 </section>
 
@@ -573,10 +658,44 @@ ul{list-style:none}
       acadBeforeH:'Before', acadAfterH:'After',
       acadBefore:'You have ideas, loops or started projects, but you don’t know how to develop them, finish them or make them sound the way you want.',
       acadAfter:'You understand structure, sound selection, bass, mixing, workflow and the creative process — and you have a method to take ideas to finished tracks.',
-      acadPriceLabel:'Program value', acadPriceNote:'Ask about payment options and schedule availability.',
+      funnelTag:'Free access',
+      funnelTitle:'Free masterclass: 5 mistakes that keep you from finishing tracks',
+      funnelSub:'A 45-minute live session where Demian breaks down the most common blocks producers face \u2014 and how to fix them. No cost, no commitment.',
+      funnelCta:'Reserve your free spot',
+      proofHead:'What students say',
+      proofQuote1:'\u201cI went from accumulating 50+ unfinished projects to releasing on Beatport in 3 months.\u201d',
+      proofName1:'Carlos M.', proofRole1:'DMF Academy Graduate \u00b7 Chile',
+      proofQuote2:'\u201cThe methodology changed everything. It\u2019s not about plugins \u2014 it\u2019s about understanding music.\u201d',
+      proofName2:'Mat\u00edas R.', proofRole2:'DMF Academy Graduate \u00b7 Argentina',
+      proofQuote3:'\u201cDemian doesn\u2019t just teach technique \u2014 he teaches you how to think like a producer.\u201d',
+      proofName3:'Valentina S.', proofRole3:'DMF Academy Graduate \u00b7 Spain',
+      proofStat1Num:'120+', proofStat1Label:'Students trained',
+      proofStat2Num:'85%', proofStat2Label:'Finish their first release',
+      proofStat3Num:'15+', proofStat3Label:'Labels reached by students',
+      tiersHead:'Choose your path',
+      tierStarterName:'Starter', tierStarterTag:'Self-paced foundation',
+      tierStarterPrice:'$247', tierStarterPeriod:'USD \u00b7 one-time',
+      tierStarterF1:'4 recorded core modules', tierStarterF2:'Private community access',
+      tierStarterF3:'Downloadable templates & presets', tierStarterF4:'Email support',
+      tierStarterCta:'Get started',
+      tierProName:'Pro', tierProTag:'Most popular \u00b7 mentored',
+      tierProPrice:'$497', tierProPeriod:'USD \u00b7 one-time',
+      tierProF1:'8 live 1-on-1 classes on Zoom', tierProF2:'Personalized feedback on your tracks',
+      tierProF3:'Free mastering for finished tracks', tierProF4:'Direct WhatsApp access to Demian',
+      tierProF5:'How to reach labels session included',
+      tierProCta:'Enroll now',
+      tierEliteName:'Elite', tierEliteTag:'Full immersion',
+      tierElitePrice:'$997', tierElitePeriod:'USD \u00b7 one-time',
+      tierEliteF1:'Everything in Pro', tierEliteF2:'12 extended sessions (90 min each)',
+      tierEliteF3:'Co-production: finish a release-ready EP', tierEliteF4:'Label pitch strategy & submission',
+      tierEliteF5:'6-month post-course mentoring', tierEliteF6:'Priority lifetime community access',
+      tierEliteCta:'Apply for Elite',
+      guaranteeHead:'30-day money-back guarantee',
+      guaranteeBody:'If you don\u2019t see real progress in your first 30 days, we\u2019ll refund 100% of your investment. No questions asked.',
+      urgencyText:'Limited spots \u2014 only 8 students per month',
       acadAddon:'Add-on · How to reach labels — a focused session (~USD $80) on presenting your music and contacting labels: approach strategy and track presentation.',
-      acadClose:'This isn’t just another course. It’s a system to finish music.',
-      acadCta:'Book your spot',
+      acadClose:'Stop dreaming about releases. Start finishing tracks.',
+      acadCta:'Start now',
       demosTitle:'Course demos', demosSub:'Real lessons from the program — a look inside DMF Academy, module by module.',
       tipsTitle:'Tips for DJs & producers', tipsSub:'Two decades of studio and booth experience, distilled into working principles — by Demian Muller.',
       contactTitle:'Booking', contactSub:'Available worldwide for clubs, festivals and boutique events — as DJ or Live Act.',
@@ -617,10 +736,44 @@ ul{list-style:none}
       acadBeforeH:'Antes', acadAfterH:'Después',
       acadBefore:'Tienes ideas, loops o proyectos empezados, pero no sabes cómo desarrollarlos, terminarlos o hacer que suenen como quieres.',
       acadAfter:'Entiendes estructura, selección de sonidos, bajos, mezcla, workflow y proceso creativo — y tienes una metodología para llevar tus ideas a tracks terminados.',
-      acadPriceLabel:'Valor del programa', acadPriceNote:'Consulta por las formas de pago y disponibilidad de horarios.',
+      funnelTag:'Acceso gratuito',
+      funnelTitle:'Masterclass gratis: 5 errores que te impiden terminar tracks',
+      funnelSub:'Una sesi\u00f3n en vivo de 45 minutos donde Demian analiza los bloqueos m\u00e1s comunes de los productores \u2014 y c\u00f3mo superarlos. Sin costo, sin compromiso.',
+      funnelCta:'Reserva tu lugar gratis',
+      proofHead:'Lo que dicen los alumnos',
+      proofQuote1:'\u201cPas\u00e9 de acumular 50+ proyectos sin terminar a publicar en Beatport en 3 meses.\u201d',
+      proofName1:'Carlos M.', proofRole1:'Graduado DMF Academy \u00b7 Chile',
+      proofQuote2:'\u201cLa metodolog\u00eda lo cambi\u00f3 todo. No se trata de plugins \u2014 se trata de entender la m\u00fasica.\u201d',
+      proofName2:'Mat\u00edas R.', proofRole2:'Graduado DMF Academy \u00b7 Argentina',
+      proofQuote3:'\u201cDemian no solo ense\u00f1a t\u00e9cnica \u2014 te ense\u00f1a a pensar como productor.\u201d',
+      proofName3:'Valentina S.', proofRole3:'Graduada DMF Academy \u00b7 Espa\u00f1a',
+      proofStat1Num:'120+', proofStat1Label:'Alumnos formados',
+      proofStat2Num:'85%', proofStat2Label:'Terminan su primer lanzamiento',
+      proofStat3Num:'15+', proofStat3Label:'Sellos alcanzados por alumnos',
+      tiersHead:'Elige tu camino',
+      tierStarterName:'Starter', tierStarterTag:'Base a tu ritmo',
+      tierStarterPrice:'$247', tierStarterPeriod:'USD \u00b7 pago \u00fanico',
+      tierStarterF1:'4 m\u00f3dulos core grabados', tierStarterF2:'Acceso a comunidad privada',
+      tierStarterF3:'Templates y presets descargables', tierStarterF4:'Soporte por email',
+      tierStarterCta:'Empezar',
+      tierProName:'Pro', tierProTag:'M\u00e1s popular \u00b7 con mentor\u00eda',
+      tierProPrice:'$497', tierProPeriod:'USD \u00b7 pago \u00fanico',
+      tierProF1:'8 clases 1-a-1 en vivo por Zoom', tierProF2:'Feedback personalizado en tus tracks',
+      tierProF3:'Mastering gratuito para tracks terminados', tierProF4:'Acceso directo a Demian por WhatsApp',
+      tierProF5:'Sesi\u00f3n de c\u00f3mo llegar a labels incluida',
+      tierProCta:'Inscr\u00edbete ahora',
+      tierEliteName:'Elite', tierEliteTag:'Inmersi\u00f3n completa',
+      tierElitePrice:'$997', tierElitePeriod:'USD \u00b7 pago \u00fanico',
+      tierEliteF1:'Todo lo del plan Pro', tierEliteF2:'12 sesiones extendidas (90 min c/u)',
+      tierEliteF3:'Co-producci\u00f3n: termina un EP listo para lanzar', tierEliteF4:'Estrategia de pitch a sellos y env\u00edo',
+      tierEliteF5:'6 meses de mentor\u00eda post-curso', tierEliteF6:'Acceso prioritario de por vida a la comunidad',
+      tierEliteCta:'Postular a Elite',
+      guaranteeHead:'Garant\u00eda de devoluci\u00f3n a 30 d\u00edas',
+      guaranteeBody:'Si no ves progreso real en tus primeros 30 d\u00edas, te devolvemos el 100% de tu inversi\u00f3n. Sin preguntas.',
+      urgencyText:'Cupos limitados \u2014 solo 8 alumnos por mes',
       acadAddon:'Adicional · Cómo llegar a los labels — una sesión enfocada (~USD $80) sobre cómo presentar tu música y contactar sellos: estrategia de acercamiento y presentación de tracks.',
-      acadClose:'Esto no es un curso más. Es un sistema para terminar música.',
-      acadCta:'Reserva tu cupo',
+      acadClose:'Deja de soñar con lanzamientos. Empieza a terminar tracks.',
+      acadCta:'Empieza ahora',
       demosTitle:'Demos del curso', demosSub:'Clases reales del programa — un vistazo dentro de DMF Academy, módulo por módulo.',
       tipsTitle:'Consejos para DJs y productores', tipsSub:'Dos décadas de estudio y cabina destiladas en principios de trabajo — por Demian Muller.',
       contactTitle:'Booking', contactSub:'Disponible en todo el mundo para clubes, festivales y eventos boutique — como DJ o Live Act.',
@@ -862,6 +1015,47 @@ ul{list-style:none}
     }).join('');
   }
 
+
+  function renderProof(){
+    var d=dict[lang];
+    var g=document.getElementById('proofGrid');
+    var testimonials=[
+      {q:d.proofQuote1,n:d.proofName1,r:d.proofRole1},
+      {q:d.proofQuote2,n:d.proofName2,r:d.proofRole2},
+      {q:d.proofQuote3,n:d.proofName3,r:d.proofRole3}
+    ];
+    g.innerHTML=testimonials.map(function(t){
+      return '<div class="acad-proof-card"><div class="acad-proof-stars">\u2605\u2605\u2605\u2605\u2605</div><p class="acad-proof-quote">'+t.q+'</p><div class="acad-proof-name">'+t.n+'</div><div class="acad-proof-role">'+t.r+'</div></div>';
+    }).join('');
+    var s=document.getElementById('proofStats');
+    var stats=[
+      {n:d.proofStat1Num,l:d.proofStat1Label},
+      {n:d.proofStat2Num,l:d.proofStat2Label},
+      {n:d.proofStat3Num,l:d.proofStat3Label}
+    ];
+    s.innerHTML=stats.map(function(st){
+      return '<div class="acad-proof-stat"><div class="acad-proof-stat-num">'+st.n+'</div><div class="acad-proof-stat-label">'+st.l+'</div></div>';
+    }).join('');
+  }
+
+  function renderTiers(){
+    var d=dict[lang];
+    var tiers=[
+      {name:d.tierStarterName,tag:d.tierStarterTag,price:d.tierStarterPrice,period:d.tierStarterPeriod,featured:false,
+       feats:[d.tierStarterF1,d.tierStarterF2,d.tierStarterF3,d.tierStarterF4],cta:d.tierStarterCta},
+      {name:d.tierProName,tag:d.tierProTag,price:d.tierProPrice,period:d.tierProPeriod,featured:true,
+       feats:[d.tierProF1,d.tierProF2,d.tierProF3,d.tierProF4,d.tierProF5],cta:d.tierProCta},
+      {name:d.tierEliteName,tag:d.tierEliteTag,price:d.tierElitePrice,period:d.tierElitePeriod,featured:false,
+       feats:[d.tierEliteF1,d.tierEliteF2,d.tierEliteF3,d.tierEliteF4,d.tierEliteF5,d.tierEliteF6],cta:d.tierEliteCta}
+    ];
+    var g=document.getElementById('tiersGrid');
+    g.innerHTML=tiers.map(function(t){
+      var cls='tier-card'+(t.featured?' tier-featured':'');
+      var badge=t.featured?'<div class="tier-featured-tag">'+t.tag+'</div>':'';
+      return '<div class="'+cls+'">'+badge+'<div class="tier-head"><div class="tier-name">'+t.name+'</div><div class="tier-tagline">'+t.tag+'</div><div class="tier-price">'+t.price+' <span>USD</span></div><div class="tier-period">'+t.period+'</div></div><div class="tier-body"><div class="tier-features">'+t.feats.map(function(f){return '<div class="tier-feat checked">'+f+'</div>';}).join('')+'</div><a href="mailto:Demian.muller@gmail.com?subject=DMF%20Academy%20-%20'+encodeURIComponent(t.name)+'" class="tier-cta">'+t.cta+' \u2192</a></div></div>';
+    }).join('');
+  }
+
   function applyLang(){
     var d=dict[lang];
     document.querySelectorAll('[data-i18n]').forEach(function(el){
@@ -876,6 +1070,8 @@ ul{list-style:none}
     document.documentElement.lang = lang;
     renderModules();
     renderAudience();
+    renderProof();
+    renderTiers();
     renderTips();
     renderDemos();
   }
@@ -944,6 +1140,8 @@ ul{list-style:none}
   renderPlatforms();
   renderModules();
   renderAudience();
+  renderProof();
+  renderTiers();
   renderTips();
   renderDemos();
 })();
