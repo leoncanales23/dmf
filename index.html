@@ -273,6 +273,46 @@ ul{list-style:none}
 #smoke-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 .radial-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 80% at 50% 120%,rgba(255,91,30,.16),transparent 60%)}
 
+
+/* CONCERT INTRO */
+.concert-intro{position:relative;z-index:3;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0a0806;overflow:hidden}
+.concert-intro::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 55%,rgba(255,91,30,.10),transparent 70%);pointer-events:none}
+.concert-stage{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.concert-beam{position:absolute;bottom:0;width:2px;height:100%;opacity:0;transform-origin:bottom center}
+.concert-beam::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;height:100%;background:linear-gradient(to top,rgba(255,91,30,.25),rgba(255,91,30,.04) 40%,transparent 75%)}
+.concert-beam:nth-child(1){left:10%;animation:beamSweep 8s ease-in-out 0s infinite;transform:rotate(-12deg) scaleX(18)}
+.concert-beam:nth-child(2){left:30%;animation:beamSweep 6s ease-in-out 1.5s infinite;transform:rotate(-5deg) scaleX(12)}
+.concert-beam:nth-child(3){left:50%;animation:beamSweep 7s ease-in-out 0.5s infinite;transform:rotate(0deg) scaleX(22)}
+.concert-beam:nth-child(4){left:70%;animation:beamSweep 6.5s ease-in-out 2s infinite;transform:rotate(5deg) scaleX(14)}
+.concert-beam:nth-child(5){left:90%;animation:beamSweep 8.5s ease-in-out 1s infinite;transform:rotate(12deg) scaleX(16)}
+@keyframes beamSweep{0%,100%{opacity:0}15%{opacity:.6}30%{opacity:.15}50%{opacity:.5}70%{opacity:.1}85%{opacity:.45}95%{opacity:0}}
+.concert-fog{position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(to top,rgba(255,91,30,.06),transparent);pointer-events:none;animation:fogDrift 6s ease-in-out infinite}
+@keyframes fogDrift{0%,100%{opacity:.6;transform:translateY(0)}50%{opacity:1;transform:translateY(-8px)}}
+.concert-logo-wrap{position:relative;width:min(70vw,600px);animation:logoReveal 2s ease-out both}
+@keyframes logoReveal{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:scale(1)}}
+.concert-logo-wrap svg{width:100%;height:auto;display:block;filter:drop-shadow(0 0 60px rgba(255,91,30,.25))}
+.concert-logo-pulse{animation:logoPulse 4s ease-in-out infinite}
+@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 40px rgba(255,91,30,.2))}50%{filter:drop-shadow(0 0 80px rgba(255,91,30,.35))}}
+.concert-tagline{margin-top:clamp(24px,4vw,40px);text-align:center;animation:tagFadeIn 2s ease-out 0.8s both}
+@keyframes tagFadeIn{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)}}
+.concert-tagline-text{font-family:'Anton',sans-serif;font-size:clamp(11px,1.4vw,15px);letter-spacing:.5em;text-transform:uppercase;color:#ff5b1e;opacity:.8}
+.concert-tagline-sub{margin-top:10px;font-size:clamp(12px,1.2vw,16px);letter-spacing:.28em;text-transform:uppercase;color:rgba(242,237,230,.45)}
+.concert-scroll{position:absolute;bottom:clamp(24px,4vw,40px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;animation:concertFloat 2.4s ease-in-out infinite 2s both;cursor:pointer}
+@keyframes concertFloat{0%,100%{transform:translateX(-50%) translateY(0);opacity:.4}50%{transform:translateX(-50%) translateY(8px);opacity:.9}}
+.concert-scroll-line{width:1px;height:28px;background:linear-gradient(to bottom,transparent,#ff5b1e)}
+.concert-scroll-text{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#8a8178}
+.concert-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.concert-particle{position:absolute;width:2px;height:2px;background:#ff5b1e;border-radius:50%;opacity:0}
+.concert-particle:nth-child(1){left:15%;top:20%;animation:particleDrift 5s ease-in-out 0s infinite}
+.concert-particle:nth-child(2){left:25%;top:60%;animation:particleDrift 7s ease-in-out 1s infinite}
+.concert-particle:nth-child(3){left:40%;top:35%;animation:particleDrift 6s ease-in-out 0.5s infinite}
+.concert-particle:nth-child(4){left:55%;top:70%;animation:particleDrift 8s ease-in-out 2s infinite}
+.concert-particle:nth-child(5){left:65%;top:25%;animation:particleDrift 5.5s ease-in-out 1.5s infinite}
+.concert-particle:nth-child(6){left:78%;top:50%;animation:particleDrift 7.5s ease-in-out 0.8s infinite}
+.concert-particle:nth-child(7){left:85%;top:15%;animation:particleDrift 6.5s ease-in-out 2.5s infinite}
+.concert-particle:nth-child(8){left:50%;top:80%;animation:particleDrift 9s ease-in-out 1.2s infinite}
+@keyframes particleDrift{0%{opacity:0;transform:translateY(0)}20%{opacity:.7}50%{opacity:.3;transform:translateY(-30px)}80%{opacity:.6}100%{opacity:0;transform:translateY(-60px)}}
+
 /* MOBILE */
 @media(max-width:900px){
   .nav-links .nav-link{display:none}
@@ -300,6 +340,78 @@ ul{list-style:none}
 
 <canvas id="smoke-canvas"></canvas>
 <div class="radial-overlay"></div>
+
+
+<!-- CONCERT INTRO -->
+<section class="concert-intro" id="concertIntro">
+  <div class="concert-stage">
+    <div class="concert-beam"></div>
+    <div class="concert-beam"></div>
+    <div class="concert-beam"></div>
+    <div class="concert-beam"></div>
+    <div class="concert-beam"></div>
+  </div>
+  <div class="concert-particles">
+    <div class="concert-particle"></div>
+    <div class="concert-particle"></div>
+    <div class="concert-particle"></div>
+    <div class="concert-particle"></div>
+    <div class="concert-particle"></div>
+    <div class="concert-particle"></div>
+    <div class="concert-particle"></div>
+    <div class="concert-particle"></div>
+  </div>
+  <div class="concert-fog"></div>
+  <div class="concert-logo-wrap concert-logo-pulse">
+    <svg viewBox="0 0 1400 945" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glowBig" x="-120%" y="-120%" width="340%" height="340%">
+          <feGaussianBlur stdDeviation="40"/>
+        </filter>
+        <filter id="glowMid" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="18"/>
+        </filter>
+        <filter id="glowSmall" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="6"/>
+        </filter>
+      </defs>
+      <g filter="url(#glowBig)" opacity="0.55">
+        <path d="M 121,332 L 124,787 L 170,781 L 221,729 L 221,431 Z" fill="#ff5b1e"/>
+        <path d="M 268,250 L 277,858 L 361,797 L 358,356 Z" fill="#ff5b1e"/>
+        <path d="M 1029,136 L 732,442 L 428,143 L 440,930 L 573,818 L 578,507 L 726,661 L 889,511 L 891,817 L 1026,932 Z" fill="#ff5b1e"/>
+        <path d="M 1188,246 L 1109,341 L 1106,784 L 1179,846 Z" fill="#ff5b1e"/>
+        <path d="M 1341,332 L 1338,787 L 1292,781 L 1241,729 L 1241,431 Z" fill="#ff5b1e"/>
+      </g>
+      <g filter="url(#glowMid)" opacity="0.75">
+        <path d="M 121,332 L 124,787 L 170,781 L 221,729 L 221,431 Z" fill="#ff5b1e"/>
+        <path d="M 268,250 L 277,858 L 361,797 L 358,356 Z" fill="#ff5b1e"/>
+        <path d="M 1029,136 L 732,442 L 428,143 L 440,930 L 573,818 L 578,507 L 726,661 L 889,511 L 891,817 L 1026,932 Z" fill="#ff5b1e"/>
+        <path d="M 1188,246 L 1109,341 L 1106,784 L 1179,846 Z" fill="#ff5b1e"/>
+        <path d="M 1341,332 L 1338,787 L 1292,781 L 1241,729 L 1241,431 Z" fill="#ff5b1e"/>
+      </g>
+      <g filter="url(#glowSmall)" opacity="0.9">
+        <path d="M 121,332 L 124,787 L 170,781 L 221,729 L 221,431 Z" fill="#ffb599"/>
+        <path d="M 268,250 L 277,858 L 361,797 L 358,356 Z" fill="#ffb599"/>
+        <path d="M 1029,136 L 732,442 L 428,143 L 440,930 L 573,818 L 578,507 L 726,661 L 889,511 L 891,817 L 1026,932 Z" fill="#ffb599"/>
+        <path d="M 1188,246 L 1109,341 L 1106,784 L 1179,846 Z" fill="#ffb599"/>
+        <path d="M 1341,332 L 1338,787 L 1292,781 L 1241,729 L 1241,431 Z" fill="#ffb599"/>
+      </g>
+      <path d="M 121,332 L 124,787 L 170,781 L 221,729 L 221,431 Z" fill="#f2ede6"/>
+      <path d="M 268,250 L 277,858 L 361,797 L 358,356 Z" fill="#f2ede6"/>
+      <path d="M 1029,136 L 732,442 L 428,143 L 440,930 L 573,818 L 578,507 L 726,661 L 889,511 L 891,817 L 1026,932 Z" fill="#f2ede6"/>
+      <path d="M 1188,246 L 1109,341 L 1106,784 L 1179,846 Z" fill="#f2ede6"/>
+      <path d="M 1341,332 L 1338,787 L 1292,781 L 1241,729 L 1241,431 Z" fill="#f2ede6"/>
+    </svg>
+  </div>
+  <div class="concert-tagline">
+    <div class="concert-tagline-text">Demian Muller</div>
+    <div class="concert-tagline-sub" data-i18n="concertSub">Electronic Artist &middot; DJ &middot; Live Act</div>
+  </div>
+  <a href="#top" class="concert-scroll">
+    <span class="concert-scroll-line"></span>
+    <span class="concert-scroll-text" data-i18n="concertScroll">Enter</span>
+  </a>
+</section>
 
 <!-- NAV -->
 <nav class="nav">
@@ -700,7 +812,9 @@ ul{list-style:none}
       tipsTitle:'Tips for DJs & producers', tipsSub:'Two decades of studio and booth experience, distilled into working principles — by Demian Muller.',
       contactTitle:'Booking', contactSub:'Available worldwide for clubs, festivals and boutique events — as DJ or Live Act.',
       phoneLabel:'Phone / WhatsApp',
-      footerRole:'© 2026 — Electronic Artist · DJ · Live Act'
+      footerRole:'© 2026 — Electronic Artist · DJ · Live Act',
+      concertSub:'Electronic Artist \u00b7 DJ \u00b7 Live Act',
+      concertScroll:'Enter'
     },
     es: {
       navBio:'Bio', navReleases:'Lanzam.', navSets:'DJ Sets', navRider:'Rider', navContact:'Contacto',
@@ -778,7 +892,9 @@ ul{list-style:none}
       tipsTitle:'Consejos para DJs y productores', tipsSub:'Dos décadas de estudio y cabina destiladas en principios de trabajo — por Demian Muller.',
       contactTitle:'Booking', contactSub:'Disponible en todo el mundo para clubes, festivales y eventos boutique — como DJ o Live Act.',
       phoneLabel:'Teléfono / WhatsApp',
-      footerRole:'© 2026 — Artista Electrónico · DJ · Live Act'
+      footerRole:'© 2026 — Artista Electrónico · DJ · Live Act',
+      concertSub:'Artista Electr\u00f3nico \u00b7 DJ \u00b7 Live Act',
+      concertScroll:'Entrar'
     }
   };
 
