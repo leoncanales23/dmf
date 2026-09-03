@@ -197,8 +197,9 @@ ul{list-style:none}
 .tier-feat{font-size:14px;color:#d8d0c6;padding-left:22px;position:relative;line-height:1.5}
 .tier-feat::before{content:'';position:absolute;left:0;top:7px;width:10px;height:10px;border:2px solid #ff5b1e;border-radius:50%}
 .tier-feat.checked::before{background:#ff5b1e}
-.tier-cta{display:block;text-align:center;padding:16px;background:transparent;border:1px solid #ff5b1e;color:#ff5b1e;font-family:'Anton',sans-serif;font-size:14px;letter-spacing:.1em;text-transform:uppercase;transition:background .2s,color .2s}
+.tier-cta{display:block;text-align:center;padding:16px;background:transparent;border:1px solid #ff5b1e;color:#ff5b1e;font-family:'Anton',sans-serif;font-size:14px;letter-spacing:.1em;text-transform:uppercase;transition:background .2s,color .2s;cursor:pointer;width:100%}
 .tier-cta:hover{background:#ff5b1e;color:#0a0806}
+.tier-cta:disabled{opacity:.6;cursor:wait}
 .tier-card.tier-featured .tier-cta{background:#ff5b1e;color:#0a0806}
 .tier-card.tier-featured .tier-cta:hover{background:#ff7a45;color:#0a0806}
 
@@ -669,7 +670,10 @@ ul{list-style:none}
     </div>
   </div>
 
-  <p class="acad-addon" data-i18n="acadAddon">Add-on · How to reach labels — a focused session (~USD $80) on presenting your music and contacting labels: approach strategy and track presentation.</p>
+  <div class="acad-addon">
+    <p data-i18n="acadAddon">Add-on · How to reach labels — a focused session (~USD $80) on presenting your music and contacting labels: approach strategy and track presentation.</p>
+    <button class="tier-cta mp-buy-btn" data-product="addon" onclick="buyWithMP(this)" style="margin-top:14px;display:inline-block"><span data-i18n="addonCta">Buy add-on</span> →</button>
+  </div>
 
   <div class="acad-close">
     <p data-i18n="acadClose">Stop dreaming about releases. Start finishing tracks.</p>
@@ -806,6 +810,7 @@ ul{list-style:none}
       guaranteeBody:'If you don\u2019t see real progress in your first 30 days, we\u2019ll refund 100% of your investment. No questions asked.',
       urgencyText:'Limited spots \u2014 only 8 students per month',
       acadAddon:'Add-on · How to reach labels — a focused session (~USD $80) on presenting your music and contacting labels: approach strategy and track presentation.',
+      addonCta:'Buy add-on',
       acadClose:'Stop dreaming about releases. Start finishing tracks.',
       acadCta:'Start now',
       demosTitle:'Course demos', demosSub:'Real lessons from the program — a look inside DMF Academy, module by module.',
@@ -886,6 +891,7 @@ ul{list-style:none}
       guaranteeBody:'Si no ves progreso real en tus primeros 30 d\u00edas, te devolvemos el 100% de tu inversi\u00f3n. Sin preguntas.',
       urgencyText:'Cupos limitados \u2014 solo 8 alumnos por mes',
       acadAddon:'Adicional · Cómo llegar a los labels — una sesión enfocada (~USD $80) sobre cómo presentar tu música y contactar sellos: estrategia de acercamiento y presentación de tracks.',
+      addonCta:'Comprar adicional',
       acadClose:'Deja de soñar con lanzamientos. Empieza a terminar tracks.',
       acadCta:'Empieza ahora',
       demosTitle:'Demos del curso', demosSub:'Clases reales del programa — un vistazo dentro de DMF Academy, módulo por módulo.',
@@ -1157,18 +1163,18 @@ ul{list-style:none}
   function renderTiers(){
     var d=dict[lang];
     var tiers=[
-      {name:d.tierStarterName,tag:d.tierStarterTag,price:d.tierStarterPrice,period:d.tierStarterPeriod,featured:false,
+      {name:d.tierStarterName,tag:d.tierStarterTag,price:d.tierStarterPrice,period:d.tierStarterPeriod,featured:false,productId:'starter',
        feats:[d.tierStarterF1,d.tierStarterF2,d.tierStarterF3,d.tierStarterF4],cta:d.tierStarterCta},
-      {name:d.tierProName,tag:d.tierProTag,price:d.tierProPrice,period:d.tierProPeriod,featured:true,
+      {name:d.tierProName,tag:d.tierProTag,price:d.tierProPrice,period:d.tierProPeriod,featured:true,productId:'pro',
        feats:[d.tierProF1,d.tierProF2,d.tierProF3,d.tierProF4,d.tierProF5],cta:d.tierProCta},
-      {name:d.tierEliteName,tag:d.tierEliteTag,price:d.tierElitePrice,period:d.tierElitePeriod,featured:false,
+      {name:d.tierEliteName,tag:d.tierEliteTag,price:d.tierElitePrice,period:d.tierElitePeriod,featured:false,productId:'elite',
        feats:[d.tierEliteF1,d.tierEliteF2,d.tierEliteF3,d.tierEliteF4,d.tierEliteF5,d.tierEliteF6],cta:d.tierEliteCta}
     ];
     var g=document.getElementById('tiersGrid');
     g.innerHTML=tiers.map(function(t){
       var cls='tier-card'+(t.featured?' tier-featured':'');
       var badge=t.featured?'<div class="tier-featured-tag">'+t.tag+'</div>':'';
-      return '<div class="'+cls+'">'+badge+'<div class="tier-head"><div class="tier-name">'+t.name+'</div><div class="tier-tagline">'+t.tag+'</div><div class="tier-price">'+t.price+' <span>USD</span></div><div class="tier-period">'+t.period+'</div></div><div class="tier-body"><div class="tier-features">'+t.feats.map(function(f){return '<div class="tier-feat checked">'+f+'</div>';}).join('')+'</div><a href="mailto:Demian.muller@gmail.com?subject=DMF%20Academy%20-%20'+encodeURIComponent(t.name)+'" class="tier-cta">'+t.cta+' \u2192</a></div></div>';
+      return '<div class="'+cls+'">'+badge+'<div class="tier-head"><div class="tier-name">'+t.name+'</div><div class="tier-tagline">'+t.tag+'</div><div class="tier-price">'+t.price+' <span>USD</span></div><div class="tier-period">'+t.period+'</div></div><div class="tier-body"><div class="tier-features">'+t.feats.map(function(f){return '<div class="tier-feat checked">'+f+'</div>';}).join('')+'</div><button class="tier-cta mp-buy-btn" data-product="'+t.productId+'" onclick="buyWithMP(this)">'+t.cta+' \u2192</button></div></div>';
     }).join('');
   }
 
@@ -1199,6 +1205,33 @@ ul{list-style:none}
 
   window.toggleMenu = function(){
     document.getElementById('navLinks').classList.toggle('open');
+  };
+
+  window.buyWithMP = function(btn){
+    var productId = btn.getAttribute('data-product');
+    var origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⏳';
+    fetch('/api/create-preference', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ productId: productId })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data.init_point) {
+        window.location.href = data.init_point;
+      } else {
+        alert(lang === 'es' ? 'Error al crear el pago. Intenta de nuevo.' : 'Could not create payment. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = origText;
+      }
+    })
+    .catch(function(){
+      alert(lang === 'es' ? 'Error de conexión. Intenta de nuevo.' : 'Connection error. Please try again.');
+      btn.disabled = false;
+      btn.innerHTML = origText;
+    });
   };
 
   document.querySelectorAll('#navLinks a').forEach(function(a){
