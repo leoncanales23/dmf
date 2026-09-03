@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DMF Academy — Payment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0806;color:#f2ede6;font-family:'Archivo',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.result{max-width:560px;padding:60px 40px;text-align:center}
+.result-icon{font-size:64px;margin-bottom:24px}
+.result h1{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(32px,6vw,48px);text-transform:uppercase;margin-bottom:16px;line-height:1.05}
+.result p{color:#d8d0c6;font-size:17px;line-height:1.7;margin-bottom:32px}
+.result a{display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border:1px solid #ff5b1e;color:#ff5b1e;font-family:'Anton',sans-serif;font-size:14px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;transition:background .2s,color .2s}
+.result a:hover{background:#ff5b1e;color:#0a0806}
+.approved h1{color:#4caf50}
+.rejected h1{color:#ff5b1e}
+.pending h1{color:#ff9800}
+</style>
+</head>
+<body>
+<div class="result" id="resultBox">
+  <div class="result-icon" id="icon"></div>
+  <h1 id="title"></h1>
+  <p id="message"></p>
+  <a href="index.html#academy">Back to DMF Academy</a>
+</div>
+<script>
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var status = params.get('status') || 'unknown';
+  var box = document.getElementById('resultBox');
+  var icon = document.getElementById('icon');
+  var title = document.getElementById('title');
+  var msg = document.getElementById('message');
+
+  var content = {
+    approved: {
+      cls: 'approved',
+      icon: '✅',
+      title: 'Payment approved!',
+      msg: 'Thank you for enrolling in DMF Academy. You will receive a confirmation email shortly with the next steps to start your program. Welcome aboard!'
+    },
+    rejected: {
+      cls: 'rejected',
+      icon: '❌',
+      title: 'Payment not processed',
+      msg: 'Your payment could not be completed. Please try again or contact us at Demian.muller@gmail.com for assistance.'
+    },
+    pending: {
+      cls: 'pending',
+      icon: '⏳',
+      title: 'Payment pending',
+      msg: 'Your payment is being processed. You will receive a confirmation once it is approved. If you have questions, contact us at Demian.muller@gmail.com.'
+    }
+  };
+
+  var c = content[status] || content.rejected;
+  box.classList.add(c.cls);
+  icon.textContent = c.icon;
+  title.textContent = c.title;
+  msg.textContent = c.msg;
+})();
+</script>
+</body>
+</html>
