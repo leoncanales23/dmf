@@ -1,0 +1,15 @@
+{
+  "name": "dmf-academy",
+  "version": "1.0.0",
+  "description": "Demian Muller EPK & DMF Academy with Mercado Pago integration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "mercadopago": "^2.0.15",
+    "dotenv": "^16.4.5"
+  }
+}
