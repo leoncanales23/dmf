@@ -26,6 +26,7 @@ jobs:
       - name: Build public directory
         run: |
           mkdir -p public/assets/images public/assets/logos public/assets/docs public/assets/models
+          node scripts/check-3d.cjs
           node scripts/build-3d.cjs
           cp -r assets/images/* public/assets/images/ 2>/dev/null || true
           cp -r assets/logos/* public/assets/logos/ 2>/dev/null || true
