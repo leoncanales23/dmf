@@ -1,0 +1,42 @@
+name: Validate DMF 3D Hero
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/build-3d.cjs'
+      - 'scripts/check-3d.cjs'
+      - 'scripts/verify-3d-checksum.cjs'
+      - 'assets/models/**'
+      - 'index.html'
+      - '.github/workflows/deploy.yml'
+      - '.github/workflows/validate-3d.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate optimized GLB payload
+        run: |
+          node scripts/check-3d.cjs
+          node scripts/verify-3d-checksum.cjs
+
+      - name: Build 3D-enhanced landing
+        run: |
+          mkdir -p public/assets/models
+          node scripts/build-3d.cjs
+          cat assets/models/dmf-signal.part0.b64 \
+              assets/models/dmf-signal.part1.b64 \
+              assets/models/dmf-signal.part2.b64 \
+              assets/models/dmf-signal.part3.b64 \
+            | base64 --decode > public/assets/models/dmf-signal-chrome.glb
+          test -s public/assets/models/dmf-signal-chrome.glb
+          grep -q 'DMF_MESHY_3D_HEAD' public/index.html
+          grep -q 'dmf-3d-stage' public/index.html

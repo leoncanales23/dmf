@@ -25,17 +25,26 @@ jobs:
 
       - name: Build public directory
         run: |
-          mkdir -p public/assets/images public/assets/logos public/assets/docs
-          cp index.html public/index.html
+          mkdir -p public/assets/images public/assets/logos public/assets/docs public/assets/models
+          node scripts/check-3d.cjs
+          node scripts/verify-3d-checksum.cjs
+          node scripts/build-3d.cjs
           cp -r assets/images/* public/assets/images/ 2>/dev/null || true
           cp -r assets/logos/* public/assets/logos/ 2>/dev/null || true
           cp -r assets/docs/* public/assets/docs/ 2>/dev/null || true
+          cp -r assets/models/* public/assets/models/ 2>/dev/null || true
+          cat assets/models/dmf-signal.part0.b64 \
+              assets/models/dmf-signal.part1.b64 \
+              assets/models/dmf-signal.part2.b64 \
+              assets/models/dmf-signal.part3.b64 \
+            | base64 --decode > public/assets/models/dmf-signal-chrome.glb
+          rm -f public/assets/models/dmf-signal.part*.b64
           if [ -d assets/videos ]; then
             mkdir -p public/assets/videos
             cp -r assets/videos/* public/assets/videos/ 2>/dev/null || true
           fi
           echo "Files ready for deploy:"
-          find public -type f | head -50
+          find public -type f | head -60
 
       - name: Deploy to Firebase Hosting
         run: firebase deploy --only hosting
