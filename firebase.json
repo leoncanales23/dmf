@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "source": "functions"
+  },
   "hosting": {
     "site": "dmf-vibraalto",
     "public": "public",
@@ -8,6 +11,13 @@
       "**/node_modules/**"
     ],
     "rewrites": [
+      {
+        "source": "/api/dmf/training",
+        "function": {
+          "functionId": "dmfTraining",
+          "region": "us-central1"
+        }
+      },
       {
         "source": "**",
         "destination": "/index.html"
