@@ -138,11 +138,25 @@ ul{list-style:none}
 .acad-audience-item .desc{font-weight:400;color:#8a8178}
 .acad-format p{font-size:15px;line-height:1.7;color:#d8d0c6;text-wrap:pretty}
 .acad-curri-head{font-family:'Anton',sans-serif;font-size:clamp(18px,2vw,26px);text-transform:uppercase;color:#f2ede6;letter-spacing:.03em;margin-bottom:24px}
-.modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:clamp(18px,2.5vw,32px);margin-bottom:clamp(44px,6vw,72px)}
-.module-card{border-top:1px solid rgba(242,237,230,.16);padding-top:20px}
-.module-num{font-family:'Anton',sans-serif;font-size:15px;color:#ff5b1e;margin-bottom:12px}
-.module-title{font-size:18px;font-weight:700;color:#f2ede6;margin-bottom:10px;line-height:1.25}
-.module-desc{font-size:14px;line-height:1.6;color:#8a8178}
+.signal-path{position:relative;padding-left:48px;margin-bottom:clamp(44px,6vw,72px)}
+.signal-path::before{content:'';position:absolute;left:19px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,#ff5b1e,rgba(255,91,30,.15))}
+.signal-node{position:relative;padding:18px 0 28px}
+.signal-node::before{content:'';position:absolute;left:-35px;top:24px;width:14px;height:14px;border-radius:50%;background:#0a0806;border:2px solid rgba(255,91,30,.5);z-index:1;transition:background .3s,border-color .3s,box-shadow .3s}
+.signal-node:hover::before{background:#ff5b1e;border-color:#ff5b1e;box-shadow:0 0 18px rgba(255,91,30,.5)}
+.signal-node-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+.signal-node-num{font-family:'Anton',sans-serif;font-size:15px;color:#ff5b1e}
+.signal-node-state{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:#665f58;transition:color .3s}
+.signal-node:hover .signal-node-state{color:#ff5b1e}
+.signal-node-title{font-size:18px;font-weight:700;color:#f2ede6;margin-bottom:6px;line-height:1.25}
+.signal-node-desc{font-size:14px;line-height:1.6;color:#8a8178}
+.signal-node-meta{display:flex;align-items:center;gap:16px;margin-top:10px}
+.signal-node-dur{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#665f58}
+.signal-node-wave{display:flex;gap:2px;align-items:end;height:14px;opacity:.25;transition:opacity .3s}
+.signal-node:hover .signal-node-wave{opacity:.8}
+.signal-node-wave span{display:block;width:2px;background:#ff5b1e}
+.signal-node-active{display:none;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#ff5b1e;margin-top:8px}
+.signal-node:hover .signal-node-active{display:block}
+@media(max-width:600px){.signal-path{padding-left:36px}.signal-path::before{left:11px}.signal-node::before{left:-29px;width:12px;height:12px}}
 .acad-boxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:clamp(18px,2.5vw,32px);margin-bottom:clamp(44px,6vw,72px)}
 .acad-box-bonus{padding:26px 28px;border:1px solid rgba(255,91,30,.4);background:rgba(255,91,30,.06)}
 .acad-box-tools{padding:26px 28px;border:1px solid rgba(242,237,230,.14)}
@@ -244,6 +258,37 @@ ul{list-style:none}
 .demo-card{border:1px solid rgba(242,237,230,.12);background:rgba(255,255,255,.02)}
 .demo-card video{display:block;width:100%;aspect-ratio:16/9;background:#000;object-fit:cover}
 .demo-card-title{padding:14px 16px;font-size:14px;font-weight:600;color:#f2ede6}
+.lab-card{border:1px solid rgba(242,237,230,.12);background:rgba(255,255,255,.02);overflow:hidden}
+.lab-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(242,237,230,.08);background:rgba(255,91,30,.03)}
+.lab-live{display:flex;align-items:center;gap:6px;font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:#ff5b1e}
+.lab-live::before{content:'';width:6px;height:6px;border-radius:50%;background:#ff5b1e;animation:labPulse 2s ease-in-out infinite}
+@keyframes labPulse{0%,100%{opacity:.4}50%{opacity:1}}
+.lab-type{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#665f58}
+.lab-card video{display:block;width:100%;aspect-ratio:16/9;background:#000;object-fit:cover}
+.lab-footer{padding:12px 14px;border-top:1px solid rgba(242,237,230,.08)}
+.lab-title{font-size:14px;font-weight:600;color:#f2ede6;margin-bottom:8px}
+.lab-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.lab-meta-item{font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:#665f58}
+.lab-meta-item strong{color:#8a8178;font-weight:600;margin-right:4px}
+.lab-progress{margin-top:10px;height:2px;background:rgba(242,237,230,.08);overflow:hidden}
+.lab-progress-bar{height:100%;background:#ff5b1e;width:0}
+.lab-feedback{margin-top:8px;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#ff5b1e;opacity:.6}
+.dmf-loop-section{margin-bottom:clamp(44px,6vw,72px)}
+.dmf-loop-head{font-family:'Anton',sans-serif;font-size:clamp(18px,2vw,26px);text-transform:uppercase;color:#f2ede6;letter-spacing:.03em;margin-bottom:8px}
+.dmf-loop-sub{margin:0 0 32px;max-width:540px;color:#8a8178;font-size:14px;line-height:1.6}
+.dmf-loop{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:rgba(242,237,230,.1);border:1px solid rgba(242,237,230,.1)}
+.dmf-loop-step{padding:28px 16px;text-align:center;background:#0a0806;transition:background .5s}
+.dmf-loop-step.is-active{background:rgba(255,91,30,.04)}
+.dmf-loop-step-num{font-size:9px;letter-spacing:.2em;color:#665f58;margin-bottom:10px}
+.dmf-loop-step-icon{width:32px;height:32px;margin:0 auto 12px;border-radius:50%;border:1.5px solid rgba(255,91,30,.3);display:grid;place-items:center;transition:border-color .5s,box-shadow .5s}
+.dmf-loop-step.is-active .dmf-loop-step-icon{border-color:#ff5b1e;box-shadow:0 0 16px rgba(255,91,30,.35)}
+.dmf-loop-step-icon::after{content:'';width:6px;height:6px;border-radius:50%;background:rgba(255,91,30,.3);transition:background .5s}
+.dmf-loop-step.is-active .dmf-loop-step-icon::after{background:#ff5b1e}
+.dmf-loop-step-name{font-family:'Anton',sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#8a8178;transition:color .5s}
+.dmf-loop-step.is-active .dmf-loop-step-name{color:#ff5b1e}
+.dmf-loop-cycle{grid-column:1/-1;text-align:center;padding:10px;background:#0a0806;font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:#665f58}
+@media(max-width:700px){.dmf-loop{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:420px){.dmf-loop{grid-template-columns:repeat(2,1fr)}}
 
 /* TIPS */
 .tips-intro{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:clamp(28px,4vw,60px);align-items:center;margin-bottom:clamp(48px,7vw,90px)}
@@ -675,7 +720,13 @@ ul{list-style:none}
   </div>
 
   <div class="acad-curri-head" data-i18n="acadCurriHead">The curriculum</div>
-  <div class="modules-grid" id="modulesGrid"></div>
+  <div class="signal-path" id="modulesGrid"></div>
+
+  <div class="dmf-loop-section">
+    <div class="dmf-loop-head" data-i18n="loopHead">The DMF Learning Loop</div>
+    <p class="dmf-loop-sub" data-i18n="loopSub">Every module follows the same cycle — no theory without practice, no practice without feedback.</p>
+    <div class="dmf-loop" id="dmfLoop"></div>
+  </div>
 
   <div class="acad-boxes">
     <div class="acad-box-bonus">
@@ -750,9 +801,9 @@ ul{list-style:none}
 <section id="demos" class="section">
   <div class="section-head" style="margin-bottom:14px">
     <span class="section-num">07</span>
-    <h2 class="section-title" data-i18n="demosTitle">Course demos</h2>
+    <h2 class="section-title" data-i18n="demosTitle">DMF Lab</h2>
   </div>
-  <p class="demos-sub" data-i18n="demosSub">Real lessons from the program — a look inside DMF Academy, module by module.</p>
+  <p class="demos-sub" data-i18n="demosSub">Live sessions from the DMF program — watch the method in action.</p>
   <div class="demos-groups" id="demosGroups"></div>
 </section>
 
@@ -817,7 +868,7 @@ ul{list-style:none}
   var dict = {
     en: {
       navBio:'Bio', navReleases:'Releases', navSets:'DJ Sets', navRider:'Rider', navContact:'Contact',
-      navAcademy:'Academy', navDemos:'Demos', navTips:'Tips',
+      navAcademy:'Academy', navDemos:'Lab', navTips:'Tips',
       role:'Electronic Artist · DJ · Live Act',
       scroll:'Scroll',
       statYears:'Years touring', statTracks:'Tracks & remixes', statAwards:'Beatport contest wins',
@@ -888,7 +939,8 @@ ul{list-style:none}
       addonCta:'Buy add-on',
       acadClose:'Stop dreaming about releases. Start finishing tracks.',
       acadCta:'Start now',
-      demosTitle:'Course demos', demosSub:'Real lessons from the program — a look inside DMF Academy, module by module.',
+      loopHead:'The DMF Learning Loop',loopSub:'Every module follows the same cycle — no theory without practice, no practice without feedback.',
+      demosTitle:'DMF Lab', demosSub:'Live sessions from the DMF program — watch the method in action.',
       tipsTitle:'Tips for DJs & producers', tipsSub:'Two decades of studio and booth experience, distilled into working principles — by Demian Muller.',
       tipsHl1:'Finish more tracks', tipsHl2:'Build a repeatable workflow', tipsHl3:'Think like a producer, not only like a DJ',
       tipsCta:'Explore the Academy', tipsImgStat1:'20+ years', tipsImgStat2:'500+ tracks',
@@ -900,7 +952,7 @@ ul{list-style:none}
     },
     es: {
       navBio:'Bio', navReleases:'Lanzam.', navSets:'DJ Sets', navRider:'Rider', navContact:'Contacto',
-      navAcademy:'Academy', navDemos:'Demos', navTips:'Consejos',
+      navAcademy:'Academy', navDemos:'Lab', navTips:'Consejos',
       role:'Artista Electrónico · DJ · Live Act',
       scroll:'Desliza',
       statYears:'Años de carrera', statTracks:'Tracks y remixes', statAwards:'Premios Beatport',
@@ -971,7 +1023,8 @@ ul{list-style:none}
       addonCta:'Comprar adicional',
       acadClose:'Deja de soñar con lanzamientos. Empieza a terminar tracks.',
       acadCta:'Empieza ahora',
-      demosTitle:'Demos del curso', demosSub:'Clases reales del programa — un vistazo dentro de DMF Academy, módulo por módulo.',
+      loopHead:'El Loop de Aprendizaje DMF',loopSub:'Cada módulo sigue el mismo ciclo — sin teoría sin práctica, sin práctica sin feedback.',
+      demosTitle:'DMF Lab', demosSub:'Sesiones en vivo del programa DMF — mira el método en acción.',
       tipsTitle:'Consejos para DJs y productores', tipsSub:'Dos décadas de estudio y cabina destiladas en principios de trabajo — por Demian Muller.',
       tipsHl1:'Termina más tracks', tipsHl2:'Construye un workflow repetible', tipsHl3:'Piensa como productor, no solo como DJ',
       tipsCta:'Explora la Academy', tipsImgStat1:'20+ años', tipsImgStat2:'500+ tracks',
@@ -1022,24 +1075,24 @@ ul{list-style:none}
   ];
 
   var modulesEn = [
-    {n:'01',t:'Track structure & development',d:'Turn a loop or idea into a finished song: structure, intro, break, build-up, drop, outro and energy development.'},
-    {n:'02',t:'Mixing & balance',d:'A cleaner, more powerful mix: element balance, kick/bass relationship, EQ, dynamics, space and frequencies.'},
-    {n:'03',t:'Sound Selection',d:'Choosing sounds that actually work in the track — kicks, bass, percussion, synths, textures and FX. Not thousands of samples: the right sound.'},
-    {n:'04',t:'Bass creation',d:'Building and choosing bass, the kick/bass relationship, groove and low frequencies for a solid foundation.'},
-    {n:'05',t:'Workflow & efficiency',d:'Organize your process to produce faster and decide better. Stop losing hours without progress.'},
-    {n:'06',t:'Producer Mindset',d:'Finish projects, beat perfectionism and build a results-oriented mindset.'},
-    {n:'07',t:'Music Market',d:'How the ecosystem works: labels, releases, presenting your music and career development.'},
-    {n:'08',t:'Mastering & final prep',d:'Mastering fundamentals and how to prepare a track before presenting or releasing it.'},
+    {n:'01',s:'IDEA',t:'Track structure & development',d:'Turn a loop or idea into a finished song: structure, intro, break, build-up, drop, outro and energy development.',dur:'∼75 min'},
+    {n:'02',s:'MIX',t:'Mixing & balance',d:'A cleaner, more powerful mix: element balance, kick/bass relationship, EQ, dynamics, space and frequencies.',dur:'∼90 min'},
+    {n:'03',s:'SOUND',t:'Sound Selection',d:'Choosing sounds that actually work in the track — kicks, bass, percussion, synths, textures and FX. Not thousands of samples: the right sound.',dur:'∼80 min'},
+    {n:'04',s:'BASS',t:'Bass creation',d:'Building and choosing bass, the kick/bass relationship, groove and low frequencies for a solid foundation.',dur:'∼70 min'},
+    {n:'05',s:'FLOW',t:'Workflow & efficiency',d:'Organize your process to produce faster and decide better. Stop losing hours without progress.',dur:'∼60 min'},
+    {n:'06',s:'MINDSET',t:'Producer Mindset',d:'Finish projects, beat perfectionism and build a results-oriented mindset.',dur:'∼60 min'},
+    {n:'07',s:'MARKET',t:'Music Market',d:'How the ecosystem works: labels, releases, presenting your music and career development.',dur:'∼75 min'},
+    {n:'08',s:'RELEASE',t:'Mastering & final prep',d:'Mastering fundamentals and how to prepare a track before presenting or releasing it.',dur:'∼90 min'},
   ];
   var modulesEs = [
-    {n:'01',t:'Estructura y desarrollo de un track',d:'Convierte un loop o una idea en una canción completa: estructura, intro, break, build-up, drop, outro y desarrollo de energía.'},
-    {n:'02',t:'Mixing y balance',d:'Una mezcla más limpia y potente: balance de elementos, relación kick/bass, EQ, dinámica, espacio y frecuencias.'},
-    {n:'03',t:'Sound Selection',d:'Elegir sonidos que funcionen dentro del track — kicks, bajos, percusión, synths, texturas y FX. No miles de samples: el sonido correcto.'},
-    {n:'04',t:'Creación de bajos',d:'Construcción y selección de bajos, relación kick/bass, groove y frecuencias bajas para una base sólida.'},
-    {n:'05',t:'Workflow y eficiencia',d:'Organiza tu proceso para producir más rápido y decidir mejor. Deja de perder horas sin avanzar.'},
-    {n:'06',t:'Producer Mindset',d:'Terminar proyectos, combatir el perfeccionismo y desarrollar una mentalidad orientada a resultados.'},
-    {n:'07',t:'Music Market',d:'Cómo funciona el ecosistema: sellos, lanzamientos, presentación de música y desarrollo de carrera.'},
-    {n:'08',t:'Mastering y preparación final',d:'Conceptos básicos de mastering y cómo preparar un track antes de presentarlo o lanzarlo.'},
+    {n:'01',s:'IDEA',t:'Estructura y desarrollo de un track',d:'Convierte un loop o una idea en una canción completa: estructura, intro, break, build-up, drop, outro y desarrollo de energía.',dur:'∼75 min'},
+    {n:'02',s:'MIX',t:'Mixing y balance',d:'Una mezcla más limpia y potente: balance de elementos, relación kick/bass, EQ, dinámica, espacio y frecuencias.',dur:'∼90 min'},
+    {n:'03',s:'SOUND',t:'Sound Selection',d:'Elegir sonidos que funcionen dentro del track — kicks, bajos, percusión, synths, texturas y FX. No miles de samples: el sonido correcto.',dur:'∼80 min'},
+    {n:'04',s:'BASS',t:'Creación de bajos',d:'Construcción y selección de bajos, relación kick/bass, groove y frecuencias bajas para una base sólida.',dur:'∼70 min'},
+    {n:'05',s:'FLOW',t:'Workflow y eficiencia',d:'Organiza tu proceso para producir más rápido y decidir mejor. Deja de perder horas sin avanzar.',dur:'∼60 min'},
+    {n:'06',s:'MINDSET',t:'Producer Mindset',d:'Terminar proyectos, combatir el perfeccionismo y desarrollar una mentalidad orientada a resultados.',dur:'∼60 min'},
+    {n:'07',s:'MARKET',t:'Music Market',d:'Cómo funciona el ecosistema: sellos, lanzamientos, presentación de música y desarrollo de carrera.',dur:'∼75 min'},
+    {n:'08',s:'RELEASE',t:'Mastering y preparación final',d:'Conceptos básicos de mastering y cómo preparar un track antes de presentarlo o lanzarlo.',dur:'∼90 min'},
   ];
 
   var audienceEn = [
@@ -1184,7 +1237,9 @@ ul{list-style:none}
     var mods = lang==='es' ? modulesEs : modulesEn;
     var g=document.getElementById('modulesGrid');
     g.innerHTML=mods.map(function(m){
-      return '<div class="module-card"><div class="module-num">'+m.n+'</div><div class="module-title">'+m.t+'</div><p class="module-desc">'+m.d+'</p></div>';
+      var bars='';for(var i=0;i<8;i++)bars+='<span style="height:'+Math.round(3+Math.random()*11)+'px"></span>';
+      var activeLabel=lang==='es'?'MÓDULO '+m.n+' // SEÑAL ACTIVA':'MODULE '+m.n+' // SIGNAL ACTIVE';
+      return '<div class="signal-node"><div class="signal-node-head"><span class="signal-node-num">'+m.n+'</span><span class="signal-node-state">'+m.s+'</span></div><div class="signal-node-title">'+m.t+'</div><p class="signal-node-desc">'+m.d+'</p><div class="signal-node-meta"><span class="signal-node-dur">'+m.dur+'</span><div class="signal-node-wave">'+bars+'</div></div><div class="signal-node-active">'+activeLabel+'</div></div>';
     }).join('');
   }
 
@@ -1208,14 +1263,40 @@ ul{list-style:none}
 
   function renderDemos(){
     var d = lang==='es' ? demosEs : demosEn;
+    var labLabel=lang==='es'?'SESIÓN EN VIVO':'LIVE SESSION';
+    var feedbackLabel=lang==='es'?'FEEDBACK DE DEMIAN':'DEMIAN’S FEEDBACK';
+    var types=lang==='es'?['TUTORIAL','PRÁCTICA','SESIÓN LAB']:['TUTORIAL','PRACTICE','LAB SESSION'];
+    var metas=[{bpm:'—',key:'—'},{bpm:'124',key:'Am'},{bpm:'126',key:'Cm'}];
     var g=document.getElementById('demosGroups');
-    g.innerHTML=d.map(function(grp){
+    g.innerHTML=d.map(function(grp,gi){
+      var type=types[gi]||types[0];var meta=metas[gi]||metas[0];
       return '<div><div class="demo-group-title">'+grp.h+'</div><div class="demo-grid">'+grp.items.map(function(v){
-        return '<div class="demo-card"><video src="'+v.src+'" controls preload="metadata" playsinline></video><div class="demo-card-title">'+v.t+'</div></div>';
+        return '<div class="lab-card"><div class="lab-header"><span class="lab-live">'+labLabel+'</span><span class="lab-type">'+type+'</span></div><video src="'+v.src+'" controls preload="metadata" playsinline></video><div class="lab-footer"><div class="lab-title">'+v.t+'</div><div class="lab-meta"><span class="lab-meta-item"><strong>BPM</strong> '+meta.bpm+'</span><span class="lab-meta-item"><strong>KEY</strong> '+meta.key+'</span></div><div class="lab-progress"><div class="lab-progress-bar"></div></div><div class="lab-feedback">'+feedbackLabel+'</div></div></div>';
       }).join('')+'</div></div>';
     }).join('');
   }
 
+
+  var loopInterval;
+  function renderLoop(){
+    var stepsEn=['CLASS','PRACTICE','WORK','REVIEW','CORRECTION','NEXT MODULE'];
+    var stepsEs=['CLASE','PRÁCTICA','TRABAJO','REVISIÓN','CORRECCIÓN','SIGUIENTE'];
+    var steps=lang==='es'?stepsEs:stepsEn;
+    var cycleLabel=lang==='es'?'↻ CICLO CONTINUO':'↻ CONTINUOUS CYCLE';
+    var g=document.getElementById('dmfLoop');
+    if(!g)return;
+    g.innerHTML=steps.map(function(s,i){
+      return '<div class="dmf-loop-step'+(i===0?' is-active':'')+'" data-loop-idx="'+i+'"><div class="dmf-loop-step-num">'+(i+1)+'/'+steps.length+'</div><div class="dmf-loop-step-icon"></div><div class="dmf-loop-step-name">'+s+'</div></div>';
+    }).join('')+'<div class="dmf-loop-cycle">'+cycleLabel+'</div>';
+    if(loopInterval)clearInterval(loopInterval);
+    var current=0;
+    loopInterval=setInterval(function(){
+      var nodes=g.querySelectorAll('.dmf-loop-step');
+      nodes.forEach(function(n){n.classList.remove('is-active');});
+      current=(current+1)%nodes.length;
+      nodes[current].classList.add('is-active');
+    },2000);
+  }
 
   function renderProof(){
     var d=dict[lang];
@@ -1271,6 +1352,7 @@ ul{list-style:none}
     document.documentElement.lang = lang;
     renderModules();
     renderAudience();
+    renderLoop();
     renderProof();
     renderTiers();
     renderTips();
@@ -1368,6 +1450,7 @@ ul{list-style:none}
   renderPlatforms();
   renderModules();
   renderAudience();
+  renderLoop();
   renderProof();
   renderTiers();
   renderTips();
@@ -1387,13 +1470,13 @@ ul{list-style:none}
     band.innerHTML = [
       '<div class="dmf-signal-shell">',
         '<div class="dmf-signal-copy">',
-          '<div class="dmf-signal-kicker" data-dmf-en="DMF // SIGNAL 01" data-dmf-es="DMF // SEÑAL 01">DMF // SIGNAL 01</div>',
-          '<h2 class="dmf-signal-title" data-dmf-en="Sound becomes form" data-dmf-es="El sonido toma forma">Sound becomes form</h2>',
-          '<p class="dmf-signal-lede" data-dmf-en="The original Meshy 3D studio — Demian\u2019s creative space captured as a real-time digital sculpture. Every detail from the reference, rendered live." data-dmf-es="El estudio 3D original de Meshy — el espacio creativo de Demian capturado como escultura digital en tiempo real. Cada detalle de la referencia, renderizado en vivo.">The original Meshy 3D studio — Demian\u2019s creative space captured as a real-time digital sculpture. Every detail from the reference, rendered live.</p>',
+          '<div class="dmf-signal-kicker" data-dmf-en="DMF // STUDIO" data-dmf-es="DMF // ESTUDIO">DMF // STUDIO</div>',
+          '<h2 class="dmf-signal-title" data-dmf-en="Where the method was born" data-dmf-es="Donde nació el método">Where the method was born</h2>',
+          '<p class="dmf-signal-lede" data-dmf-en="This is Demian\u2019s real studio \u2014 the space where the DMF methodology was built. Explore it, then learn the workflow created inside it." data-dmf-es="Este es el estudio real de Demian — el espacio donde se construyó la metodología DMF. Explóralo, y luego aprende el workflow que se creó dentro.">This is Demian\u2019s real studio \u2014 the space where the DMF methodology was built. Explore it, then learn the workflow created inside it.</p>',
           '<div class="dmf-signal-meta">',
-            '<span class="dmf-signal-chip" data-dmf-en="Meshy 3D" data-dmf-es="Meshy 3D">Meshy 3D</span>',
-            '<span class="dmf-signal-chip" data-dmf-en="Real-time" data-dmf-es="Tiempo real">Real-time</span>',
-            '<span class="dmf-signal-chip" data-dmf-en="PBR textured" data-dmf-es="Textura PBR">PBR textured</span>',
+            '<span class="dmf-signal-chip" data-dmf-en="Real Studio" data-dmf-es="Estudio Real">Real Studio</span>',
+            '<span class="dmf-signal-chip" data-dmf-en="Real Workflow" data-dmf-es="Workflow Real">Real Workflow</span>',
+            '<span class="dmf-signal-chip" data-dmf-en="Live Method" data-dmf-es="Método en Vivo">Live Method</span>',
           '</div>',
           '<div class="dmf-signal-actions">',
             '<a class="dmf-signal-cta" href="#academy"><span data-dmf-en="Explore the methodology" data-dmf-es="Explorar la metodología">Explore the methodology</span><span aria-hidden="true"> \u2192</span></a>',
@@ -1404,7 +1487,7 @@ ul{list-style:none}
           '<div class="dmf-signal-fallback" aria-hidden="true">DMF</div>',
           '<div class="dmf-signal-loader" aria-hidden="true"></div>',
           '<div class="dmf-signal-scan" aria-hidden="true"></div>',
-          '<div class="dmf-signal-corner" aria-hidden="true"><strong>STUDIO / 3D</strong><span>DMF visual system</span></div>',
+          '<div class="dmf-signal-corner" aria-hidden="true"><strong>DMF / STUDIO</strong><span data-dmf-en="Explore the method" data-dmf-es="Explora el método">Explore the method</span></div>',
         '</div>',
       '</div>'
     ].join('');

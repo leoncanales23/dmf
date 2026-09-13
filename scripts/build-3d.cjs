@@ -77,13 +77,13 @@ const bodyInjection = `${BODY_MARKER}
     band.innerHTML = [
       '<div class="dmf-signal-shell">',
         '<div class="dmf-signal-copy">',
-          '<div class="dmf-signal-kicker" data-dmf-en="DMF // SIGNAL 01" data-dmf-es="DMF // SEÑAL 01">DMF // SIGNAL 01</div>',
-          '<h2 class="dmf-signal-title" data-dmf-en="Sound becomes form" data-dmf-es="El sonido toma forma">Sound becomes form</h2>',
-          '<p class="dmf-signal-lede" data-dmf-en="The original Meshy 3D studio — Demian\\u2019s creative space captured as a real-time digital sculpture. Every detail from the reference, rendered live." data-dmf-es="El estudio 3D original de Meshy — el espacio creativo de Demian capturado como escultura digital en tiempo real. Cada detalle de la referencia, renderizado en vivo.">The original Meshy 3D studio — Demian\\u2019s creative space captured as a real-time digital sculpture. Every detail from the reference, rendered live.</p>',
+          '<div class="dmf-signal-kicker" data-dmf-en="DMF // STUDIO" data-dmf-es="DMF // ESTUDIO">DMF // STUDIO</div>',
+          '<h2 class="dmf-signal-title" data-dmf-en="Where the method was born" data-dmf-es="Donde nació el método">Where the method was born</h2>',
+          '<p class="dmf-signal-lede" data-dmf-en="This is Demian\\u2019s real studio \\u2014 the space where the DMF methodology was built. Explore it, then learn the workflow created inside it." data-dmf-es="Este es el estudio real de Demian — el espacio donde se construyó la metodología DMF. Explóralo, y luego aprende el workflow que se creó dentro.">This is Demian\\u2019s real studio \\u2014 the space where the DMF methodology was built. Explore it, then learn the workflow created inside it.</p>',
           '<div class="dmf-signal-meta">',
-            '<span class="dmf-signal-chip" data-dmf-en="Meshy 3D" data-dmf-es="Meshy 3D">Meshy 3D</span>',
-            '<span class="dmf-signal-chip" data-dmf-en="Real-time" data-dmf-es="Tiempo real">Real-time</span>',
-            '<span class="dmf-signal-chip" data-dmf-en="PBR textured" data-dmf-es="Textura PBR">PBR textured</span>',
+            '<span class="dmf-signal-chip" data-dmf-en="Real Studio" data-dmf-es="Estudio Real">Real Studio</span>',
+            '<span class="dmf-signal-chip" data-dmf-en="Real Workflow" data-dmf-es="Workflow Real">Real Workflow</span>',
+            '<span class="dmf-signal-chip" data-dmf-en="Live Method" data-dmf-es="Método en Vivo">Live Method</span>',
           '</div>',
           '<div class="dmf-signal-actions">',
             '<a class="dmf-signal-cta" href="#academy"><span data-dmf-en="Explore the methodology" data-dmf-es="Explorar la metodología">Explore the methodology</span><span aria-hidden="true"> \\u2192</span></a>',
@@ -94,7 +94,7 @@ const bodyInjection = `${BODY_MARKER}
           '<div class="dmf-signal-fallback" aria-hidden="true">DMF</div>',
           '<div class="dmf-signal-loader" aria-hidden="true"></div>',
           '<div class="dmf-signal-scan" aria-hidden="true"></div>',
-          '<div class="dmf-signal-corner" aria-hidden="true"><strong>STUDIO / 3D</strong><span>DMF visual system</span></div>',
+          '<div class="dmf-signal-corner" aria-hidden="true"><strong>DMF / STUDIO</strong><span data-dmf-en="Explore the method" data-dmf-es="Explora el método">Explore the method</span></div>',
         '</div>',
       '</div>'
     ].join('');
