@@ -32,6 +32,7 @@ jobs:
           node scripts/inject-codex.cjs
           node scripts/inject-oracle.cjs
           node scripts/inject-transmission.cjs
+          node scripts/inject-compute-uplink.cjs
           cp -r assets/images/* public/assets/images/ 2>/dev/null || true
           cp -r assets/logos/* public/assets/logos/ 2>/dev/null || true
           cp -r assets/docs/* public/assets/docs/ 2>/dev/null || true
@@ -49,7 +50,35 @@ jobs:
           echo "Files ready for deploy:"
           find public -type f | head -60
 
-      - name: Deploy to Firebase Hosting
+      - name: Validate Function syntax
+        run: node --check functions/index.js
+
+      - name: Configure VBC Compute secret
+        id: vbc-secret
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          VBC_SERVICE_KEY: ${{ secrets.VBC_SERVICE_KEY }}
+          VBC_CANARY_SERVICE_KEY: ${{ secrets.VBC_CANARY_SERVICE_KEY }}
+        run: |
+          KEY="$VBC_SERVICE_KEY"
+          if [ -z "$KEY" ]; then KEY="$VBC_CANARY_SERVICE_KEY"; fi
+          if [ -n "$KEY" ]; then
+            printf '%s' "$KEY" | firebase functions:secrets:set VBC_SERVICE_KEY --data-file=- --force
+            echo "functions_ready=true" >> "$GITHUB_OUTPUT"
+            echo "VBC Compute secret synchronized for dmfTraining."
+          else
+            echo "functions_ready=false" >> "$GITHUB_OUTPUT"
+            echo "No VBC_SERVICE_KEY or VBC_CANARY_SERVICE_KEY GitHub secret found. Hosting will deploy with the local DMF fallback engine; dmfTraining will not be deployed in this run."
+          fi
+
+      - name: Deploy Hosting + DMF Training Function
+        if: steps.vbc-secret.outputs.functions_ready == 'true'
+        run: firebase deploy --only "hosting,functions:dmfTraining"
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Deploy Hosting fallback
+        if: steps.vbc-secret.outputs.functions_ready != 'true'
         run: firebase deploy --only hosting
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
