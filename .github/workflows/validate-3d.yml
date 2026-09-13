@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/build-3d.cjs'
+      - 'scripts/inject-codex.cjs'
       - 'scripts/check-3d.cjs'
       - 'scripts/verify-3d-checksum.cjs'
       - 'assets/models/**'
@@ -32,6 +33,7 @@ jobs:
         run: |
           mkdir -p public/assets/models
           node scripts/build-3d.cjs
+          node scripts/inject-codex.cjs
           cat assets/models/dmf-signal.part0.b64 \
               assets/models/dmf-signal.part1.b64 \
               assets/models/dmf-signal.part2.b64 \
@@ -41,3 +43,6 @@ jobs:
           grep -q 'DMF_MESHY_3D_HEAD' public/index.html
           grep -q 'dmf-signal-band' public/index.html
           grep -q 'Where the method was born' public/index.html
+          grep -q 'DMF_CODEX_HEAD' public/index.html
+          grep -q 'dmf-initiation-protocol' public/index.html
+          grep -q 'INITIATION PROTOCOL' public/index.html
