@@ -6,6 +6,7 @@ on:
       - 'scripts/build-3d.cjs'
       - 'scripts/inject-codex.cjs'
       - 'scripts/inject-oracle.cjs'
+      - 'scripts/inject-transmission.cjs'
       - 'scripts/check-3d.cjs'
       - 'scripts/verify-3d-checksum.cjs'
       - 'assets/models/**'
@@ -36,6 +37,7 @@ jobs:
           node scripts/build-3d.cjs
           node scripts/inject-codex.cjs
           node scripts/inject-oracle.cjs
+          node scripts/inject-transmission.cjs
           cat assets/models/dmf-signal.part0.b64 \
               assets/models/dmf-signal.part1.b64 \
               assets/models/dmf-signal.part2.b64 \
@@ -51,3 +53,6 @@ jobs:
           grep -q 'DMF_ORACLE_HEAD' public/index.html
           grep -q 'dmf-oracle' public/index.html
           grep -q 'THE FORMULA SPEAKS' public/index.html
+          grep -q 'DMF_TRANSMISSION_HEAD' public/index.html
+          grep -q 'dmf-transmission' public/index.html
+          grep -q 'THE SYSTEM LISTENS' public/index.html
