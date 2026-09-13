@@ -16,15 +16,32 @@ const ALLOWED_ORIGINS = new Set([
 const buckets = new Map();
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 12;
+let lastPruneAt = 0;
 
 function clientIp(req) {
-  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-  return forwarded || req.ip || req.socket?.remoteAddress || 'unknown';
+  const chain = String(req.headers['x-forwarded-for'] || '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  // Google/Firebase proxies append the verified client/proxy addresses to the
+  // right side of X-Forwarded-For. Ignore any attacker-controlled prefix.
+  if (chain.length >= 2) return chain[chain.length - 2];
+  return req.ip || req.socket?.remoteAddress || chain[chain.length - 1] || 'unknown';
+}
+
+function pruneBuckets(now) {
+  if (now - lastPruneAt < WINDOW_MS) return;
+  lastPruneAt = now;
+  for (const [key, bucket] of buckets.entries()) {
+    if (now - bucket.startedAt >= WINDOW_MS * 2) buckets.delete(key);
+  }
 }
 
 function allowRequest(req) {
-  const key = clientIp(req);
   const now = Date.now();
+  pruneBuckets(now);
+  const key = clientIp(req);
   const current = buckets.get(key);
   if (!current || now - current.startedAt >= WINDOW_MS) {
     buckets.set(key, { startedAt: now, count: 1 });
@@ -55,6 +72,20 @@ function extractJson(text) {
 
 function cleanString(value, max = 1200) {
   return typeof value === 'string' ? value.trim().slice(0, max) : '';
+}
+
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, (ch) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[ch]));
+}
+
+function cleanModelText(value, max) {
+  return escapeHtml(cleanString(value, max));
 }
 
 function buildSystem(lang) {
@@ -99,9 +130,9 @@ moduleIndex must be an integer from 0 to 7. bpm may be null. stage may be null. 
 function normalizeOutput(parsed) {
   if (!parsed || !Number.isInteger(Number(parsed.moduleIndex))) return null;
   const moduleIndex = Math.max(0, Math.min(7, Number(parsed.moduleIndex)));
-  const diagnosis = cleanString(parsed.diagnosis, 900);
-  const directive = cleanString(parsed.directive, 900);
-  const artifact = cleanString(parsed.artifact, 500);
+  const diagnosis = cleanModelText(parsed.diagnosis, 900);
+  const directive = cleanModelText(parsed.directive, 900);
+  const artifact = cleanModelText(parsed.artifact, 500);
   if (!diagnosis || !directive || !artifact) return null;
 
   let bpm = null;
@@ -112,7 +143,7 @@ function normalizeOutput(parsed) {
 
   const stage = parsed.stage === null || parsed.stage === undefined
     ? null
-    : cleanString(String(parsed.stage), 80) || null;
+    : cleanModelText(String(parsed.stage), 80) || null;
   const rawConfidence = String(parsed.confidence || '').toUpperCase();
   const confidence = ['HIGH', 'MEDIUM', 'ASSISTED'].includes(rawConfidence) ? rawConfidence : 'MEDIUM';
 
@@ -136,7 +167,7 @@ exports.dmfTraining = onRequest({
 
   const origin = String(req.headers.origin || '');
   const localOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
-  if (origin && !ALLOWED_ORIGINS.has(origin) && !localOrigin) {
+  if (!origin || (!ALLOWED_ORIGINS.has(origin) && !localOrigin)) {
     return res.status(403).json({ ok: false, error: 'Origin not allowed' });
   }
 
@@ -217,7 +248,7 @@ exports.dmfTraining = onRequest({
     return res.json({
       ok: true,
       ...parsed,
-      source: `VBC COMPUTE / ${String(data.engine || 'auto').toUpperCase()}`,
+      source: `VBC COMPUTE / ${String(data.engine || 'auto').toUpperCase().replace(/[^A-Z0-9_-]/g, '')}`,
       engine: data.engine || 'auto',
       fallback: !!data.fallback,
       costUnits: Number(data.costUnits || 0),
