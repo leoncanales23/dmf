@@ -55,7 +55,7 @@ jobs:
           test -s public/assets/models/dmf-signal-chrome.glb
           grep -q 'DMF_MESHY_3D_HEAD' public/index.html
           grep -q 'dmf-signal-band' public/index.html
-          grep -q 'Where the method was born' public/index.html
+          grep -q 'The Receiver' public/index.html
           grep -q 'DMF_CODEX_HEAD' public/index.html
           grep -q 'dmf-initiation-protocol' public/index.html
           grep -q 'INITIATION PROTOCOL' public/index.html
