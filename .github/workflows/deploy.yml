@@ -30,6 +30,7 @@ jobs:
           node scripts/verify-3d-checksum.cjs
           node scripts/build-3d.cjs
           node scripts/inject-codex.cjs
+          node scripts/inject-oracle.cjs
           cp -r assets/images/* public/assets/images/ 2>/dev/null || true
           cp -r assets/logos/* public/assets/logos/ 2>/dev/null || true
           cp -r assets/docs/* public/assets/docs/ 2>/dev/null || true
