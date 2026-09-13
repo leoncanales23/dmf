@@ -8,6 +8,7 @@ on:
       - 'scripts/inject-oracle.cjs'
       - 'scripts/inject-transmission.cjs'
       - 'scripts/inject-compute-uplink.cjs'
+      - 'scripts/inject-training-state.cjs'
       - 'scripts/check-3d.cjs'
       - 'scripts/verify-3d-checksum.cjs'
       - 'functions/**'
@@ -45,6 +46,7 @@ jobs:
           node scripts/inject-oracle.cjs
           node scripts/inject-transmission.cjs
           node scripts/inject-compute-uplink.cjs
+          node scripts/inject-training-state.cjs
           cat assets/models/dmf-signal.part0.b64 \
               assets/models/dmf-signal.part1.b64 \
               assets/models/dmf-signal.part2.b64 \
@@ -66,4 +68,7 @@ jobs:
           grep -q 'DMF_COMPUTE_UPLINK_HEAD' public/index.html
           grep -q '/api/dmf/training' public/index.html
           grep -q 'VBC COMPUTE // SECURE UPLINK' public/index.html
+          grep -q 'DMF_TRAINING_STATE_HEAD' public/index.html
+          grep -q 'dmf-training-memory' public/index.html
+          grep -q 'MEMORY CORE 11' public/index.html
           grep -q 'dmfTraining' firebase.json
