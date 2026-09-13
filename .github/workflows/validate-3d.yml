@@ -1,4 +1,4 @@
-name: Validate DMF 3D Hero
+name: Validate DMF 3D Signal
 
 on:
   pull_request:
@@ -39,4 +39,5 @@ jobs:
             | base64 --decode > public/assets/models/dmf-signal-chrome.glb
           test -s public/assets/models/dmf-signal-chrome.glb
           grep -q 'DMF_MESHY_3D_HEAD' public/index.html
-          grep -q 'dmf-3d-stage' public/index.html
+          grep -q 'dmf-signal-band' public/index.html
+          grep -q 'Sound becomes form' public/index.html
