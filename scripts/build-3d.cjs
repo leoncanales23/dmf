@@ -439,6 +439,11 @@ const bodyInjection = `${BODY_MARKER}
     var entranceAngle = 0;
     var wireRef = null;
     var edgeRef = null;
+    var reactiveColors = null;
+    var reactiveZones = null;
+    var reactiveColorAttr = null;
+    var reactiveVCount = 0;
+    var reactiveActive = false;
     var modelWorldMinY = 0;
     var modelWorldMaxY = 3;
     var modelWorldMinX = -2;
@@ -503,6 +508,7 @@ const bodyInjection = `${BODY_MARKER}
             ];
 
             var colors = new Float32Array(posArr.length);
+            var vZoneIdx = new Uint8Array(vCount);
             for(var vi = 0; vi < vCount; vi++){
               var ny = (posArr[vi * 3 + 1] - yMin) / yRange;
               var nx = (posArr[vi * 3] - xMin) / xRange;
@@ -511,13 +517,12 @@ const bodyInjection = `${BODY_MARKER}
 
               var zIdx = 3;
               if(ny < 0.20){ zIdx = 0; }
-              else if(ny < 0.45){
-                var dx = Math.abs(nx - 0.5), dz = Math.abs(nz - 0.5);
-                zIdx = (dx > 0.38 || dz > 0.38) ? 1 : 1;
-              } else if(ny < 0.70){
+              else if(ny < 0.45){ zIdx = 1; }
+              else if(ny < 0.70){
                 var dx2 = Math.abs(nx - 0.5), dz2 = Math.abs(nz - 0.5);
                 zIdx = (dx2 > 0.38 || dz2 > 0.38) ? 1 : 2;
               } else { zIdx = 3; }
+              vZoneIdx[vi] = zIdx;
 
               var zc = zoneColors[zIdx];
               var cr = zc[0], cg = zc[1], cb = zc[2];
@@ -541,19 +546,18 @@ const bodyInjection = `${BODY_MARKER}
             }
 
             geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            reactiveColors = new Float32Array(colors);
+            reactiveZones = vZoneIdx;
+            reactiveColorAttr = geo.attributes.color;
+            reactiveVCount = vCount;
 
-            var origColor = child.material.color ? child.material.color.clone() : new THREE.Color(0xff5b1e);
-            var origRoughness = child.material.roughness !== undefined ? child.material.roughness : 0.24;
-            var origMetalness = child.material.metalness !== undefined ? child.material.metalness : 0.88;
-            child.material = new THREE.MeshStandardMaterial({
-              vertexColors: true,
-              color: origColor,
-              roughness: Math.min(1.0, origRoughness * 1.15 + 0.03),
-              metalness: origMetalness * 0.92,
-              emissive: new THREE.Color(0xff5b1e),
-              emissiveIntensity: 0.008,
-              envMapIntensity: 0.55
-            });
+            var relicMat = child.material.clone();
+            relicMat.vertexColors = true;
+            relicMat.emissive = new THREE.Color(0xff5b1e);
+            relicMat.emissiveIntensity = 0.008;
+            relicMat.envMapIntensity = 0.55;
+            relicMat.needsUpdate = true;
+            child.material = relicMat;
             child.castShadow = true;
             child.receiveShadow = true;
 
@@ -837,11 +841,12 @@ const bodyInjection = `${BODY_MARKER}
         // Pedestal emissive pulse
         pedestalMat.emissiveIntensity = 0.012 + Math.sin(autoAngle * 2.5) * 0.008;
 
-        // Wireframe + edge breathing
-        if(wireRef) wireRef.material.opacity = 0.02 + Math.sin(autoAngle * 1.2) * 0.01;
-        if(edgeRef) edgeRef.material.opacity = 0.035 + Math.sin(autoAngle * 1.8) * 0.015;
+        // Wireframe + edge breathing (base)
+        var wireBaseOp = 0.02 + Math.sin(autoAngle * 1.2) * 0.01;
+        var edgeBaseOp = 0.035 + Math.sin(autoAngle * 1.8) * 0.015;
 
         // Hover raycasting — cursor-following readout
+        var activeZoneIdx = -1;
         if(modelRef && mouseNDCx !== 0 && mouseNDCy !== 0){
           raycaster.setFromCamera({x: mouseNDCx, y: mouseNDCy}, camera);
           var hits = raycaster.intersectObject(modelRef, true);
@@ -862,11 +867,66 @@ const bodyInjection = `${BODY_MARKER}
               readoutEl.classList.add('is-visible');
             }
             container.style.cursor = 'crosshair';
+            for(var zi = 0; zi < zones.length; zi++){
+              if(zones[zi].en === zoneKey){ activeZoneIdx = zi; break; }
+            }
           } else {
             if(currentZone){ hideReadout(); }
             container.style.cursor = '';
           }
         }
+
+        // Reactive anatomy — hovered zone responds with light
+        var zoneHighlights = [
+          [1.0, 0.35, 0.06],
+          [0.85, 0.45, 0.12],
+          [0.12, 0.55, 0.95],
+          [1.0, 0.38, 0.0]
+        ];
+        var wireZoneColors = [0x886633, 0xcc8844, 0x44ddff, 0xff6633];
+        if(reactiveColorAttr && reactiveColors){
+          var arr = reactiveColorAttr.array;
+          if(activeZoneIdx >= 0){
+            var zh = zoneHighlights[activeZoneIdx];
+            for(var vi = 0; vi < reactiveVCount; vi++){
+              var bi = vi * 3;
+              if(reactiveZones[vi] === activeZoneIdx){
+                var pulse = 0.5 + 0.5 * Math.sin(autoAngle * 3.5 + vi * 0.08);
+                var h = pulse * 0.12;
+                arr[bi]   = Math.min(1.0, reactiveColors[bi]   + h * zh[0]);
+                arr[bi+1] = Math.min(1.0, reactiveColors[bi+1] + h * zh[1]);
+                arr[bi+2] = Math.min(1.0, reactiveColors[bi+2] + h * zh[2]);
+              } else {
+                arr[bi]   = reactiveColors[bi];
+                arr[bi+1] = reactiveColors[bi+1];
+                arr[bi+2] = reactiveColors[bi+2];
+              }
+            }
+            reactiveColorAttr.needsUpdate = true;
+            reactiveActive = true;
+            if(wireRef){
+              wireRef.material.color.setHex(wireZoneColors[activeZoneIdx]);
+              wireBaseOp = 0.055 + Math.sin(autoAngle * 2.5) * 0.02;
+            }
+            if(edgeRef){
+              edgeRef.material.color.setHex(wireZoneColors[activeZoneIdx]);
+              edgeBaseOp = 0.06 + Math.sin(autoAngle * 2.0) * 0.02;
+            }
+          } else if(reactiveActive){
+            for(var vi = 0; vi < reactiveVCount; vi++){
+              var bi = vi * 3;
+              arr[bi]   = reactiveColors[bi];
+              arr[bi+1] = reactiveColors[bi+1];
+              arr[bi+2] = reactiveColors[bi+2];
+            }
+            reactiveColorAttr.needsUpdate = true;
+            reactiveActive = false;
+            if(wireRef) wireRef.material.color.setHex(0x4488cc);
+            if(edgeRef) edgeRef.material.color.setHex(0xff5b1e);
+          }
+        }
+        if(wireRef) wireRef.material.opacity = wireBaseOp;
+        if(edgeRef) edgeRef.material.opacity = edgeBaseOp;
 
         // Tone mapping
         renderer.toneMappingExposure = 0.95 + Math.sin(autoAngle * 0.7) * 0.06;
