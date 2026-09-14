@@ -66,6 +66,12 @@ const headInjection = `${HEAD_MARKER}
 .dmf-relic-readout-status{font-size:7px;letter-spacing:.15em;text-transform:uppercase;color:#665f58;margin-top:2px;white-space:nowrap}
 .dmf-relic-readout-lore{font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:#8b7d70;margin-top:3px;white-space:nowrap;font-style:italic;opacity:.85}
 
+.dmf-relic-state{font-size:7px;letter-spacing:.22em;text-transform:uppercase;color:#4a443e;transition:color .4s,text-shadow .4s}
+.dmf-relic-state.is-awakened{color:#d9a18c}
+.dmf-relic-state.is-transmitting{color:#ff5b1e;text-shadow:0 0 10px rgba(255,91,30,.4)}
+.dmf-relic-state-pct{display:block;font-size:6px;letter-spacing:.18em;color:rgba(255,91,30,.5);margin-top:2px;opacity:0;transition:opacity .3s}
+.dmf-relic-state.is-transmitting .dmf-relic-state-pct{opacity:1}
+
 .dmf-signal-visual.is-fullscreen{position:fixed!important;inset:0;z-index:9999;min-height:100vh!important;background:#040303}
 .dmf-signal-visual.is-fullscreen .dmf-signal-corner{right:24px;top:24px}
 .dmf-signal-visual.is-fullscreen .dmf-signal-edition-tag{left:24px;bottom:24px}
@@ -140,7 +146,7 @@ const bodyInjection = `${BODY_MARKER}
           '<div class="dmf-signal-scan" aria-hidden="true"></div>',
           '<div class="dmf-signal-scan2" aria-hidden="true"></div>',
           '<div class="dmf-signal-vignette" aria-hidden="true"></div>',
-          '<div class="dmf-signal-corner" aria-hidden="true"><strong>DMF / RELIC 01</strong><span data-dmf-en="Signal Sculpture" data-dmf-es="Escultura Se\\u00f1al">Signal Sculpture</span></div>',
+          '<div class="dmf-signal-corner" aria-hidden="true"><strong>DMF / RELIC 01</strong><span data-dmf-en="Signal Sculpture" data-dmf-es="Escultura Se\\u00f1al">Signal Sculpture</span><span class="dmf-relic-state" data-dmf-en="DORMANT" data-dmf-es="INACTIVO">DORMANT</span></div>',
           '<div class="dmf-signal-edition-tag" aria-hidden="true" data-dmf-en="Collector Artifact \\u00b7 DMF Universe" data-dmf-es="Artefacto Coleccionable \\u00b7 Universo DMF">Collector Artifact \\u00b7 DMF Universe</div>',
           '<div class="dmf-relic-readout" aria-hidden="true"><div class="dmf-relic-readout-component"></div><div class="dmf-relic-readout-status"></div><div class="dmf-relic-readout-lore"></div></div>',
           '<button class="dmf-signal-fullscreen-close" aria-label="Close" type="button">\\u2715</button>',
@@ -574,8 +580,7 @@ const bodyInjection = `${BODY_MARKER}
                 '#include <common>\\nuniform float uActiveZone;\\nuniform float uTime;\\nuniform float uIntensity;\\nvarying float vZoneId;\\nvarying float vNormY;'
               );
               shader.fragmentShader = shader.fragmentShader.replace(
-                '#include <dithering_fragment>',
-                '#include <dithering_fragment>\\n' +
+                '#include <tonemapping_fragment>',
                 'if(uActiveZone >= 0.0){\\n' +
                 '  float zId = floor(vZoneId + 0.5);\\n' +
                 '  float aZ = floor(uActiveZone + 0.5);\\n' +
@@ -595,7 +600,8 @@ const bodyInjection = `${BODY_MARKER}
                 '    float wave = smoothstep(0.12, 0.0, wd);\\n' +
                 '    gl_FragColor.rgb += vec3(1.0, 0.35, 0.06) * wave * 0.2 * uIntensity;\\n' +
                 '  }\\n' +
-                '}'
+                '}\\n' +
+                '#include <tonemapping_fragment>'
               );
               relicShaderRef = shader;
             };
@@ -692,10 +698,12 @@ const bodyInjection = `${BODY_MARKER}
 
     var raycaster = new THREE.Raycaster();
     var currentZone = '';
+    var relicState = 'dormant';
     var readoutEl = container.querySelector('.dmf-relic-readout');
     var readoutComp = readoutEl.querySelector('.dmf-relic-readout-component');
     var readoutStatus = readoutEl.querySelector('.dmf-relic-readout-status');
     var readoutLore = readoutEl.querySelector('.dmf-relic-readout-lore');
+    var stateEl = container.querySelector('.dmf-relic-state');
 
     var zones = [
       {test: function(nx,ny,nz){ return ny < 0.20; }, en: 'RELIC COMPONENT // PLATFORM BASE', es: 'COMPONENTE RELIC // BASE DE PLATAFORMA', statusEn: 'SIGNAL PATH ACTIVE', statusEs: 'RUTA DE SE\\u00d1AL ACTIVA', loreEn: 'Earthside anchor \\u2014 terrestrial grounding node', loreEs: 'Anclaje terrestre \\u2014 nodo de conexi\\u00f3n'},
@@ -804,7 +812,7 @@ const bodyInjection = `${BODY_MARKER}
         if(!isVisible) return;
 
         var dt = clock.getDelta();
-        autoAngle += 0.0012;
+        autoAngle += dt * 0.072;
 
         // Model entrance
         if(modelRef && modelCurrentScale < modelTargetScale){
@@ -940,6 +948,32 @@ const bodyInjection = `${BODY_MARKER}
         }
         if(wireRef) wireRef.material.opacity = wireBaseOp;
         if(edgeRef) edgeRef.material.opacity = edgeBaseOp;
+
+        // Relic signal state — DORMANT / AWAKENED / TRANSMITTING
+        var newState;
+        if(activeZoneIdx === 3) newState = 'transmitting';
+        else if(activeZoneIdx >= 0) newState = 'awakened';
+        else newState = 'dormant';
+        if(newState !== relicState){
+          relicState = newState;
+          stateEl.classList.remove('is-awakened', 'is-transmitting');
+          var lang = getLang();
+          if(relicState === 'dormant'){
+            stateEl.textContent = lang === 'es' ? 'INACTIVO' : 'DORMANT';
+          } else if(relicState === 'awakened'){
+            stateEl.classList.add('is-awakened');
+            stateEl.textContent = lang === 'es' ? 'SE\\u00d1AL DETECTADA' : 'SIGNAL DETECTED';
+          } else {
+            stateEl.classList.add('is-transmitting');
+          }
+        }
+        if(relicState === 'transmitting'){
+          var wPct = Math.floor(((autoAngle * 4.5) % 1.0) * 100);
+          var lang2 = getLang();
+          stateEl.innerHTML = (lang2 === 'es' ? 'TRANSMISI\\u00d3N' : 'TRANSMITTING') +
+            '<span class="dmf-relic-state-pct">' +
+            (lang2 === 'es' ? 'TRANSFERENCIA ' : 'FORMULA TRANSFER ') + wPct + '%</span>';
+        }
 
         // Tone mapping
         renderer.toneMappingExposure = 0.95 + Math.sin(autoAngle * 0.7) * 0.06;
