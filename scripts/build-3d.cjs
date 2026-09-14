@@ -439,11 +439,7 @@ const bodyInjection = `${BODY_MARKER}
     var entranceAngle = 0;
     var wireRef = null;
     var edgeRef = null;
-    var reactiveColors = null;
-    var reactiveZones = null;
-    var reactiveColorAttr = null;
-    var reactiveVCount = 0;
-    var reactiveActive = false;
+    var relicShaderRef = null;
     var modelWorldMinY = 0;
     var modelWorldMaxY = 3;
     var modelWorldMinX = -2;
@@ -546,16 +542,63 @@ const bodyInjection = `${BODY_MARKER}
             }
 
             geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            reactiveColors = new Float32Array(colors);
-            reactiveZones = vZoneIdx;
-            reactiveColorAttr = geo.attributes.color;
-            reactiveVCount = vCount;
+
+            var zoneIdArr = new Float32Array(vCount);
+            var normYArr = new Float32Array(vCount);
+            for(var ai = 0; ai < vCount; ai++){
+              zoneIdArr[ai] = vZoneIdx[ai];
+              normYArr[ai] = (posArr[ai * 3 + 1] - yMin) / yRange;
+            }
+            geo.setAttribute('aZoneId', new THREE.BufferAttribute(zoneIdArr, 1));
+            geo.setAttribute('aNormY', new THREE.BufferAttribute(normYArr, 1));
 
             var relicMat = child.material.clone();
             relicMat.vertexColors = true;
             relicMat.emissive = new THREE.Color(0xff5b1e);
             relicMat.emissiveIntensity = 0.008;
             relicMat.envMapIntensity = 0.55;
+            relicMat.onBeforeCompile = function(shader){
+              shader.uniforms.uActiveZone = {value: -1.0};
+              shader.uniforms.uTime = {value: 0.0};
+              shader.uniforms.uIntensity = {value: quality === 'balanced' ? 0.7 : 1.0};
+              shader.vertexShader = shader.vertexShader.replace(
+                '#include <common>',
+                '#include <common>\\nattribute float aZoneId;\\nattribute float aNormY;\\nvarying float vZoneId;\\nvarying float vNormY;'
+              );
+              shader.vertexShader = shader.vertexShader.replace(
+                '#include <begin_vertex>',
+                '#include <begin_vertex>\\nvZoneId = aZoneId;\\nvNormY = aNormY;'
+              );
+              shader.fragmentShader = shader.fragmentShader.replace(
+                '#include <common>',
+                '#include <common>\\nuniform float uActiveZone;\\nuniform float uTime;\\nuniform float uIntensity;\\nvarying float vZoneId;\\nvarying float vNormY;'
+              );
+              shader.fragmentShader = shader.fragmentShader.replace(
+                '#include <dithering_fragment>',
+                '#include <dithering_fragment>\\n' +
+                'if(uActiveZone >= 0.0){\\n' +
+                '  float zId = floor(vZoneId + 0.5);\\n' +
+                '  float aZ = floor(uActiveZone + 0.5);\\n' +
+                '  vec3 zCol;\\n' +
+                '  if(aZ < 0.5) zCol = vec3(1.0, 0.35, 0.06);\\n' +
+                '  else if(aZ < 1.5) zCol = vec3(0.85, 0.45, 0.12);\\n' +
+                '  else if(aZ < 2.5) zCol = vec3(0.12, 0.55, 0.95);\\n' +
+                '  else zCol = vec3(1.0, 0.38, 0.0);\\n' +
+                '  if(zId == aZ){\\n' +
+                '    float pulse = 0.5 + 0.5 * sin(uTime * 3.5 + vNormY * 18.0);\\n' +
+                '    gl_FragColor.rgb += zCol * pulse * 0.12 * uIntensity;\\n' +
+                '  }\\n' +
+                '  if(aZ > 2.5){\\n' +
+                '    float wf = fract(uTime * 4.5);\\n' +
+                '    float wp = 1.0 - wf;\\n' +
+                '    float wd = abs(vNormY - wp);\\n' +
+                '    float wave = smoothstep(0.12, 0.0, wd);\\n' +
+                '    gl_FragColor.rgb += vec3(1.0, 0.35, 0.06) * wave * 0.2 * uIntensity;\\n' +
+                '  }\\n' +
+                '}'
+              );
+              relicShaderRef = shader;
+            };
             relicMat.needsUpdate = true;
             child.material = relicMat;
             child.castShadow = true;
@@ -876,54 +919,24 @@ const bodyInjection = `${BODY_MARKER}
           }
         }
 
-        // Reactive anatomy — hovered zone responds with light
-        var zoneHighlights = [
-          [1.0, 0.35, 0.06],
-          [0.85, 0.45, 0.12],
-          [0.12, 0.55, 0.95],
-          [1.0, 0.38, 0.0]
-        ];
+        // GPU reactive anatomy — shader uniform updates (2 uniforms vs ~105K vertices/frame)
         var wireZoneColors = [0x886633, 0xcc8844, 0x44ddff, 0xff6633];
-        if(reactiveColorAttr && reactiveColors){
-          var arr = reactiveColorAttr.array;
-          if(activeZoneIdx >= 0){
-            var zh = zoneHighlights[activeZoneIdx];
-            for(var vi = 0; vi < reactiveVCount; vi++){
-              var bi = vi * 3;
-              if(reactiveZones[vi] === activeZoneIdx){
-                var pulse = 0.5 + 0.5 * Math.sin(autoAngle * 3.5 + vi * 0.08);
-                var h = pulse * 0.12;
-                arr[bi]   = Math.min(1.0, reactiveColors[bi]   + h * zh[0]);
-                arr[bi+1] = Math.min(1.0, reactiveColors[bi+1] + h * zh[1]);
-                arr[bi+2] = Math.min(1.0, reactiveColors[bi+2] + h * zh[2]);
-              } else {
-                arr[bi]   = reactiveColors[bi];
-                arr[bi+1] = reactiveColors[bi+1];
-                arr[bi+2] = reactiveColors[bi+2];
-              }
-            }
-            reactiveColorAttr.needsUpdate = true;
-            reactiveActive = true;
-            if(wireRef){
-              wireRef.material.color.setHex(wireZoneColors[activeZoneIdx]);
-              wireBaseOp = 0.055 + Math.sin(autoAngle * 2.5) * 0.02;
-            }
-            if(edgeRef){
-              edgeRef.material.color.setHex(wireZoneColors[activeZoneIdx]);
-              edgeBaseOp = 0.06 + Math.sin(autoAngle * 2.0) * 0.02;
-            }
-          } else if(reactiveActive){
-            for(var vi = 0; vi < reactiveVCount; vi++){
-              var bi = vi * 3;
-              arr[bi]   = reactiveColors[bi];
-              arr[bi+1] = reactiveColors[bi+1];
-              arr[bi+2] = reactiveColors[bi+2];
-            }
-            reactiveColorAttr.needsUpdate = true;
-            reactiveActive = false;
-            if(wireRef) wireRef.material.color.setHex(0x4488cc);
-            if(edgeRef) edgeRef.material.color.setHex(0xff5b1e);
+        if(relicShaderRef){
+          relicShaderRef.uniforms.uActiveZone.value = activeZoneIdx;
+          relicShaderRef.uniforms.uTime.value = autoAngle;
+        }
+        if(activeZoneIdx >= 0){
+          if(wireRef){
+            wireRef.material.color.setHex(wireZoneColors[activeZoneIdx]);
+            wireBaseOp = 0.055 + Math.sin(autoAngle * 2.5) * 0.02;
           }
+          if(edgeRef){
+            edgeRef.material.color.setHex(wireZoneColors[activeZoneIdx]);
+            edgeBaseOp = 0.06 + Math.sin(autoAngle * 2.0) * 0.02;
+          }
+        } else {
+          if(wireRef) wireRef.material.color.setHex(0x4488cc);
+          if(edgeRef) edgeRef.material.color.setHex(0xff5b1e);
         }
         if(wireRef) wireRef.material.opacity = wireBaseOp;
         if(edgeRef) edgeRef.material.opacity = edgeBaseOp;
