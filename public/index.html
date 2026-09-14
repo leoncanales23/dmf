@@ -423,6 +423,9 @@ ul{list-style:none}
 .dmf-signal-cta:hover{background:#ff5b1e;color:#0a0806;transform:translateY(-2px);box-shadow:0 12px 34px rgba(255,91,30,.18)}
 .dmf-signal-cta--secondary{border-color:rgba(255,91,30,.25);background:transparent;color:#a08070}
 .dmf-signal-cta--secondary:hover{background:rgba(255,91,30,.08);color:#ff7a45;border-color:#ff5b1e}
+.dmf-signal-cta--tertiary{border-color:rgba(242,237,230,.08);background:transparent;color:#4a443e;cursor:default;gap:8px}
+.dmf-signal-cta--tertiary:hover{background:transparent;color:#4a443e;transform:none;box-shadow:none}
+.dmf-signal-chip-inline{font-size:7px;padding:2px 6px;border:1px solid rgba(255,91,30,.18);color:#665f58;letter-spacing:.14em}
 .dmf-signal-hint{font-size:9px;letter-spacing:.17em;text-transform:uppercase;color:#665f58}
 
 .dmf-signal-visual{position:relative;min-height:clamp(420px,48vw,640px);overflow:hidden;background:#040303}
@@ -444,6 +447,7 @@ ul{list-style:none}
 .dmf-relic-readout.is-visible{opacity:1;transform:translate(14px,-50%)}
 .dmf-relic-readout-component{font-size:8px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#ff5b1e;white-space:nowrap}
 .dmf-relic-readout-status{font-size:7px;letter-spacing:.15em;text-transform:uppercase;color:#665f58;margin-top:2px;white-space:nowrap}
+.dmf-relic-readout-lore{font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:#8b7d70;margin-top:3px;white-space:nowrap;font-style:italic;opacity:.85}
 
 .dmf-signal-visual.is-fullscreen{position:fixed!important;inset:0;z-index:9999;min-height:100vh!important;background:#040303}
 .dmf-signal-visual.is-fullscreen .dmf-signal-corner{right:24px;top:24px}
@@ -1750,7 +1754,8 @@ ul{list-style:none}
           '</div>',
           '<div class="dmf-signal-actions">',
             '<a class="dmf-signal-cta dmf-signal-view3d" href="javascript:void(0)" role="button"><span data-dmf-en="View Relic" data-dmf-es="Ver Reliquia">View Relic</span><span aria-hidden="true"> \u2192</span></a>',
-            '<a class="dmf-signal-cta dmf-signal-cta--secondary" href="assets/models/dmf-studio-optimized.glb" download><span data-dmf-en="3D Print Edition" data-dmf-es="Edici\u00f3n Impresi\u00f3n 3D">3D Print Edition</span></a>',
+            '<a class="dmf-signal-cta dmf-signal-cta--secondary" href="assets/models/dmf-studio-optimized.glb" download><span data-dmf-en="Download Digital Relic" data-dmf-es="Descargar Reliquia Digital">Download Digital Relic</span></a>',
+            '<a class="dmf-signal-cta dmf-signal-cta--tertiary" href="javascript:void(0)" role="button" aria-disabled="true"><span data-dmf-en="3D Print Master" data-dmf-es="Modelo Impresi\u00f3n 3D">3D Print Master</span><span class="dmf-signal-chip-inline" data-dmf-en="Coming Soon" data-dmf-es="Pr\u00f3ximamente">Coming Soon</span></a>',
           '</div>',
           '<span class="dmf-signal-hint" data-dmf-en="Interactive \u00b7 drag to orbit" data-dmf-es="Interactivo \u00b7 arrastra para rotar">Interactive \u00b7 drag to orbit</span>',
         '</div>',
@@ -1762,7 +1767,7 @@ ul{list-style:none}
           '<div class="dmf-signal-vignette" aria-hidden="true"></div>',
           '<div class="dmf-signal-corner" aria-hidden="true"><strong>DMF / RELIC 01</strong><span data-dmf-en="Signal Sculpture" data-dmf-es="Escultura Se\u00f1al">Signal Sculpture</span></div>',
           '<div class="dmf-signal-edition-tag" aria-hidden="true" data-dmf-en="Collector Artifact \u00b7 DMF Universe" data-dmf-es="Artefacto Coleccionable \u00b7 Universo DMF">Collector Artifact \u00b7 DMF Universe</div>',
-          '<div class="dmf-relic-readout" aria-hidden="true"><div class="dmf-relic-readout-component"></div><div class="dmf-relic-readout-status"></div></div>',
+          '<div class="dmf-relic-readout" aria-hidden="true"><div class="dmf-relic-readout-component"></div><div class="dmf-relic-readout-status"></div><div class="dmf-relic-readout-lore"></div></div>',
           '<button class="dmf-signal-fullscreen-close" aria-label="Close" type="button">\u2715</button>',
         '</div>',
       '</div>'
@@ -2061,6 +2066,10 @@ ul{list-style:none}
     var edgeRef = null;
     var modelWorldMinY = 0;
     var modelWorldMaxY = 3;
+    var modelWorldMinX = -2;
+    var modelWorldMaxX = 2;
+    var modelWorldMinZ = -2;
+    var modelWorldMaxZ = 2;
 
     var loader = new THREE.GLTFLoader();
     loader.load(
@@ -2080,6 +2089,12 @@ ul{list-style:none}
 
         modelWorldMinY = 0.13;
         modelWorldMaxY = 0.13 + size.y * s;
+        var halfXW = size.x * s / 2;
+        var halfZW = size.z * s / 2;
+        modelWorldMinX = -halfXW;
+        modelWorldMaxX = halfXW;
+        modelWorldMinZ = -halfZW;
+        modelWorldMaxZ = halfZW;
 
         model.traverse(function(child){
           if(child.isMesh && child.geometry){
@@ -2096,36 +2111,54 @@ ul{list-style:none}
             }
             var yRange = yMax - yMin || 1;
 
+            var xMin = Infinity, xMax = -Infinity, zMin = Infinity, zMax = -Infinity;
+            for(var vi = 0; vi < vCount; vi++){
+              var vx = posArr[vi * 3], vz = posArr[vi * 3 + 2];
+              if(vx < xMin) xMin = vx; if(vx > xMax) xMax = vx;
+              if(vz < zMin) zMin = vz; if(vz > zMax) zMax = vz;
+            }
+            var xRange = xMax - xMin || 1;
+            var zRange = zMax - zMin || 1;
+
+            var zoneColors = [
+              [0.55, 0.48, 0.44],
+              [0.68, 0.62, 0.56],
+              [0.72, 0.70, 0.78],
+              [0.82, 0.78, 0.80]
+            ];
+
             var colors = new Float32Array(posArr.length);
             for(var vi = 0; vi < vCount; vi++){
               var ny = (posArr[vi * 3 + 1] - yMin) / yRange;
-              var vx = posArr[vi * 3];
-              var vz = posArr[vi * 3 + 2];
-              var dist = Math.sqrt(vx * vx + vz * vz);
+              var nx = (posArr[vi * 3] - xMin) / xRange;
+              var nz = (posArr[vi * 3 + 2] - zMin) / zRange;
+              var dist = Math.sqrt((posArr[vi*3]) * (posArr[vi*3]) + (posArr[vi*3+2]) * (posArr[vi*3+2]));
 
-              var cr, cg, cb;
-              if(ny < 0.18){
-                cr = 0.020; cg = 0.017; cb = 0.016;
-              } else if(ny < 0.42){
-                cr = 0.040; cg = 0.034; cb = 0.028;
-              } else if(ny < 0.68){
-                cr = 0.046; cg = 0.045; cb = 0.054;
-              } else {
-                cr = 0.060; cg = 0.056; cb = 0.058;
-              }
+              var zIdx = 3;
+              if(ny < 0.20){ zIdx = 0; }
+              else if(ny < 0.45){
+                var dx = Math.abs(nx - 0.5), dz = Math.abs(nz - 0.5);
+                zIdx = (dx > 0.38 || dz > 0.38) ? 1 : 1;
+              } else if(ny < 0.70){
+                var dx2 = Math.abs(nx - 0.5), dz2 = Math.abs(nz - 0.5);
+                zIdx = (dx2 > 0.38 || dz2 > 0.38) ? 1 : 2;
+              } else { zIdx = 3; }
 
-              var bn1 = 1.0 - Math.min(1.0, Math.abs(ny - 0.18) / 0.022);
-              var bn2 = 1.0 - Math.min(1.0, Math.abs(ny - 0.42) / 0.022);
-              var bn3 = 1.0 - Math.min(1.0, Math.abs(ny - 0.68) / 0.022);
+              var zc = zoneColors[zIdx];
+              var cr = zc[0], cg = zc[1], cb = zc[2];
+
+              var bn1 = 1.0 - Math.min(1.0, Math.abs(ny - 0.20) / 0.025);
+              var bn2 = 1.0 - Math.min(1.0, Math.abs(ny - 0.45) / 0.025);
+              var bn3 = 1.0 - Math.min(1.0, Math.abs(ny - 0.70) / 0.025);
               var bnMax = Math.max(bn1, bn2, bn3);
-              cr += bnMax * 0.14;
-              cg += bnMax * 0.028;
-              cb += bnMax * 0.005;
+              cr = Math.min(1.0, cr + bnMax * 0.12);
+              cg = Math.min(1.0, cg + bnMax * 0.04);
+              cb = Math.min(1.0, cb + bnMax * 0.02);
 
               var ef = Math.max(0, dist - 0.35) / 0.55;
-              ef = Math.min(1, ef) * 0.018;
-              cr += ef * (ny > 0.25 ? 1.0 : 0.3);
-              cg += ef * 0.2;
+              ef = Math.min(1, ef) * 0.04;
+              cr = Math.min(1.0, cr + ef * 0.8);
+              cg = Math.min(1.0, cg + ef * 0.2);
 
               colors[vi * 3] = cr;
               colors[vi * 3 + 1] = cg;
@@ -2134,14 +2167,17 @@ ul{list-style:none}
 
             geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
+            var origColor = child.material.color ? child.material.color.clone() : new THREE.Color(0xff5b1e);
+            var origRoughness = child.material.roughness !== undefined ? child.material.roughness : 0.24;
+            var origMetalness = child.material.metalness !== undefined ? child.material.metalness : 0.88;
             child.material = new THREE.MeshStandardMaterial({
               vertexColors: true,
-              roughness: 0.50,
-              metalness: 0.70,
+              color: origColor,
+              roughness: Math.min(1.0, origRoughness * 1.15 + 0.03),
+              metalness: origMetalness * 0.92,
               emissive: new THREE.Color(0xff5b1e),
-              emissiveIntensity: 0.010,
-              flatShading: true,
-              envMapIntensity: 0.4
+              emissiveIntensity: 0.008,
+              envMapIntensity: 0.55
             });
             child.castShadow = true;
             child.receiveShadow = true;
@@ -2237,19 +2273,24 @@ ul{list-style:none}
     var readoutEl = container.querySelector('.dmf-relic-readout');
     var readoutComp = readoutEl.querySelector('.dmf-relic-readout-component');
     var readoutStatus = readoutEl.querySelector('.dmf-relic-readout-status');
+    var readoutLore = readoutEl.querySelector('.dmf-relic-readout-lore');
 
     var zones = [
-      {max: 0.18, en: 'RELIC COMPONENT // PLATFORM BASE', es: 'COMPONENTE RELIC // BASE DE PLATAFORMA', statusEn: 'SIGNAL PATH ACTIVE', statusEs: 'RUTA DE SE\u00d1AL ACTIVA'},
-      {max: 0.42, en: 'RELIC COMPONENT // CORE FRAME', es: 'COMPONENTE RELIC // ESTRUCTURA CENTRAL', statusEn: 'ARCHIVE NODE 03', statusEs: 'NODO DE ARCHIVO 03'},
-      {max: 0.68, en: 'RELIC COMPONENT // SIGNAL CONSOLE', es: 'COMPONENTE RELIC // CONSOLA DE SE\u00d1AL', statusEn: 'RECEIVING FREQUENCY', statusEs: 'FRECUENCIA DE RECEPCI\u00d3N'},
-      {max: 1.01, en: 'RELIC COMPONENT // RECEIVER ARRAY', es: 'COMPONENTE RELIC // MATRIZ RECEPTORA', statusEn: 'TRANSMISSION ACTIVE', statusEs: 'TRANSMISI\u00d3N ACTIVA'}
+      {test: function(nx,ny,nz){ return ny < 0.20; }, en: 'RELIC COMPONENT // PLATFORM BASE', es: 'COMPONENTE RELIC // BASE DE PLATAFORMA', statusEn: 'SIGNAL PATH ACTIVE', statusEs: 'RUTA DE SE\u00d1AL ACTIVA', loreEn: 'Earthside anchor \u2014 terrestrial grounding node', loreEs: 'Anclaje terrestre \u2014 nodo de conexi\u00f3n'},
+      {test: function(nx,ny,nz){ return ny < 0.45 || (ny < 0.70 && (Math.abs(nx-0.5)>0.38 || Math.abs(nz-0.5)>0.38)); }, en: 'RELIC COMPONENT // CORE FRAME', es: 'COMPONENTE RELIC // ESTRUCTURA CENTRAL', statusEn: 'ARCHIVE NODE 03', statusEs: 'NODO DE ARCHIVO 03', loreEn: 'Formula preservation unit \u2014 primary containment', loreEs: 'Unidad de preservaci\u00f3n \u2014 contenci\u00f3n primaria'},
+      {test: function(nx,ny,nz){ return ny < 0.70; }, en: 'RELIC COMPONENT // SIGNAL CONSOLE', es: 'COMPONENTE RELIC // CONSOLA DE SE\u00d1AL', statusEn: 'RECEIVING FREQUENCY', statusEs: 'FRECUENCIA DE RECEPCI\u00d3N', loreEn: 'Terrestrial decoding interface \u2014 signal processing', loreEs: 'Interfaz de decodificaci\u00f3n terrestre'},
+      {test: function(){ return true; }, en: 'RELIC COMPONENT // RECEIVER ARRAY', es: 'COMPONENTE RELIC // MATRIZ RECEPTORA', statusEn: 'TRANSMISSION ACTIVE', statusEs: 'TRANSMISI\u00d3N ACTIVA', loreEn: 'Transmission channel \u2014 formula acquisition array', loreEs: 'Canal de transmisi\u00f3n \u2014 adquisici\u00f3n de f\u00f3rmula'}
     ];
 
-    function getZone(worldY){
-      var ny = (worldY - modelWorldMinY) / (modelWorldMaxY - modelWorldMinY);
+    function getZone(point){
+      var nx = (point.x - modelWorldMinX) / (modelWorldMaxX - modelWorldMinX);
+      var ny = (point.y - modelWorldMinY) / (modelWorldMaxY - modelWorldMinY);
+      var nz = (point.z - modelWorldMinZ) / (modelWorldMaxZ - modelWorldMinZ);
+      nx = Math.max(0, Math.min(1, nx));
       ny = Math.max(0, Math.min(1, ny));
+      nz = Math.max(0, Math.min(1, nz));
       for(var zi = 0; zi < zones.length; zi++){
-        if(ny < zones[zi].max) return zones[zi];
+        if(zones[zi].test(nx, ny, nz)) return zones[zi];
       }
       return zones[zones.length - 1];
     }
@@ -2259,13 +2300,11 @@ ul{list-style:none}
       return btn && btn.textContent.trim().toUpperCase() === 'EN' ? 'es' : 'en';
     }
 
-    function showReadout(screenX, screenY, zone){
+    function showReadout(zone){
       var lang = getLang();
       readoutComp.textContent = lang === 'es' ? zone.es : zone.en;
       readoutStatus.textContent = lang === 'es' ? zone.statusEs : zone.statusEn;
-      readoutEl.style.left = screenX + 'px';
-      readoutEl.style.top = screenY + 'px';
-      readoutEl.classList.add('is-visible');
+      readoutLore.textContent = lang === 'es' ? zone.loreEs : zone.loreEn;
     }
 
     function hideReadout(){
@@ -2427,20 +2466,25 @@ ul{list-style:none}
         if(wireRef) wireRef.material.opacity = 0.02 + Math.sin(autoAngle * 1.2) * 0.01;
         if(edgeRef) edgeRef.material.opacity = 0.035 + Math.sin(autoAngle * 1.8) * 0.015;
 
-        // Hover raycasting
+        // Hover raycasting — cursor-following readout
         if(modelRef && mouseNDCx !== 0 && mouseNDCy !== 0){
           raycaster.setFromCamera({x: mouseNDCx, y: mouseNDCy}, camera);
           var hits = raycaster.intersectObject(modelRef, true);
           if(hits.length > 0){
             var hit = hits[0];
-            var zone = getZone(hit.point.y);
+            var zone = getZone(hit.point);
             var zoneKey = zone.en;
+            var projected = hit.point.clone().project(camera);
+            var sx = (projected.x * 0.5 + 0.5) * w;
+            var sy = (-projected.y * 0.5 + 0.5) * h;
+            readoutEl.style.left = sx + 'px';
+            readoutEl.style.top = sy + 'px';
             if(zoneKey !== currentZone){
               currentZone = zoneKey;
-              var projected = hit.point.clone().project(camera);
-              var sx = (projected.x * 0.5 + 0.5) * w;
-              var sy = (-projected.y * 0.5 + 0.5) * h;
-              showReadout(sx, sy, zone);
+              showReadout(zone);
+            }
+            if(!readoutEl.classList.contains('is-visible')){
+              readoutEl.classList.add('is-visible');
             }
             container.style.cursor = 'crosshair';
           } else {
