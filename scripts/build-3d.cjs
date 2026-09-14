@@ -146,7 +146,7 @@ const bodyInjection = `${BODY_MARKER}
           '<div class="dmf-signal-scan" aria-hidden="true"></div>',
           '<div class="dmf-signal-scan2" aria-hidden="true"></div>',
           '<div class="dmf-signal-vignette" aria-hidden="true"></div>',
-          '<div class="dmf-signal-corner" aria-hidden="true"><strong>DMF / RELIC 01</strong><span data-dmf-en="Signal Sculpture" data-dmf-es="Escultura Se\\u00f1al">Signal Sculpture</span><span class="dmf-relic-state" data-dmf-en="DORMANT" data-dmf-es="INACTIVO">DORMANT</span></div>',
+          '<div class="dmf-signal-corner" aria-hidden="true"><strong>DMF / RELIC 01</strong><span data-dmf-en="Signal Sculpture" data-dmf-es="Escultura Se\\u00f1al">Signal Sculpture</span><span class="dmf-relic-state">DORMANT</span></div>',
           '<div class="dmf-signal-edition-tag" aria-hidden="true" data-dmf-en="Collector Artifact \\u00b7 DMF Universe" data-dmf-es="Artefacto Coleccionable \\u00b7 Universo DMF">Collector Artifact \\u00b7 DMF Universe</div>',
           '<div class="dmf-relic-readout" aria-hidden="true"><div class="dmf-relic-readout-component"></div><div class="dmf-relic-readout-status"></div><div class="dmf-relic-readout-lore"></div></div>',
           '<button class="dmf-signal-fullscreen-close" aria-label="Close" type="button">\\u2715</button>',
@@ -158,7 +158,7 @@ const bodyInjection = `${BODY_MARKER}
 
     function syncSignalLanguage(){
       var btn = document.querySelector('.lang-btn');
-      var current = btn && btn.textContent.trim().toUpperCase() === 'EN' ? 'es' : 'en';
+      var current = btn && btn.textContent.trim().toUpperCase() === 'EN' ? 'en' : 'es';
       band.querySelectorAll('[data-dmf-en]').forEach(function(el){
         el.textContent = current === 'es' ? el.getAttribute('data-dmf-es') : el.getAttribute('data-dmf-en');
       });
@@ -699,6 +699,7 @@ const bodyInjection = `${BODY_MARKER}
     var raycaster = new THREE.Raycaster();
     var currentZone = '';
     var relicState = 'dormant';
+    var lastStatePct = -1;
     var readoutEl = container.querySelector('.dmf-relic-readout');
     var readoutComp = readoutEl.querySelector('.dmf-relic-readout-component');
     var readoutStatus = readoutEl.querySelector('.dmf-relic-readout-status');
@@ -727,7 +728,28 @@ const bodyInjection = `${BODY_MARKER}
 
     function getLang(){
       var btn = document.querySelector('.lang-btn');
-      return btn && btn.textContent.trim().toUpperCase() === 'EN' ? 'es' : 'en';
+      return btn && btn.textContent.trim().toUpperCase() === 'EN' ? 'en' : 'es';
+    }
+
+    function renderRelicState(pct){
+      var lang = getLang();
+      stateEl.classList.remove('is-awakened', 'is-transmitting');
+      if(relicState === 'dormant'){
+        stateEl.textContent = lang === 'es' ? 'INACTIVO' : 'DORMANT';
+      } else if(relicState === 'awakened'){
+        stateEl.classList.add('is-awakened');
+        stateEl.textContent = lang === 'es' ? 'SE\\u00d1AL DETECTADA' : 'SIGNAL DETECTED';
+      } else {
+        stateEl.classList.add('is-transmitting');
+        stateEl.innerHTML = (lang === 'es' ? 'TRANSMISI\\u00d3N' : 'TRANSMITTING') +
+          '<span class="dmf-relic-state-pct">' +
+          (lang === 'es' ? 'TRANSFERENCIA ' : 'FORMULA TRANSFER ') + pct + '%</span>';
+      }
+    }
+
+    var langBtn2 = document.querySelector('.lang-btn');
+    if(langBtn2 && 'MutationObserver' in window){
+      new MutationObserver(function(){ renderRelicState(lastStatePct < 0 ? 0 : lastStatePct); }).observe(langBtn2,{childList:true,subtree:true,characterData:true});
     }
 
     function showReadout(zone){
@@ -809,9 +831,8 @@ const bodyInjection = `${BODY_MARKER}
     function startAnimation(){
       function animate(){
         requestAnimationFrame(animate);
+        var dt = Math.min(clock.getDelta(), 0.05);
         if(!isVisible) return;
-
-        var dt = clock.getDelta();
         autoAngle += dt * 0.072;
 
         // Model entrance
@@ -956,23 +977,15 @@ const bodyInjection = `${BODY_MARKER}
         else newState = 'dormant';
         if(newState !== relicState){
           relicState = newState;
-          stateEl.classList.remove('is-awakened', 'is-transmitting');
-          var lang = getLang();
-          if(relicState === 'dormant'){
-            stateEl.textContent = lang === 'es' ? 'INACTIVO' : 'DORMANT';
-          } else if(relicState === 'awakened'){
-            stateEl.classList.add('is-awakened');
-            stateEl.textContent = lang === 'es' ? 'SE\\u00d1AL DETECTADA' : 'SIGNAL DETECTED';
-          } else {
-            stateEl.classList.add('is-transmitting');
-          }
+          lastStatePct = -1;
+          renderRelicState(0);
         }
         if(relicState === 'transmitting'){
           var wPct = Math.floor(((autoAngle * 4.5) % 1.0) * 100);
-          var lang2 = getLang();
-          stateEl.innerHTML = (lang2 === 'es' ? 'TRANSMISI\\u00d3N' : 'TRANSMITTING') +
-            '<span class="dmf-relic-state-pct">' +
-            (lang2 === 'es' ? 'TRANSFERENCIA ' : 'FORMULA TRANSFER ') + wPct + '%</span>';
+          if(wPct !== lastStatePct){
+            lastStatePct = wPct;
+            renderRelicState(wPct);
+          }
         }
 
         // Tone mapping
