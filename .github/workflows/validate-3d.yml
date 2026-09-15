@@ -101,17 +101,21 @@ jobs:
           node -e "
             const g = require('./' + process.argv[1]);
             const checks = [
-              ['boundary',       g.boundary === 0],
-              ['nonManifold',    g.nonManifold === 0],
-              ['degenerate',     g.degenerate === 0],
-              ['components',     g.components === 1],
-              ['watertight',     g.watertight === true],
-              ['normalsOutward', g.normalsOutward === true],
-              ['heightMM',       g.heightMM <= 200],
-              ['widthMM',        g.widthMM <= 200],
-              ['depthMM',        g.depthMM <= 200],
-              ['volumeCM3',      g.volumeCM3 > 0],
-              ['pass',           g.pass === true],
+              ['boundary',          g.boundary === 0],
+              ['nonManifold',       g.nonManifold === 0],
+              ['degenerate',        g.degenerate === 0],
+              ['components',        g.components === 1],
+              ['watertight',        g.watertight === true],
+              ['normalsOutward',    g.normalsOutward === true],
+              ['heightMM',          g.heightMM <= 200],
+              ['widthMM',           g.widthMM <= 200],
+              ['depthMM',           g.depthMM <= 200],
+              ['volumeCM3',         g.volumeCM3 > 0],
+              ['hollowReduction',   g.hollowReductionPct >= 50],
+              ['shellThickness',    g.shellThicknessMM >= 1.5],
+              ['drainCount',        g.drainCount >= 2],
+              ['stlSHA256',         typeof g.stlSHA256 === 'string' && g.stlSHA256.length === 64],
+              ['pass',              g.pass === true],
             ];
             let ok = true;
             for (const [k, v] of checks) {
@@ -129,6 +133,18 @@ jobs:
           SIZE=$(stat -c%s "$STL")
           test "$SIZE" -gt 1000000
           echo "STL size: ${SIZE} bytes — OK"
+
+      - name: Verify STL reproducibility (SHA-256)
+        run: |
+          EXPECTED=$(node -e "const g=require('./assets/models/GEOMETRY_GATE.json'); console.log(g.stlSHA256)")
+          ACTUAL=$(sha256sum assets/models/DMF_RELIC_01_ALPHA.stl | cut -d' ' -f1)
+          if [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "FAIL: STL SHA-256 mismatch"
+            echo "  Expected: $EXPECTED"
+            echo "  Actual:   $ACTUAL"
+            exit 1
+          fi
+          echo "STL SHA-256 verified: $ACTUAL"
 
       - name: Verify pipeline reproducibility
         run: |
