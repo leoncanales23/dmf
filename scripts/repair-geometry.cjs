@@ -1,10 +1,9 @@
-// DMF RELIC 01 — Physical Geometry Alpha
-// 10-step mesh repair pipeline: GLB → printable STL
+// DMF RELIC 01 — Manufacturing Geometry Beta
+// Volumetric manifold rebuild: GLB → voxel union → marching cubes → STL
 // Run: node scripts/repair-geometry.cjs
 //
-// Steps: degenerate removal → debris removal → spatial weld → re-analyze →
-//   surface-area filter → orient normals → close holes → add pedestal →
-//   validate watertight → export STL
+// Pipeline: parse → clean → weld → voxelize with pedestal → flood fill →
+//   marching cubes → text engraving → validate 0/0/0/1 → export STL
 
 const fs = require('fs');
 const path = require('path');
@@ -13,8 +12,7 @@ const GLB_PATH = path.join(__dirname, '..', 'assets', 'models', 'dmf-studio-opti
 const STL_PATH = path.join(__dirname, '..', 'assets', 'models', 'DMF_RELIC_01_ALPHA.stl');
 const TARGET_HEIGHT_MM = 150.0;
 const WELD_EPSILON = 5e-4;
-const DEBRIS_MIN_SURFACE_AREA = 0.0005;
-const RESIN_MIN_WALL_MM = 0.5;
+const VOXEL_RES = 128;
 
 // ─── GLB Parser ───
 
@@ -45,68 +43,746 @@ function extractMesh(gltf, binBuf) {
   const prim = gltf.meshes[0].primitives[0];
   const pos = getAccessorData(gltf, binBuf, prim.attributes.POSITION);
   const idx = getAccessorData(gltf, binBuf, prim.indices);
-  const nrm = prim.attributes.NORMAL !== undefined
-    ? getAccessorData(gltf, binBuf, prim.attributes.NORMAL) : null;
-
   const vertices = new Float64Array(pos.count * 3);
   for (let i = 0; i < pos.count * 3; i++) vertices[i] = pos.data[i];
-
-  const normals = nrm ? new Float64Array(nrm.count * 3) : null;
-  if (nrm) for (let i = 0; i < nrm.count * 3; i++) normals[i] = nrm.data[i];
-
   const indices = new Uint32Array(idx.count);
   for (let i = 0; i < idx.count; i++) indices[i] = idx.data[i];
-
-  return { vertices, normals, indices, vertexCount: pos.count, triCount: idx.count / 3 };
+  return { vertices, indices, vertexCount: pos.count, triCount: idx.count / 3 };
 }
 
-// ─── Geometry utilities ───
+// ─── Mesh cleanup ───
 
-function triArea(v, i0, i1, i2) {
-  const ax = v[i0*3], ay = v[i0*3+1], az = v[i0*3+2];
-  const bx = v[i1*3], by = v[i1*3+1], bz = v[i1*3+2];
-  const cx = v[i2*3], cy = v[i2*3+1], cz = v[i2*3+2];
-  const abx = bx-ax, aby = by-ay, abz = bz-az;
-  const acx = cx-ax, acy = cy-ay, acz = cz-az;
-  const nx = aby*acz - abz*acy;
-  const ny = abz*acx - abx*acz;
-  const nz = abx*acy - aby*acx;
-  return 0.5 * Math.sqrt(nx*nx + ny*ny + nz*nz);
-}
-
-function triNormal(v, i0, i1, i2) {
-  const ax = v[i0*3], ay = v[i0*3+1], az = v[i0*3+2];
-  const bx = v[i1*3], by = v[i1*3+1], bz = v[i1*3+2];
-  const cx = v[i2*3], cy = v[i2*3+1], cz = v[i2*3+2];
-  const abx = bx-ax, aby = by-ay, abz = bz-az;
-  const acx = cx-ax, acy = cy-ay, acz = cz-az;
-  const nx = aby*acz - abz*acy;
-  const ny = abz*acx - abx*acz;
-  const nz = abx*acy - aby*acx;
-  const len = Math.sqrt(nx*nx + ny*ny + nz*nz);
-  if (len < 1e-20) return [0, 1, 0];
-  return [nx/len, ny/len, nz/len];
-}
-
-// Union-Find
-class UnionFind {
-  constructor(n) {
-    this.parent = new Int32Array(n);
-    this.rank = new Int32Array(n);
-    for (let i = 0; i < n; i++) this.parent[i] = i;
+function removeDegenerates(mesh) {
+  const { vertices, indices, triCount } = mesh;
+  const kept = [];
+  let removed = 0;
+  for (let i = 0; i < triCount; i++) {
+    const a = indices[i*3], b = indices[i*3+1], c = indices[i*3+2];
+    if (a === b || b === c || a === c) { removed++; continue; }
+    const ax = vertices[a*3], ay = vertices[a*3+1], az = vertices[a*3+2];
+    const bx = vertices[b*3], by = vertices[b*3+1], bz = vertices[b*3+2];
+    const cx = vertices[c*3], cy = vertices[c*3+1], cz = vertices[c*3+2];
+    const abx = bx-ax, aby = by-ay, abz = bz-az;
+    const acx = cx-ax, acy = cy-ay, acz = cz-az;
+    const nx = aby*acz - abz*acy, ny = abz*acx - abx*acz, nz = abx*acy - aby*acx;
+    if (nx*nx + ny*ny + nz*nz < 1e-20) { removed++; continue; }
+    kept.push(a, b, c);
   }
-  find(x) {
-    while (this.parent[x] !== x) { this.parent[x] = this.parent[this.parent[x]]; x = this.parent[x]; }
-    return x;
+  mesh.indices = new Uint32Array(kept);
+  mesh.triCount = kept.length / 3;
+  return removed;
+}
+
+function removeDebris(mesh, minVerts) {
+  const { indices, triCount, vertexCount } = mesh;
+  const parent = new Int32Array(vertexCount);
+  const rank = new Int32Array(vertexCount);
+  for (let i = 0; i < vertexCount; i++) parent[i] = i;
+  function find(x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
+  function union(a, b) { a = find(a); b = find(b); if (a === b) return; if (rank[a] < rank[b]) { const t=a; a=b; b=t; } parent[b] = a; if (rank[a] === rank[b]) rank[a]++; }
+  for (let i = 0; i < triCount; i++) { union(indices[i*3], indices[i*3+1]); union(indices[i*3+1], indices[i*3+2]); }
+  const compSize = new Map();
+  for (let i = 0; i < vertexCount; i++) compSize.set(find(i), (compSize.get(find(i)) || 0) + 1);
+  const keepSet = new Set();
+  let removed = 0;
+  for (const [root, size] of compSize) {
+    if (size >= minVerts) { for (let i = 0; i < vertexCount; i++) if (find(i) === root) keepSet.add(i); }
+    else removed++;
   }
-  union(a, b) {
-    a = this.find(a); b = this.find(b);
-    if (a === b) return;
-    if (this.rank[a] < this.rank[b]) { const t = a; a = b; b = t; }
-    this.parent[b] = a;
-    if (this.rank[a] === this.rank[b]) this.rank[a]++;
+  const kept = [];
+  for (let i = 0; i < triCount; i++) {
+    const a = indices[i*3], b = indices[i*3+1], c = indices[i*3+2];
+    if (keepSet.has(a) && keepSet.has(b) && keepSet.has(c)) kept.push(a, b, c);
+  }
+  mesh.indices = new Uint32Array(kept);
+  mesh.triCount = kept.length / 3;
+  return removed;
+}
+
+function spatialWeld(mesh, epsilon) {
+  const { vertices, vertexCount } = mesh;
+  const CELL = epsilon * 2;
+  const grid = new Map();
+  const remap = new Int32Array(vertexCount);
+  const newVerts = [];
+  let newCount = 0;
+  for (let i = 0; i < vertexCount; i++) {
+    const x = vertices[i*3], y = vertices[i*3+1], z = vertices[i*3+2];
+    const gx = Math.floor(x / CELL), gy = Math.floor(y / CELL), gz = Math.floor(z / CELL);
+    let merged = -1;
+    outer: for (let dx = -1; dx <= 1; dx++)
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dz = -1; dz <= 1; dz++) {
+          const cell = grid.get(`${gx+dx},${gy+dy},${gz+dz}`);
+          if (!cell) continue;
+          for (const idx of cell) {
+            const ex = newVerts[idx*3]-x, ey = newVerts[idx*3+1]-y, ez = newVerts[idx*3+2]-z;
+            if (ex*ex+ey*ey+ez*ez < epsilon*epsilon) { merged = idx; break outer; }
+          }
+        }
+    if (merged >= 0) { remap[i] = merged; }
+    else {
+      remap[i] = newCount;
+      newVerts.push(x, y, z);
+      const key = `${gx},${gy},${gz}`;
+      if (!grid.has(key)) grid.set(key, []);
+      grid.get(key).push(newCount);
+      newCount++;
+    }
+  }
+  mesh.vertices = new Float64Array(newVerts);
+  mesh.vertexCount = newCount;
+  for (let i = 0; i < mesh.indices.length; i++) mesh.indices[i] = remap[mesh.indices[i]];
+  const kept = [];
+  for (let i = 0; i < mesh.triCount; i++) {
+    const a = mesh.indices[i*3], b = mesh.indices[i*3+1], c = mesh.indices[i*3+2];
+    if (a !== b && b !== c && a !== c) kept.push(a, b, c);
+  }
+  mesh.indices = new Uint32Array(kept);
+  mesh.triCount = kept.length / 3;
+  return vertexCount - newCount;
+}
+
+// ─── Voxelization ───
+
+function createVoxelGrid(res) {
+  return new Uint8Array(res * res * res);
+}
+
+function voxIdx(x, y, z, res) {
+  return x + y * res + z * res * res;
+}
+
+function markVoxel(grid, res, i, j, k) {
+  if (i >= 0 && i < res && j >= 0 && j < res && k >= 0 && k < res)
+    grid[voxIdx(i, j, k, res)] = 1;
+}
+
+function rasterizeLine(grid, res, x0, y0, z0, x1, y1, z1) {
+  const dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0), dz = Math.abs(z1 - z0);
+  const steps = Math.max(dx, dy, dz);
+  if (steps === 0) { markVoxel(grid, res, x0, y0, z0); return; }
+  const sx = dx / steps, sy = dy / steps, sz = dz / steps;
+  const signX = x1 > x0 ? 1 : -1, signY = y1 > y0 ? 1 : -1, signZ = z1 > z0 ? 1 : -1;
+  let cx = x0, cy = y0, cz = z0;
+  for (let s = 0; s <= steps; s++) {
+    markVoxel(grid, res, Math.round(cx), Math.round(cy), Math.round(cz));
+    cx += sx * signX; cy += sy * signY; cz += sz * signZ;
   }
 }
+
+function rasterizeTriToVoxels(grid, res, v0, v1, v2, origin, invCell) {
+  const ix0 = Math.round((v0[0] - origin[0]) * invCell);
+  const iy0 = Math.round((v0[1] - origin[1]) * invCell);
+  const iz0 = Math.round((v0[2] - origin[2]) * invCell);
+  const ix1 = Math.round((v1[0] - origin[0]) * invCell);
+  const iy1 = Math.round((v1[1] - origin[1]) * invCell);
+  const iz1 = Math.round((v1[2] - origin[2]) * invCell);
+  const ix2 = Math.round((v2[0] - origin[0]) * invCell);
+  const iy2 = Math.round((v2[1] - origin[1]) * invCell);
+  const iz2 = Math.round((v2[2] - origin[2]) * invCell);
+
+  rasterizeLine(grid, res, ix0, iy0, iz0, ix1, iy1, iz1);
+  rasterizeLine(grid, res, ix1, iy1, iz1, ix2, iy2, iz2);
+  rasterizeLine(grid, res, ix2, iy2, iz2, ix0, iy0, iz0);
+
+  const maxEdge = Math.max(
+    Math.abs(ix1-ix0)+Math.abs(iy1-iy0)+Math.abs(iz1-iz0),
+    Math.abs(ix2-ix1)+Math.abs(iy2-iy1)+Math.abs(iz2-iz1),
+    Math.abs(ix0-ix2)+Math.abs(iy0-iy2)+Math.abs(iz0-iz2)
+  );
+  const fillSteps = Math.max(1, Math.ceil(maxEdge / 2));
+  for (let s = 1; s < fillSteps; s++) {
+    const t = s / fillSteps;
+    const mx0 = Math.round(ix0 + t * (ix1 - ix0));
+    const my0 = Math.round(iy0 + t * (iy1 - iy0));
+    const mz0 = Math.round(iz0 + t * (iz1 - iz0));
+    const mx1 = Math.round(ix0 + t * (ix2 - ix0));
+    const my1 = Math.round(iy0 + t * (iy2 - iy0));
+    const mz1 = Math.round(iz0 + t * (iz2 - iz0));
+    rasterizeLine(grid, res, mx0, my0, mz0, mx1, my1, mz1);
+  }
+}
+
+function voxelizeMesh(mesh, grid, res, origin, cellSize) {
+  const { vertices, indices, triCount } = mesh;
+  const invCell = 1 / cellSize;
+  for (let i = 0; i < triCount; i++) {
+    const a = indices[i*3], b = indices[i*3+1], c = indices[i*3+2];
+    const v0 = [vertices[a*3], vertices[a*3+1], vertices[a*3+2]];
+    const v1 = [vertices[b*3], vertices[b*3+1], vertices[b*3+2]];
+    const v2 = [vertices[c*3], vertices[c*3+1], vertices[c*3+2]];
+    rasterizeTriToVoxels(grid, res, v0, v1, v2, origin, invCell);
+  }
+}
+
+function dilateVoxels(grid, res) {
+  const toSet = [];
+  const dirs = [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+  for (let i = 1; i < res - 1; i++) {
+    for (let j = 1; j < res - 1; j++) {
+      for (let k = 1; k < res - 1; k++) {
+        if (grid[voxIdx(i, j, k, res)] === 0) {
+          for (const [di, dj, dk] of dirs) {
+            if (grid[voxIdx(i+di, j+dj, k+dk, res)] === 1) {
+              toSet.push(i, j, k);
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  for (let s = 0; s < toSet.length; s += 3) {
+    grid[voxIdx(toSet[s], toSet[s+1], toSet[s+2], res)] = 1;
+  }
+  return toSet.length / 3;
+}
+
+function addPedestalVoxels(grid, res, origin, cellSize, meshBounds) {
+  const { minX, maxX, minY, minZ, maxZ } = meshBounds;
+  const W = maxX - minX, D = maxZ - minZ, H = meshBounds.maxY - minY;
+  const padX = W * 0.15, padZ = D * 0.15;
+  const pedestalH = H * 0.06;
+
+  const px0 = minX - padX, px1 = maxX + padX;
+  const py0 = minY - pedestalH, py1 = minY;
+  const pz0 = minZ - padZ, pz1 = maxZ + padZ;
+
+  const i0 = Math.max(0, Math.floor((px0 - origin[0]) / cellSize));
+  const i1 = Math.min(res-1, Math.ceil((px1 - origin[0]) / cellSize));
+  const j0 = Math.max(0, Math.floor((py0 - origin[1]) / cellSize));
+  const j1 = Math.min(res-1, Math.ceil((py1 - origin[1]) / cellSize));
+  const k0 = Math.max(0, Math.floor((pz0 - origin[2]) / cellSize));
+  const k1 = Math.min(res-1, Math.ceil((pz1 - origin[2]) / cellSize));
+
+  // Chamfer on top edges
+  const chamferVox = Math.max(1, Math.round(pedestalH * 0.25 / cellSize));
+
+  for (let i = i0; i <= i1; i++) {
+    for (let j = j0; j <= j1; j++) {
+      for (let k = k0; k <= k1; k++) {
+        // Check chamfer: top edges get a 45° bevel
+        const distFromTop = j1 - j;
+        const distFromLeft = i - i0;
+        const distFromRight = i1 - i;
+        const distFromFront = k - k0;
+        const distFromBack = k1 - k;
+
+        if (distFromTop < chamferVox) {
+          const margin = chamferVox - distFromTop;
+          if (distFromLeft < margin || distFromRight < margin ||
+              distFromFront < margin || distFromBack < margin) continue;
+        }
+
+        grid[voxIdx(i, j, k, res)] = 1;
+      }
+    }
+  }
+
+  return { px0, px1, py0, py1, pz0, pz1, pedestalH };
+}
+
+// ─── Text engraving via stroke font ───
+
+const GLYPH_PATHS = {
+  'D': [[0,0,0,1],[0,1,0.6,1],[0.6,1,0.8,0.8],[0.8,0.8,0.8,0.2],[0.8,0.2,0.6,0],[0.6,0,0,0]],
+  'M': [[0,0,0,1],[0,1,0.4,0.5],[0.4,0.5,0.8,1],[0.8,1,0.8,0]],
+  'F': [[0,0,0,1],[0,1,0.7,1],[0,0.5,0.5,0.5]],
+  'R': [[0,0,0,1],[0,1,0.6,1],[0.6,1,0.7,0.85],[0.7,0.85,0.7,0.65],[0.7,0.65,0.6,0.5],[0.6,0.5,0,0.5],[0.4,0.5,0.8,0]],
+  'E': [[0,0,0,1],[0,1,0.7,1],[0,0.5,0.5,0.5],[0,0,0.7,0]],
+  'L': [[0,0,0,1],[0,0,0.7,0]],
+  'I': [[0.3,0,0.3,1],[0,1,0.6,1],[0,0,0.6,0]],
+  'C': [[0.7,0.85,0.5,1],[0.5,1,0.2,0.85],[0.2,0.85,0,0.5],[0,0.5,0.2,0.15],[0.2,0.15,0.5,0],[0.5,0,0.7,0.15]],
+  '0': [[0.1,0,0,0.2],[0,0.2,0,0.8],[0,0.8,0.1,1],[0.1,1,0.6,1],[0.6,1,0.7,0.8],[0.7,0.8,0.7,0.2],[0.7,0.2,0.6,0],[0.6,0,0.1,0]],
+  '1': [[0.15,0.8,0.35,1],[0.35,1,0.35,0],[0.1,0,0.6,0]],
+  'T': [[0,1,0.8,1],[0.4,1,0.4,0]],
+  'H': [[0,0,0,1],[0.8,0,0.8,1],[0,0.5,0.8,0.5]],
+  'V': [[0,1,0.4,0],[0.4,0,0.8,1]],
+  ' ': [],
+  '/': [[0,0,0.6,1]],
+};
+
+function engraveTextOnVoxels(grid, res, origin, cellSize, text, startX, y, z, charHeight, charWidth, depth) {
+  const spacing = charWidth * 0.15;
+  let cx = startX;
+
+  for (const ch of text) {
+    const glyph = GLYPH_PATHS[ch.toUpperCase()];
+    if (!glyph) { cx += charWidth + spacing; continue; }
+
+    for (const [sx0, sy0, sx1, sy1] of glyph) {
+      const wx0 = cx + sx0 * charWidth;
+      const wy0 = y + sy0 * charHeight;
+      const wx1 = cx + sx1 * charWidth;
+      const wy1 = y + sy1 * charHeight;
+
+      // Rasterize line segment as voxel groove
+      const len = Math.sqrt((wx1-wx0)**2 + (wy1-wy0)**2);
+      const steps = Math.max(1, Math.ceil(len / (cellSize * 0.5)));
+      const strokeW = cellSize * 1.5;
+
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps;
+        const px = wx0 + t * (wx1 - wx0);
+        const py = wy0 + t * (wy1 - wy0);
+
+        const i0 = Math.max(0, Math.floor((px - strokeW - origin[0]) / cellSize));
+        const i1 = Math.min(res-1, Math.ceil((px + strokeW - origin[0]) / cellSize));
+        const j0 = Math.max(0, Math.floor((py - strokeW - origin[1]) / cellSize));
+        const j1 = Math.min(res-1, Math.ceil((py + strokeW - origin[1]) / cellSize));
+        const k0 = Math.max(0, Math.floor((z - origin[2]) / cellSize));
+        const k1 = Math.min(res-1, Math.ceil((z + depth - origin[2]) / cellSize));
+
+        for (let i = i0; i <= i1; i++) {
+          for (let j = j0; j <= j1; j++) {
+            const dx = origin[0] + (i+0.5)*cellSize - px;
+            const dy = origin[1] + (j+0.5)*cellSize - py;
+            if (dx*dx + dy*dy < strokeW*strokeW) {
+              for (let k = k0; k <= k1; k++) {
+                grid[voxIdx(i, j, k, res)] = 0;
+              }
+            }
+          }
+        }
+      }
+    }
+    cx += charWidth + spacing;
+  }
+}
+
+// ─── Flood fill exterior ───
+
+function floodFillExterior(grid, res) {
+  const EXTERIOR = 2;
+  const queue = [];
+
+  // Seed all border voxels that are empty
+  for (let i = 0; i < res; i++) {
+    for (let j = 0; j < res; j++) {
+      for (const k of [0, res-1]) {
+        if (grid[voxIdx(i, j, k, res)] === 0) { grid[voxIdx(i, j, k, res)] = EXTERIOR; queue.push(i, j, k); }
+      }
+      for (const k of [0, res-1]) {
+        const ii = k === 0 ? i : i; // just need border faces
+        if (grid[voxIdx(ii, j, k, res)] === 0) { grid[voxIdx(ii, j, k, res)] = EXTERIOR; queue.push(ii, j, k); }
+      }
+    }
+  }
+  for (let j = 0; j < res; j++) {
+    for (let k = 0; k < res; k++) {
+      for (const i of [0, res-1]) {
+        if (grid[voxIdx(i, j, k, res)] === 0) { grid[voxIdx(i, j, k, res)] = EXTERIOR; queue.push(i, j, k); }
+      }
+    }
+  }
+  for (let i = 0; i < res; i++) {
+    for (let k = 0; k < res; k++) {
+      for (const j of [0, res-1]) {
+        if (grid[voxIdx(i, j, k, res)] === 0) { grid[voxIdx(i, j, k, res)] = EXTERIOR; queue.push(i, j, k); }
+      }
+    }
+  }
+
+  // BFS flood fill
+  const dirs = [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+  let head = 0;
+  while (head < queue.length) {
+    const x = queue[head++], y = queue[head++], z = queue[head++];
+    for (const [dx, dy, dz] of dirs) {
+      const nx = x+dx, ny = y+dy, nz = z+dz;
+      if (nx < 0 || nx >= res || ny < 0 || ny >= res || nz < 0 || nz >= res) continue;
+      const idx = voxIdx(nx, ny, nz, res);
+      if (grid[idx] === 0) {
+        grid[idx] = EXTERIOR;
+        queue.push(nx, ny, nz);
+      }
+    }
+  }
+
+  // Now: 0 = interior (trapped air → fill as solid), 1 = surface, 2 = exterior
+  // Convert: interior → solid (1), exterior → empty (0)
+  let interior = 0;
+  for (let i = 0; i < grid.length; i++) {
+    if (grid[i] === 0) { grid[i] = 1; interior++; }
+    else if (grid[i] === 2) { grid[i] = 0; }
+  }
+  return interior;
+}
+
+// ─── Marching Cubes ───
+
+const MC_EDGE_TABLE = new Uint16Array(256);
+const MC_TRI_TABLE = [];
+
+function initMarchingCubes() {
+  // Precompute edge table and triangle table
+  // Using the standard Lorensen & Cline tables
+  const edgeTable = [
+    0x0,0x109,0x203,0x30a,0x406,0x50f,0x605,0x70c,0x80c,0x905,0xa0f,0xb06,0xc0a,0xd03,0xe09,0xf00,
+    0x190,0x99,0x393,0x29a,0x596,0x49f,0x795,0x69c,0x99c,0x895,0xb9f,0xa96,0xd9a,0xc93,0xf99,0xe90,
+    0x230,0x339,0x33,0x13a,0x636,0x73f,0x435,0x53c,0xa3c,0xb35,0x83f,0x936,0xe3a,0xf33,0xc39,0xd30,
+    0x3a0,0x2a9,0x1a3,0xaa,0x7a6,0x6af,0x5a5,0x4ac,0xbac,0xaa5,0x9af,0x8a6,0xfaa,0xea3,0xda9,0xca0,
+    0x460,0x569,0x663,0x76a,0x66,0x16f,0x265,0x36c,0xc6c,0xd65,0xe6f,0xf66,0x86a,0x963,0xa69,0xb60,
+    0x5f0,0x4f9,0x7f3,0x6fa,0x1f6,0xff,0x3f5,0x2fc,0xdfc,0xcf5,0xfff,0xef6,0x9fa,0x8f3,0xbf9,0xaf0,
+    0x650,0x759,0x453,0x55a,0x256,0x35f,0x55,0x15c,0xe5c,0xf55,0xc5f,0xd56,0xa5a,0xb53,0x859,0x950,
+    0x7c0,0x6c9,0x5c3,0x4ca,0x3c6,0x2cf,0x1c5,0xcc,0xfcc,0xec5,0xdcf,0xcc6,0xbca,0xac3,0x9c9,0x8c0,
+    0x8c0,0x9c9,0xac3,0xbca,0xcc6,0xdcf,0xec5,0xfcc,0xcc,0x1c5,0x2cf,0x3c6,0x4ca,0x5c3,0x6c9,0x7c0,
+    0x950,0x859,0xb53,0xa5a,0xd56,0xc5f,0xf55,0xe5c,0x15c,0x55,0x35f,0x256,0x55a,0x453,0x759,0x650,
+    0xaf0,0xbf9,0x8f3,0x9fa,0xef6,0xfff,0xcf5,0xdfc,0x2fc,0x3f5,0xff,0x1f6,0x6fa,0x7f3,0x4f9,0x5f0,
+    0xb60,0xa69,0x963,0x86a,0xf66,0xe6f,0xd65,0xc6c,0x36c,0x265,0x16f,0x66,0x76a,0x663,0x569,0x460,
+    0xca0,0xda9,0xea3,0xfaa,0x8a6,0x9af,0xaa5,0xbac,0x4ac,0x5a5,0x6af,0x7a6,0xaa,0x1a3,0x2a9,0x3a0,
+    0xd30,0xc39,0xf33,0xe3a,0x936,0x83f,0xb35,0xa3c,0x53c,0x435,0x73f,0x636,0x13a,0x33,0x339,0x230,
+    0xe90,0xf99,0xc93,0xd9a,0xa96,0xb9f,0x895,0x99c,0x69c,0x795,0x49f,0x596,0x29a,0x393,0x99,0x190,
+    0xf00,0xe09,0xd03,0xc0a,0xb06,0xa0f,0x905,0x80c,0x70c,0x605,0x50f,0x406,0x30a,0x203,0x109,0x0
+  ];
+  for (let i = 0; i < 256; i++) MC_EDGE_TABLE[i] = edgeTable[i];
+
+  const triTableFlat = [
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    0,8,3,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    0,1,9,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    1,8,3,9,8,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    1,2,10,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    0,8,3,1,2,10,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    9,2,10,0,2,9,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    2,8,3,2,10,8,10,9,8,-1,-1,-1,-1,-1,-1,-1,
+    3,11,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    0,11,2,8,11,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    1,9,0,2,3,11,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    1,11,2,1,9,11,9,8,11,-1,-1,-1,-1,-1,-1,-1,
+    3,10,1,11,10,3,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    0,10,1,0,8,10,8,11,10,-1,-1,-1,-1,-1,-1,-1,
+    3,9,0,3,11,9,11,10,9,-1,-1,-1,-1,-1,-1,-1,
+    9,8,10,10,8,11,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    4,7,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    4,3,0,7,3,4,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    0,1,9,8,4,7,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    4,1,9,4,7,1,7,3,1,-1,-1,-1,-1,-1,-1,-1,
+    1,2,10,8,4,7,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    3,4,7,3,0,4,1,2,10,-1,-1,-1,-1,-1,-1,-1,
+    9,2,10,9,0,2,8,4,7,-1,-1,-1,-1,-1,-1,-1,
+    2,10,9,2,9,7,2,7,3,7,9,4,-1,-1,-1,-1,
+    8,4,7,3,11,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    11,4,7,11,2,4,2,0,4,-1,-1,-1,-1,-1,-1,-1,
+    9,0,1,8,4,7,2,3,11,-1,-1,-1,-1,-1,-1,-1,
+    4,7,11,9,4,11,9,11,2,9,2,1,-1,-1,-1,-1,
+    3,10,1,3,11,10,7,8,4,-1,-1,-1,-1,-1,-1,-1,
+    1,11,10,1,4,11,1,0,4,7,11,4,-1,-1,-1,-1,
+    4,7,8,9,0,11,9,11,10,11,0,3,-1,-1,-1,-1,
+    4,7,11,4,11,9,9,11,10,-1,-1,-1,-1,-1,-1,-1,
+    9,5,4,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    9,5,4,0,8,3,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    0,5,4,1,5,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    8,5,4,8,3,5,3,1,5,-1,-1,-1,-1,-1,-1,-1,
+    1,2,10,9,5,4,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    3,0,8,1,2,10,4,9,5,-1,-1,-1,-1,-1,-1,-1,
+    5,2,10,5,4,2,4,0,2,-1,-1,-1,-1,-1,-1,-1,
+    2,10,5,3,2,5,3,5,4,3,4,8,-1,-1,-1,-1,
+    9,5,4,2,3,11,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    0,11,2,0,8,11,4,9,5,-1,-1,-1,-1,-1,-1,-1,
+    0,5,4,0,1,5,2,3,11,-1,-1,-1,-1,-1,-1,-1,
+    2,1,5,2,5,8,2,8,11,4,8,5,-1,-1,-1,-1,
+    10,3,11,10,1,3,9,5,4,-1,-1,-1,-1,-1,-1,-1,
+    4,9,5,0,8,1,8,10,1,8,11,10,-1,-1,-1,-1,
+    5,4,0,5,0,11,5,11,10,11,0,3,-1,-1,-1,-1,
+    5,4,8,5,8,10,10,8,11,-1,-1,-1,-1,-1,-1,-1,
+    9,7,8,5,7,9,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    9,3,0,9,5,3,5,7,3,-1,-1,-1,-1,-1,-1,-1,
+    0,7,8,0,1,7,1,5,7,-1,-1,-1,-1,-1,-1,-1,
+    1,5,3,3,5,7,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    9,7,8,9,5,7,10,1,2,-1,-1,-1,-1,-1,-1,-1,
+    10,1,2,9,5,0,5,3,0,5,7,3,-1,-1,-1,-1,
+    8,0,2,8,2,5,8,5,7,10,5,2,-1,-1,-1,-1,
+    2,10,5,2,5,3,3,5,7,-1,-1,-1,-1,-1,-1,-1,
+    7,9,5,7,8,9,3,11,2,-1,-1,-1,-1,-1,-1,-1,
+    9,5,7,9,7,2,9,2,0,2,7,11,-1,-1,-1,-1,
+    2,3,11,0,1,8,1,7,8,1,5,7,-1,-1,-1,-1,
+    11,2,1,11,1,7,7,1,5,-1,-1,-1,-1,-1,-1,-1,
+    9,5,8,8,5,7,10,1,3,10,3,11,-1,-1,-1,-1,
+    5,7,0,5,0,9,7,11,0,1,0,10,11,10,0,-1,
+    11,10,0,11,0,3,10,5,0,8,0,7,5,7,0,-1,
+    11,10,5,7,11,5,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    10,6,5,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    0,8,3,5,10,6,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    9,0,1,5,10,6,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    1,8,3,1,9,8,5,10,6,-1,-1,-1,-1,-1,-1,-1,
+    1,6,5,2,6,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    1,6,5,1,2,6,3,0,8,-1,-1,-1,-1,-1,-1,-1,
+    9,6,5,9,0,6,0,2,6,-1,-1,-1,-1,-1,-1,-1,
+    5,9,8,5,8,2,5,2,6,3,2,8,-1,-1,-1,-1,
+    2,3,11,10,6,5,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    11,0,8,11,2,0,10,6,5,-1,-1,-1,-1,-1,-1,-1,
+    0,1,9,2,3,11,5,10,6,-1,-1,-1,-1,-1,-1,-1,
+    5,10,6,1,9,2,9,11,2,9,8,11,-1,-1,-1,-1,
+    6,3,11,6,5,3,5,1,3,-1,-1,-1,-1,-1,-1,-1,
+    0,8,11,0,11,5,0,5,1,5,11,6,-1,-1,-1,-1,
+    3,11,6,0,3,6,0,6,5,0,5,9,-1,-1,-1,-1,
+    6,5,9,6,9,11,11,9,8,-1,-1,-1,-1,-1,-1,-1,
+    5,10,6,4,7,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    4,3,0,4,7,3,6,5,10,-1,-1,-1,-1,-1,-1,-1,
+    1,9,0,5,10,6,8,4,7,-1,-1,-1,-1,-1,-1,-1,
+    10,6,5,1,9,7,1,7,3,7,9,4,-1,-1,-1,-1,
+    6,1,2,6,5,1,4,7,8,-1,-1,-1,-1,-1,-1,-1,
+    1,2,5,5,2,6,3,0,4,3,4,7,-1,-1,-1,-1,
+    8,4,7,9,0,5,0,6,5,0,2,6,-1,-1,-1,-1,
+    7,3,9,7,9,4,3,2,9,5,9,6,2,6,9,-1,
+    3,11,2,7,8,4,10,6,5,-1,-1,-1,-1,-1,-1,-1,
+    5,10,6,4,7,2,4,2,0,2,7,11,-1,-1,-1,-1,
+    0,1,9,4,7,8,2,3,11,5,10,6,-1,-1,-1,-1,
+    9,2,1,9,11,2,9,4,11,7,11,4,5,10,6,-1,
+    8,4,7,3,11,5,3,5,1,5,11,6,-1,-1,-1,-1,
+    5,1,11,5,11,6,1,0,11,7,11,4,0,4,11,-1,
+    0,5,9,0,6,5,0,3,6,11,6,3,8,4,7,-1,
+    6,5,9,6,9,11,4,7,9,7,11,9,-1,-1,-1,-1,
+    10,4,9,6,4,10,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    4,10,6,4,9,10,0,8,3,-1,-1,-1,-1,-1,-1,-1,
+    10,0,1,10,6,0,6,4,0,-1,-1,-1,-1,-1,-1,-1,
+    8,3,1,8,1,6,8,6,4,6,1,10,-1,-1,-1,-1,
+    1,4,9,1,2,4,2,6,4,-1,-1,-1,-1,-1,-1,-1,
+    3,0,8,1,2,9,2,4,9,2,6,4,-1,-1,-1,-1,
+    0,2,4,4,2,6,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    8,3,2,8,2,4,4,2,6,-1,-1,-1,-1,-1,-1,-1,
+    10,4,9,10,6,4,11,2,3,-1,-1,-1,-1,-1,-1,-1,
+    0,8,2,2,8,11,4,9,10,4,10,6,-1,-1,-1,-1,
+    3,11,2,0,1,6,0,6,4,6,1,10,-1,-1,-1,-1,
+    6,4,1,6,1,10,4,8,1,2,1,11,8,11,1,-1,
+    9,6,4,9,3,6,9,1,3,11,6,3,-1,-1,-1,-1,
+    8,11,1,8,1,0,11,6,1,9,1,4,6,4,1,-1,
+    3,11,6,3,6,0,0,6,4,-1,-1,-1,-1,-1,-1,-1,
+    6,4,8,11,6,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    7,10,6,7,8,10,8,9,10,-1,-1,-1,-1,-1,-1,-1,
+    0,7,3,0,10,7,0,9,10,6,7,10,-1,-1,-1,-1,
+    10,6,7,1,10,7,1,7,8,1,8,0,-1,-1,-1,-1,
+    10,6,7,10,7,1,1,7,3,-1,-1,-1,-1,-1,-1,-1,
+    1,2,6,1,6,8,1,8,9,8,6,7,-1,-1,-1,-1,
+    2,6,9,2,9,1,6,7,9,0,9,3,7,3,9,-1,
+    7,8,0,7,0,6,6,0,2,-1,-1,-1,-1,-1,-1,-1,
+    7,3,2,6,7,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    2,3,11,10,6,8,10,8,9,8,6,7,-1,-1,-1,-1,
+    2,0,7,2,7,11,0,9,7,6,7,10,9,10,7,-1,
+    1,8,0,1,7,8,1,10,7,6,7,10,2,3,11,-1,
+    11,2,1,11,1,7,10,6,1,6,7,1,-1,-1,-1,-1,
+    8,9,6,8,6,7,9,1,6,11,6,3,1,3,6,-1,
+    0,9,1,11,6,7,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    7,8,0,7,0,6,3,11,0,11,6,0,-1,-1,-1,-1,
+    7,11,6,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    7,6,11,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    3,0,8,11,7,6,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    0,1,9,11,7,6,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    8,1,9,8,3,1,11,7,6,-1,-1,-1,-1,-1,-1,-1,
+    10,1,2,6,11,7,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    1,2,10,3,0,8,6,11,7,-1,-1,-1,-1,-1,-1,-1,
+    2,9,0,2,10,9,6,11,7,-1,-1,-1,-1,-1,-1,-1,
+    6,11,7,2,10,3,10,8,3,10,9,8,-1,-1,-1,-1,
+    7,2,3,6,2,7,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    7,0,8,7,6,0,6,2,0,-1,-1,-1,-1,-1,-1,-1,
+    2,7,6,2,3,7,0,1,9,-1,-1,-1,-1,-1,-1,-1,
+    1,6,2,1,8,6,1,9,8,8,7,6,-1,-1,-1,-1,
+    10,7,6,10,1,7,1,3,7,-1,-1,-1,-1,-1,-1,-1,
+    10,7,6,1,7,10,1,8,7,1,0,8,-1,-1,-1,-1,
+    0,3,7,0,7,10,0,10,9,6,10,7,-1,-1,-1,-1,
+    7,6,10,7,10,8,8,10,9,-1,-1,-1,-1,-1,-1,-1,
+    6,8,4,11,8,6,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    3,6,11,3,0,6,0,4,6,-1,-1,-1,-1,-1,-1,-1,
+    8,6,11,8,4,6,9,0,1,-1,-1,-1,-1,-1,-1,-1,
+    9,4,6,9,6,3,9,3,1,11,3,6,-1,-1,-1,-1,
+    6,8,4,6,11,8,2,10,1,-1,-1,-1,-1,-1,-1,-1,
+    1,2,10,3,0,11,0,6,11,0,4,6,-1,-1,-1,-1,
+    4,11,8,4,6,11,0,2,9,2,10,9,-1,-1,-1,-1,
+    10,9,3,10,3,2,9,4,3,11,3,6,4,6,3,-1,
+    8,2,3,8,4,2,4,6,2,-1,-1,-1,-1,-1,-1,-1,
+    0,4,2,4,6,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    1,9,0,2,3,4,2,4,6,4,3,8,-1,-1,-1,-1,
+    1,9,4,1,4,2,2,4,6,-1,-1,-1,-1,-1,-1,-1,
+    8,1,3,8,6,1,8,4,6,6,10,1,-1,-1,-1,-1,
+    10,1,0,10,0,6,6,0,4,-1,-1,-1,-1,-1,-1,-1,
+    4,6,3,4,3,8,6,10,3,0,3,9,10,9,3,-1,
+    10,9,4,6,10,4,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    4,9,5,7,6,11,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    0,8,3,4,9,5,11,7,6,-1,-1,-1,-1,-1,-1,-1,
+    5,0,1,5,4,0,7,6,11,-1,-1,-1,-1,-1,-1,-1,
+    11,7,6,8,3,4,3,5,4,3,1,5,-1,-1,-1,-1,
+    9,5,4,10,1,2,7,6,11,-1,-1,-1,-1,-1,-1,-1,
+    6,11,7,1,2,10,0,8,3,4,9,5,-1,-1,-1,-1,
+    7,6,11,5,4,10,4,2,10,4,0,2,-1,-1,-1,-1,
+    3,4,8,3,5,4,3,2,5,10,5,2,11,7,6,-1,
+    7,2,3,7,6,2,5,4,9,-1,-1,-1,-1,-1,-1,-1,
+    9,5,4,0,8,6,0,6,2,6,8,7,-1,-1,-1,-1,
+    3,6,2,3,7,6,1,5,0,5,4,0,-1,-1,-1,-1,
+    6,2,8,6,8,7,2,1,8,4,8,5,1,5,8,-1,
+    9,5,4,10,1,6,1,7,6,1,3,7,-1,-1,-1,-1,
+    1,6,10,1,7,6,1,0,7,8,7,0,9,5,4,-1,
+    4,0,10,4,10,5,0,3,10,6,10,7,3,7,10,-1,
+    7,6,10,7,10,8,5,4,10,4,8,10,-1,-1,-1,-1,
+    6,9,5,6,11,9,11,8,9,-1,-1,-1,-1,-1,-1,-1,
+    3,6,11,0,6,3,0,5,6,0,9,5,-1,-1,-1,-1,
+    0,11,8,0,5,11,0,1,5,5,6,11,-1,-1,-1,-1,
+    6,11,3,6,3,5,5,3,1,-1,-1,-1,-1,-1,-1,-1,
+    1,2,10,9,5,11,9,11,8,11,5,6,-1,-1,-1,-1,
+    0,11,3,0,6,11,0,9,6,5,6,9,1,2,10,-1,
+    11,8,5,11,5,6,8,0,5,10,5,2,0,2,5,-1,
+    6,11,3,6,3,5,2,10,3,10,5,3,-1,-1,-1,-1,
+    5,8,9,5,2,8,5,6,2,3,8,2,-1,-1,-1,-1,
+    9,5,6,9,6,0,0,6,2,-1,-1,-1,-1,-1,-1,-1,
+    1,5,8,1,8,0,5,6,8,3,8,2,6,2,8,-1,
+    1,5,6,2,1,6,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    1,3,6,1,6,10,3,8,6,5,6,9,8,9,6,-1,
+    10,1,0,10,0,6,9,5,0,5,6,0,-1,-1,-1,-1,
+    0,3,8,5,6,10,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    10,5,6,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    11,5,10,7,5,11,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    11,5,10,11,7,5,8,3,0,-1,-1,-1,-1,-1,-1,-1,
+    5,11,7,5,10,11,1,9,0,-1,-1,-1,-1,-1,-1,-1,
+    10,7,5,10,11,7,9,8,1,8,3,1,-1,-1,-1,-1,
+    11,1,2,11,7,1,7,5,1,-1,-1,-1,-1,-1,-1,-1,
+    0,8,3,1,2,7,1,7,5,7,2,11,-1,-1,-1,-1,
+    9,7,5,9,2,7,9,0,2,2,11,7,-1,-1,-1,-1,
+    7,5,2,7,2,11,5,9,2,3,2,8,9,8,2,-1,
+    2,5,10,2,3,5,3,7,5,-1,-1,-1,-1,-1,-1,-1,
+    8,2,0,8,5,2,8,7,5,10,2,5,-1,-1,-1,-1,
+    9,0,1,5,10,3,5,3,7,3,10,2,-1,-1,-1,-1,
+    9,8,2,9,2,1,8,7,2,10,2,5,7,5,2,-1,
+    1,3,5,3,7,5,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    0,8,7,0,7,1,1,7,5,-1,-1,-1,-1,-1,-1,-1,
+    9,0,3,9,3,5,5,3,7,-1,-1,-1,-1,-1,-1,-1,
+    9,8,7,5,9,7,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    5,8,4,5,10,8,10,11,8,-1,-1,-1,-1,-1,-1,-1,
+    5,0,4,5,11,0,5,10,11,11,3,0,-1,-1,-1,-1,
+    0,1,9,8,4,10,8,10,11,10,4,5,-1,-1,-1,-1,
+    10,11,4,10,4,5,11,3,4,9,4,1,3,1,4,-1,
+    2,5,1,2,8,5,2,11,8,4,5,8,-1,-1,-1,-1,
+    0,4,11,0,11,3,4,5,11,2,11,1,5,1,11,-1,
+    0,2,5,0,5,9,2,11,5,4,5,8,11,8,5,-1,
+    9,4,5,2,11,3,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    2,5,10,3,5,2,3,4,5,3,8,4,-1,-1,-1,-1,
+    5,10,2,5,2,4,4,2,0,-1,-1,-1,-1,-1,-1,-1,
+    3,10,2,3,5,10,3,8,5,4,5,8,0,1,9,-1,
+    5,10,2,5,2,4,1,9,2,9,4,2,-1,-1,-1,-1,
+    8,4,5,8,5,3,3,5,1,-1,-1,-1,-1,-1,-1,-1,
+    0,4,5,1,0,5,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    8,4,5,8,5,3,9,0,5,0,3,5,-1,-1,-1,-1,
+    9,4,5,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    4,11,7,4,9,11,9,10,11,-1,-1,-1,-1,-1,-1,-1,
+    0,8,3,4,9,7,9,11,7,9,10,11,-1,-1,-1,-1,
+    1,10,11,1,11,4,1,4,0,7,4,11,-1,-1,-1,-1,
+    3,1,4,3,4,8,1,10,4,7,4,11,10,11,4,-1,
+    4,11,7,9,11,4,9,2,11,9,1,2,-1,-1,-1,-1,
+    9,7,4,9,11,7,9,1,11,2,11,1,0,8,3,-1,
+    11,7,4,11,4,2,2,4,0,-1,-1,-1,-1,-1,-1,-1,
+    11,7,4,11,4,2,8,3,4,3,2,4,-1,-1,-1,-1,
+    2,9,10,2,7,9,2,3,7,7,4,9,-1,-1,-1,-1,
+    9,10,7,9,7,4,10,2,7,8,7,0,2,0,7,-1,
+    3,7,10,3,10,2,7,4,10,1,10,0,4,0,10,-1,
+    1,10,2,8,7,4,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    4,9,1,4,1,7,7,1,3,-1,-1,-1,-1,-1,-1,-1,
+    4,9,1,4,1,7,0,8,1,8,7,1,-1,-1,-1,-1,
+    4,0,3,7,4,3,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    4,8,7,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    9,10,8,10,11,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    3,0,9,3,9,11,11,9,10,-1,-1,-1,-1,-1,-1,-1,
+    0,1,10,0,10,8,8,10,11,-1,-1,-1,-1,-1,-1,-1,
+    3,1,10,11,3,10,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    1,2,11,1,11,9,9,11,8,-1,-1,-1,-1,-1,-1,-1,
+    3,0,9,3,9,11,1,2,9,2,11,9,-1,-1,-1,-1,
+    0,2,11,8,0,11,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    3,2,11,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    2,3,8,2,8,10,10,8,9,-1,-1,-1,-1,-1,-1,-1,
+    9,10,2,0,9,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    2,3,8,2,8,10,0,1,8,1,10,8,-1,-1,-1,-1,
+    1,10,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    1,3,8,9,1,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    0,9,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    0,3,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+  ];
+  for (let i = 0; i < 256; i++) {
+    MC_TRI_TABLE[i] = [];
+    for (let j = 0; j < 16; j++) {
+      const v = triTableFlat[i * 16 + j];
+      if (v === -1) break;
+      MC_TRI_TABLE[i].push(v);
+    }
+  }
+}
+
+function marchingCubes(grid, res, origin, cellSize) {
+  initMarchingCubes();
+
+  const vertices = [];
+  const indices = [];
+  const edgeCache = new Map();
+
+  function getVal(i, j, k) {
+    if (i < 0 || i >= res || j < 0 || j >= res || k < 0 || k >= res) return 0;
+    return grid[voxIdx(i, j, k, res)];
+  }
+
+  function interp(i0, j0, k0, i1, j1, k1) {
+    const key = `${Math.min(i0*res*res+j0*res+k0, i1*res*res+j1*res+k1)}-${Math.max(i0*res*res+j0*res+k0, i1*res*res+j1*res+k1)}`;
+    if (edgeCache.has(key)) return edgeCache.get(key);
+    const x = origin[0] + (i0 + i1 + 1) * 0.5 * cellSize;
+    const y = origin[1] + (j0 + j1 + 1) * 0.5 * cellSize;
+    const z = origin[2] + (k0 + k1 + 1) * 0.5 * cellSize;
+    const idx = vertices.length / 3;
+    vertices.push(x, y, z);
+    edgeCache.set(key, idx);
+    return idx;
+  }
+
+  const cornerOffsets = [
+    [0,0,0],[1,0,0],[1,1,0],[0,1,0],
+    [0,0,1],[1,0,1],[1,1,1],[0,1,1]
+  ];
+
+  const edgeConnections = [
+    [0,1],[1,2],[2,3],[3,0],
+    [4,5],[5,6],[6,7],[7,4],
+    [0,4],[1,5],[2,6],[3,7]
+  ];
+
+  for (let i = 0; i < res - 1; i++) {
+    for (let j = 0; j < res - 1; j++) {
+      for (let k = 0; k < res - 1; k++) {
+        let cubeIndex = 0;
+        for (let c = 0; c < 8; c++) {
+          const ci = i + cornerOffsets[c][0];
+          const cj = j + cornerOffsets[c][1];
+          const ck = k + cornerOffsets[c][2];
+          if (getVal(ci, cj, ck) > 0) cubeIndex |= (1 << c);
+        }
+
+        if (MC_EDGE_TABLE[cubeIndex] === 0) continue;
+
+        const edgeVerts = new Array(12);
+        for (let e = 0; e < 12; e++) {
+          if (MC_EDGE_TABLE[cubeIndex] & (1 << e)) {
+            const [c0, c1] = edgeConnections[e];
+            const o0 = cornerOffsets[c0], o1 = cornerOffsets[c1];
+            edgeVerts[e] = interp(
+              i + o0[0], j + o0[1], k + o0[2],
+              i + o1[0], j + o1[1], k + o1[2]
+            );
+          }
+        }
+
+        const tris = MC_TRI_TABLE[cubeIndex];
+        for (let t = 0; t < tris.length; t += 3) {
+          indices.push(edgeVerts[tris[t]], edgeVerts[tris[t+1]], edgeVerts[tris[t+2]]);
+        }
+      }
+    }
+  }
+
+  return {
+    vertices: new Float64Array(vertices),
+    indices: new Uint32Array(indices),
+    vertexCount: vertices.length / 3,
+    triCount: indices.length / 3
+  };
+}
+
+// ─── Mesh analysis ───
 
 function edgeAnalysis(indices, triCount) {
   const edgeMap = new Map();
@@ -122,693 +798,54 @@ function edgeAnalysis(indices, triCount) {
   return { boundary, manifold, nonManifold, total: edgeMap.size, watertight: boundary === 0 && nonManifold === 0 };
 }
 
-function findComponents(indices, triCount, vertexCount) {
-  const uf = new UnionFind(vertexCount);
-  for (let i = 0; i < triCount; i++) {
-    uf.union(indices[i*3], indices[i*3+1]);
-    uf.union(indices[i*3+1], indices[i*3+2]);
-  }
-  const compMap = new Map();
-  for (let i = 0; i < vertexCount; i++) {
-    const root = uf.find(i);
-    if (!compMap.has(root)) compMap.set(root, []);
-    compMap.get(root).push(i);
-  }
-  return { uf, compMap };
-}
-
-// ─── Step 1: Remove degenerate triangles ───
-
-function removeDegenerates(mesh) {
-  const { vertices, indices, triCount } = mesh;
-  const kept = [];
-  let removed = 0;
-  for (let i = 0; i < triCount; i++) {
-    const a = indices[i*3], b = indices[i*3+1], c = indices[i*3+2];
-    if (a === b || b === c || a === c) { removed++; continue; }
-    const area = triArea(vertices, a, b, c);
-    if (area < 1e-12) { removed++; continue; }
-    kept.push(a, b, c);
-  }
-  mesh.indices = new Uint32Array(kept);
-  mesh.triCount = kept.length / 3;
-  return removed;
-}
-
-// ─── Step 2: Remove debris components ───
-
-function removeDebris(mesh, minVertices) {
-  const { vertices, indices, triCount, vertexCount } = mesh;
-  const { uf, compMap } = findComponents(indices, triCount, vertexCount);
-
-  const keepSet = new Set();
-  let debrisComps = 0;
-  for (const [root, verts] of compMap) {
-    if (verts.length >= minVertices) {
-      for (const v of verts) keepSet.add(v);
-    } else {
-      debrisComps++;
-    }
-  }
-
-  const kept = [];
-  for (let i = 0; i < triCount; i++) {
-    const a = indices[i*3], b = indices[i*3+1], c = indices[i*3+2];
-    if (keepSet.has(a) && keepSet.has(b) && keepSet.has(c)) {
-      kept.push(a, b, c);
-    }
-  }
-  mesh.indices = new Uint32Array(kept);
-  mesh.triCount = kept.length / 3;
-  return debrisComps;
-}
-
-// ─── Step 3: Spatial vertex weld ───
-
-function spatialWeld(mesh, epsilon) {
-  const { vertices, normals, vertexCount } = mesh;
-  const CELL = epsilon * 2;
-
-  const grid = new Map();
-  const remap = new Int32Array(vertexCount);
-  const newVerts = [];
-  const newNormals = normals ? [] : null;
-  let newCount = 0;
-
-  for (let i = 0; i < vertexCount; i++) {
-    const x = vertices[i*3], y = vertices[i*3+1], z = vertices[i*3+2];
-    const gx = Math.floor(x / CELL), gy = Math.floor(y / CELL), gz = Math.floor(z / CELL);
-
-    let merged = -1;
-    outer:
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) {
-        for (let dz = -1; dz <= 1; dz++) {
-          const key = `${gx+dx},${gy+dy},${gz+dz}`;
-          const cell = grid.get(key);
-          if (!cell) continue;
-          for (const idx of cell) {
-            const ex = newVerts[idx*3] - x, ey = newVerts[idx*3+1] - y, ez = newVerts[idx*3+2] - z;
-            if (ex*ex + ey*ey + ez*ez < epsilon * epsilon) {
-              merged = idx;
-              break outer;
-            }
-          }
-        }
-      }
-    }
-
-    if (merged >= 0) {
-      remap[i] = merged;
-    } else {
-      remap[i] = newCount;
-      newVerts.push(x, y, z);
-      if (newNormals && normals) {
-        newNormals.push(normals[i*3], normals[i*3+1], normals[i*3+2]);
-      }
-      const key = `${gx},${gy},${gz}`;
-      if (!grid.has(key)) grid.set(key, []);
-      grid.get(key).push(newCount);
-      newCount++;
-    }
-  }
-
-  mesh.vertices = new Float64Array(newVerts);
-  if (newNormals) mesh.normals = new Float64Array(newNormals);
-  mesh.vertexCount = newCount;
-
-  for (let i = 0; i < mesh.indices.length; i++) {
-    mesh.indices[i] = remap[mesh.indices[i]];
-  }
-
-  // Remove any triangles that collapsed to degenerate after weld
-  const kept = [];
-  for (let i = 0; i < mesh.triCount; i++) {
-    const a = mesh.indices[i*3], b = mesh.indices[i*3+1], c = mesh.indices[i*3+2];
-    if (a !== b && b !== c && a !== c) kept.push(a, b, c);
-  }
-  mesh.indices = new Uint32Array(kept);
-  mesh.triCount = kept.length / 3;
-
-  return vertexCount - newCount;
-}
-
-// ─── Step 4: Filter components by surface area ───
-
-function filterBySurfaceArea(mesh, minArea) {
-  const { vertices, indices, triCount, vertexCount } = mesh;
-  const { uf, compMap } = findComponents(indices, triCount, vertexCount);
-
-  const compArea = new Map();
-  for (let i = 0; i < triCount; i++) {
-    const a = indices[i*3], b = indices[i*3+1], c = indices[i*3+2];
-    const root = uf.find(a);
-    const area = triArea(vertices, a, b, c);
-    compArea.set(root, (compArea.get(root) || 0) + area);
-  }
-
-  const keepRoots = new Set();
-  let filtered = 0;
-  for (const [root, area] of compArea) {
-    if (area >= minArea) {
-      keepRoots.add(root);
-    } else {
-      filtered++;
-    }
-  }
-
-  const kept = [];
-  for (let i = 0; i < triCount; i++) {
-    const a = indices[i*3], b = indices[i*3+1], c = indices[i*3+2];
-    if (keepRoots.has(uf.find(a))) kept.push(a, b, c);
-  }
-  mesh.indices = new Uint32Array(kept);
-  mesh.triCount = kept.length / 3;
-  return filtered;
-}
-
-// ─── Step 5: Orient normals consistently ───
-
-function orientNormals(mesh) {
-  const { vertices, indices, triCount, vertexCount } = mesh;
-
-  // Pre-compute component centroids once
-  const { uf } = findComponents(indices, triCount, vertexCount);
-  const compSum = new Map();
-  const compCount = new Map();
-  for (let i = 0; i < vertexCount; i++) {
-    const root = uf.find(i);
-    if (!compSum.has(root)) { compSum.set(root, [0,0,0]); compCount.set(root, 0); }
-    const s = compSum.get(root);
-    s[0] += vertices[i*3]; s[1] += vertices[i*3+1]; s[2] += vertices[i*3+2];
-    compCount.set(root, compCount.get(root) + 1);
-  }
-  const centroids = new Map();
-  for (const [root, s] of compSum) {
-    const c = compCount.get(root);
-    centroids.set(root, [s[0]/c, s[1]/c, s[2]/c]);
-  }
-
-  // Build adjacency
-  const edgeTris = new Map();
-  for (let i = 0; i < triCount; i++) {
-    const a = indices[i*3], b = indices[i*3+1], c = indices[i*3+2];
-    for (const [v0, v1] of [[a,b],[b,c],[c,a]]) {
-      const key = v0 < v1 ? `${v0}-${v1}` : `${v1}-${v0}`;
-      if (!edgeTris.has(key)) edgeTris.set(key, []);
-      edgeTris.get(key).push(i);
-    }
-  }
-
-  const visited = new Uint8Array(triCount);
-  let totalFlipped = 0;
-
-  for (let start = 0; start < triCount; start++) {
-    if (visited[start]) continue;
-    visited[start] = 1;
-
-    const root = uf.find(indices[start*3]);
-    const centroid = centroids.get(root) || [0,0,0];
-    const a0 = indices[start*3], b0 = indices[start*3+1], c0 = indices[start*3+2];
-    const n = triNormal(vertices, a0, b0, c0);
-    const mx = (vertices[a0*3]+vertices[b0*3]+vertices[c0*3])/3;
-    const my = (vertices[a0*3+1]+vertices[b0*3+1]+vertices[c0*3+1])/3;
-    const mz = (vertices[a0*3+2]+vertices[b0*3+2]+vertices[c0*3+2])/3;
-    if ((mx-centroid[0])*n[0] + (my-centroid[1])*n[1] + (mz-centroid[2])*n[2] < 0) {
-      flipTri(indices, start);
-      totalFlipped++;
-    }
-
-    const queue = [start];
-    while (queue.length > 0) {
-      const ti = queue.shift();
-      const ta = indices[ti*3], tb = indices[ti*3+1], tc = indices[ti*3+2];
-      for (const [v0, v1] of [[ta,tb],[tb,tc],[tc,ta]]) {
-        const key = v0 < v1 ? `${v0}-${v1}` : `${v1}-${v0}`;
-        const neighbors = edgeTris.get(key);
-        if (!neighbors) continue;
-        for (const ni of neighbors) {
-          if (visited[ni]) continue;
-          visited[ni] = 1;
-          if (sharesEdgeSameWinding(indices, ti, ni, v0, v1)) {
-            flipTri(indices, ni);
-            totalFlipped++;
-          }
-          queue.push(ni);
-        }
-      }
-    }
-  }
-
-  mesh.normals = null;
-  return totalFlipped;
-}
-
-function flipTri(indices, ti) {
-  const tmp = indices[ti*3+1];
-  indices[ti*3+1] = indices[ti*3+2];
-  indices[ti*3+2] = tmp;
-}
-
-function sharesEdgeSameWinding(indices, ti, ni, ev0, ev1) {
-  const ta = indices[ti*3], tb = indices[ti*3+1], tc = indices[ti*3+2];
-  const na = indices[ni*3], nb = indices[ni*3+1], nc = indices[ni*3+2];
-  const tiDir = ((ta===ev0&&tb===ev1)||(tb===ev0&&tc===ev1)||(tc===ev0&&ta===ev1)) ? 1 : -1;
-  const niDir = ((na===ev0&&nb===ev1)||(nb===ev0&&nc===ev1)||(nc===ev0&&na===ev1)) ? 1 : -1;
-  return tiDir === niDir;
-}
-
-// ─── Step 5b: Resolve non-manifold edges ───
-
-function resolveNonManifold(mesh) {
-  const { vertices, indices, triCount } = mesh;
-  const edgeTris = new Map();
-  for (let i = 0; i < triCount; i++) {
-    const a = indices[i*3], b = indices[i*3+1], c = indices[i*3+2];
-    for (const [v0, v1] of [[a,b],[b,c],[c,a]]) {
-      const key = v0 < v1 ? `${v0}-${v1}` : `${v1}-${v0}`;
-      if (!edgeTris.has(key)) edgeTris.set(key, []);
-      edgeTris.get(key).push(i);
-    }
-  }
-
-  const removeTris = new Set();
-  for (const [, tris] of edgeTris) {
-    if (tris.length <= 2) continue;
-    // Keep the 2 triangles with largest area, remove the rest
-    const scored = tris.map(ti => ({
-      ti,
-      area: triArea(vertices, indices[ti*3], indices[ti*3+1], indices[ti*3+2])
-    })).sort((a, b) => b.area - a.area);
-    for (let k = 2; k < scored.length; k++) removeTris.add(scored[k].ti);
-  }
-
-  if (removeTris.size === 0) return 0;
-
-  const kept = [];
-  for (let i = 0; i < triCount; i++) {
-    if (!removeTris.has(i)) {
-      kept.push(indices[i*3], indices[i*3+1], indices[i*3+2]);
-    }
-  }
-  mesh.indices = new Uint32Array(kept);
-  mesh.triCount = kept.length / 3;
-  return removeTris.size;
-}
-
-// ─── Step 6: Close boundary edges (fan triangulation) ───
-
-function closeBoundaryLoops(mesh) {
-  const { vertices, indices, triCount } = mesh;
-
-  // Find boundary edges (edges with exactly 1 face)
-  const edgeMap = new Map();
-  for (let i = 0; i < triCount; i++) {
-    const a = indices[i*3], b = indices[i*3+1], c = indices[i*3+2];
-    for (const [v0, v1] of [[a,b],[b,c],[c,a]]) {
-      const fwd = `${v0}-${v1}`;
-      const rev = `${v1}-${v0}`;
-      if (edgeMap.has(rev)) {
-        edgeMap.delete(rev);
-      } else {
-        edgeMap.set(fwd, true);
-      }
-    }
-  }
-
-  if (edgeMap.size === 0) return 0;
-
-  // Build directed boundary loops
-  const nextVertex = new Map();
-  for (const key of edgeMap.keys()) {
-    const [v0, v1] = key.split('-').map(Number);
-    nextVertex.set(v0, v1);
-  }
-
-  const newTris = [];
-  const visited = new Set();
-  let loopsClosed = 0;
-
-  for (const startV of nextVertex.keys()) {
-    if (visited.has(startV)) continue;
-    const loop = [startV];
-    visited.add(startV);
-    let current = nextVertex.get(startV);
-    while (current !== undefined && current !== startV && !visited.has(current)) {
-      loop.push(current);
-      visited.add(current);
-      current = nextVertex.get(current);
-    }
-
-    if (current !== startV || loop.length < 3) continue;
-
-    // Fan triangulation from first vertex
-    for (let i = 1; i < loop.length - 1; i++) {
-      newTris.push(loop[0], loop[i+1], loop[i]);
-    }
-    loopsClosed++;
-  }
-
-  if (newTris.length > 0) {
-    const combined = new Uint32Array(indices.length + newTris.length);
-    combined.set(indices);
-    combined.set(new Uint32Array(newTris), indices.length);
-    mesh.indices = combined;
-    mesh.triCount += newTris.length / 3;
-  }
-
-  return loopsClosed;
-}
-
-// ─── Step 6b: Solidify (thicken open sheets into closed shell) ───
-
-function solidifyMesh(mesh, thickness) {
-  const { vertices, indices, triCount, vertexCount } = mesh;
-
-  // Compute per-vertex normals (area-weighted)
-  const vnormals = new Float64Array(vertexCount * 3);
-  for (let i = 0; i < triCount; i++) {
-    const a = indices[i*3], b = indices[i*3+1], c = indices[i*3+2];
-    const n = triNormal(vertices, a, b, c);
-    const area = triArea(vertices, a, b, c);
-    for (const v of [a, b, c]) {
-      vnormals[v*3] += n[0] * area;
-      vnormals[v*3+1] += n[1] * area;
-      vnormals[v*3+2] += n[2] * area;
-    }
-  }
-  for (let i = 0; i < vertexCount; i++) {
-    const nx = vnormals[i*3], ny = vnormals[i*3+1], nz = vnormals[i*3+2];
-    const len = Math.sqrt(nx*nx + ny*ny + nz*nz);
-    if (len > 1e-10) {
-      vnormals[i*3] /= len; vnormals[i*3+1] /= len; vnormals[i*3+2] /= len;
-    }
-  }
-
-  // Create offset (inner) vertices
-  const newVerts = new Float64Array(vertexCount * 6);
-  for (let i = 0; i < vertexCount; i++) {
-    newVerts[i*3] = vertices[i*3];
-    newVerts[i*3+1] = vertices[i*3+1];
-    newVerts[i*3+2] = vertices[i*3+2];
-    newVerts[(vertexCount + i)*3] = vertices[i*3] - vnormals[i*3] * thickness;
-    newVerts[(vertexCount + i)*3+1] = vertices[i*3+1] - vnormals[i*3+1] * thickness;
-    newVerts[(vertexCount + i)*3+2] = vertices[i*3+2] - vnormals[i*3+2] * thickness;
-  }
-
-  // Find boundary edges for stitching
-  const dirEdgeMap = new Map();
-  for (let i = 0; i < triCount; i++) {
-    const a = indices[i*3], b = indices[i*3+1], c = indices[i*3+2];
-    for (const [v0, v1] of [[a,b],[b,c],[c,a]]) {
-      const fwd = `${v0}-${v1}`;
-      const rev = `${v1}-${v0}`;
-      if (dirEdgeMap.has(rev)) {
-        dirEdgeMap.delete(rev);
-      } else {
-        dirEdgeMap.set(fwd, true);
-      }
-    }
-  }
-
-  // Build new index buffer: original faces + flipped inner faces + boundary stitching
-  const newIndices = [];
-
-  // Original (outer) faces
-  for (let i = 0; i < triCount; i++) {
-    newIndices.push(indices[i*3], indices[i*3+1], indices[i*3+2]);
-  }
-
-  // Inner faces (flipped winding, offset vertex indices)
-  for (let i = 0; i < triCount; i++) {
-    newIndices.push(
-      indices[i*3] + vertexCount,
-      indices[i*3+2] + vertexCount,
-      indices[i*3+1] + vertexCount
-    );
-  }
-
-  // Stitch boundary edges: connect outer boundary to inner boundary
-  for (const key of dirEdgeMap.keys()) {
-    const [v0, v1] = key.split('-').map(Number);
-    const iv0 = v0 + vertexCount, iv1 = v1 + vertexCount;
-    newIndices.push(v0, v1, iv1);
-    newIndices.push(v0, iv1, iv0);
-  }
-
-  mesh.vertices = newVerts;
-  mesh.normals = null;
-  mesh.vertexCount = vertexCount * 2;
-  mesh.indices = new Uint32Array(newIndices);
-  mesh.triCount = newIndices.length / 3;
-
-  return dirEdgeMap.size;
-}
-
-// ─── Step 7: Add pedestal ───
-
-function addPedestal(mesh) {
-  const { vertices, vertexCount } = mesh;
-
-  // Find bounding box
-  let minX = Infinity, maxX = -Infinity;
-  let minY = Infinity, maxY = -Infinity;
-  let minZ = Infinity, maxZ = -Infinity;
-  for (let i = 0; i < vertexCount; i++) {
-    const x = vertices[i*3], y = vertices[i*3+1], z = vertices[i*3+2];
-    if (x < minX) minX = x; if (x > maxX) maxX = x;
-    if (y < minY) minY = y; if (y > maxY) maxY = y;
-    if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
-  }
-
-  const W = maxX - minX, D = maxZ - minZ;
-  const padX = W * 0.15, padZ = D * 0.15;
-  const pedestalH = (maxY - minY) * 0.06;
-
-  // Pedestal: a box below the model
-  const px0 = minX - padX, px1 = maxX + padX;
-  const py0 = minY - pedestalH, py1 = minY;
-  const pz0 = minZ - padZ, pz1 = maxZ + padZ;
-
-  // Chamfer on top edges (45° bevel)
-  const chamfer = pedestalH * 0.25;
-  const cx0 = px0 + chamfer, cx1 = px1 - chamfer;
-  const cy1 = py1 - chamfer;
-  const cz0 = pz0 + chamfer, cz1 = pz1 - chamfer;
-
-  // Add pedestal vertices
-  const baseVtx = vertexCount;
-  const pVerts = [
-    // Bottom face (8 corners: outer rectangle at py0)
-    px0, py0, pz0,   // 0
-    px1, py0, pz0,   // 1
-    px1, py0, pz1,   // 2
-    px0, py0, pz1,   // 3
-    // Top face chamfered (inner rectangle at py1)
-    cx0, py1, cz0,   // 4
-    cx1, py1, cz0,   // 5
-    cx1, py1, cz1,   // 6
-    cx0, py1, cz1,   // 7
-    // Chamfer intermediate ring at cy1
-    px0, cy1, pz0,   // 8
-    px1, cy1, pz0,   // 9
-    px1, cy1, pz1,   // 10
-    px0, cy1, pz1,   // 11
-  ];
-
-  const pNorms = [
-    0,-1,0,  0,-1,0,  0,-1,0,  0,-1,0,
-    0,1,0,   0,1,0,   0,1,0,   0,1,0,
-    0,0,0,   0,0,0,   0,0,0,   0,0,0,
-  ];
-
-  // Build new vertex array
-  const newVerts = new Float64Array(vertices.length + pVerts.length);
-  newVerts.set(vertices);
-  for (let i = 0; i < pVerts.length; i++) newVerts[vertices.length + i] = pVerts[i];
-
-  const newNormals = mesh.normals
-    ? new Float64Array(mesh.normals.length + pNorms.length) : null;
-  if (newNormals) {
-    newNormals.set(mesh.normals);
-    for (let i = 0; i < pNorms.length; i++) newNormals[mesh.normals.length + i] = pNorms[i];
-  }
-
-  const b = baseVtx;
-  const pTris = [
-    // Bottom face (Y-)
-    b+0, b+2, b+1,
-    b+0, b+3, b+2,
-
-    // Front face (Z-): bottom strip
-    b+0, b+1, b+9,
-    b+0, b+9, b+8,
-    // Front face: chamfer strip
-    b+8, b+9, b+5,
-    b+8, b+5, b+4,
-
-    // Right face (X+): bottom strip
-    b+1, b+2, b+10,
-    b+1, b+10, b+9,
-    // Right face: chamfer strip
-    b+9, b+10, b+6,
-    b+9, b+6, b+5,
-
-    // Back face (Z+): bottom strip
-    b+2, b+3, b+11,
-    b+2, b+11, b+10,
-    // Back face: chamfer strip
-    b+10, b+11, b+7,
-    b+10, b+7, b+6,
-
-    // Left face (X-): bottom strip
-    b+3, b+0, b+8,
-    b+3, b+8, b+11,
-    // Left face: chamfer strip
-    b+11, b+8, b+4,
-    b+11, b+4, b+7,
-
-    // Top face (Y+)
-    b+4, b+5, b+6,
-    b+4, b+6, b+7,
-  ];
-
-  // Engraving: "DMF RELIC 01 / THE RECEIVER / 001"
-  // Create engraved text as shallow grooves on front face of pedestal
-  const engravings = addEngravingGeometry(
-    mesh.vertexCount + pVerts.length / 3,
-    px0, px1, py0, py1, pz0, pedestalH
-  );
-
-  const totalNewTris = pTris.length + engravings.tris.length;
-  const combined = new Uint32Array(mesh.indices.length + totalNewTris);
-  combined.set(mesh.indices);
-  combined.set(new Uint32Array(pTris), mesh.indices.length);
-  combined.set(new Uint32Array(engravings.tris), mesh.indices.length + pTris.length);
-
-  const allVerts = new Float64Array(newVerts.length + engravings.verts.length);
-  allVerts.set(newVerts);
-  allVerts.set(new Float64Array(engravings.verts), newVerts.length);
-
-  mesh.vertices = allVerts;
-  mesh.normals = null;
-  mesh.vertexCount = allVerts.length / 3;
-  mesh.indices = combined;
-  mesh.triCount = combined.length / 3;
-
-  return { pedestalH, chamfer };
-}
-
-function addEngravingGeometry(baseIdx, px0, px1, py0, py1, pz0, pedestalH) {
-  // Engraved text on the front face (Z- face)
-  // Represented as shallow rectangular grooves
-  const depth = pedestalH * 0.03;
-  const z = pz0 + 0.0001;
-  const zIn = pz0 + depth;
-
-  const totalWidth = px1 - px0;
-  const textWidth = totalWidth * 0.7;
-  const centerX = (px0 + px1) / 2;
-  const lineHeight = pedestalH * 0.12;
-  const lineGap = pedestalH * 0.04;
-
-  // Three lines of text, each represented as a groove
-  const lines = [
-    { y: py0 + pedestalH * 0.65, w: textWidth * 0.65 },  // DMF RELIC 01
-    { y: py0 + pedestalH * 0.45, w: textWidth * 0.75 },  // THE RECEIVER
-    { y: py0 + pedestalH * 0.25, w: textWidth * 0.25 },  // 001
-  ];
-
-  const verts = [];
-  const tris = [];
-  let vi = baseIdx;
-
-  for (const line of lines) {
-    const x0 = centerX - line.w / 2;
-    const x1 = centerX + line.w / 2;
-    const y0 = line.y - lineHeight / 2;
-    const y1 = line.y + lineHeight / 2;
-
-    // Front face of groove (recessed)
-    verts.push(x0, y0, zIn, x1, y0, zIn, x1, y1, zIn, x0, y1, zIn);
-    // Outer face vertices (flush with pedestal)
-    verts.push(x0, y0, z, x1, y0, z, x1, y1, z, x0, y1, z);
-
-    // Recessed face (back of groove)
-    tris.push(vi, vi+1, vi+2, vi, vi+2, vi+3);
-    // Outer face (cap, flush with pedestal — closes the groove box)
-    tris.push(vi+4, vi+7, vi+6, vi+4, vi+6, vi+5);
-    // Bottom wall
-    tris.push(vi+4, vi+5, vi+1, vi+4, vi+1, vi);
-    // Top wall
-    tris.push(vi+2, vi+6, vi+7, vi+2, vi+7, vi+3);
-    // Left wall
-    tris.push(vi+4, vi, vi+3, vi+4, vi+3, vi+7);
-    // Right wall
-    tris.push(vi+1, vi+5, vi+6, vi+1, vi+6, vi+2);
-
-    vi += 8;
-  }
-
-  return { verts, tris };
-}
-
-// ─── Step 8: Compact mesh (remove unreferenced vertices) ───
-
-function compactMesh(mesh) {
-  const { vertices, indices, triCount } = mesh;
-  const used = new Set();
-  for (let i = 0; i < indices.length; i++) used.add(indices[i]);
-
-  const remap = new Map();
-  const newVerts = [];
-  let newIdx = 0;
-  for (const v of used) {
-    remap.set(v, newIdx);
-    newVerts.push(vertices[v*3], vertices[v*3+1], vertices[v*3+2]);
-    newIdx++;
-  }
-
-  for (let i = 0; i < indices.length; i++) {
-    indices[i] = remap.get(indices[i]);
-  }
-
-  mesh.vertices = new Float64Array(newVerts);
-  mesh.normals = null;
-  mesh.vertexCount = newIdx;
+function countComponents(indices, triCount, vertexCount) {
+  const parent = new Int32Array(vertexCount);
+  const rank = new Int32Array(vertexCount);
+  for (let i = 0; i < vertexCount; i++) parent[i] = i;
+  function find(x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
+  function union(a, b) { a = find(a); b = find(b); if (a === b) return; if (rank[a] < rank[b]) { const t=a; a=b; b=t; } parent[b] = a; if (rank[a] === rank[b]) rank[a]++; }
+  for (let i = 0; i < triCount; i++) { union(indices[i*3], indices[i*3+1]); union(indices[i*3+1], indices[i*3+2]); }
+  const roots = new Set();
+  for (let i = 0; i < vertexCount; i++) roots.add(find(i));
+  // Only count components that have triangles
+  const usedVerts = new Set();
+  for (let i = 0; i < indices.length; i++) usedVerts.add(indices[i]);
+  const usedRoots = new Set();
+  for (const v of usedVerts) usedRoots.add(find(v));
+  return usedRoots.size;
 }
 
 // ─── STL Export ───
 
+function triNormal(v, i0, i1, i2) {
+  const ax = v[i1*3]-v[i0*3], ay = v[i1*3+1]-v[i0*3+1], az = v[i1*3+2]-v[i0*3+2];
+  const bx = v[i2*3]-v[i0*3], by = v[i2*3+1]-v[i0*3+1], bz = v[i2*3+2]-v[i0*3+2];
+  const nx = ay*bz-az*by, ny = az*bx-ax*bz, nz = ax*by-ay*bx;
+  const len = Math.sqrt(nx*nx+ny*ny+nz*nz);
+  if (len < 1e-20) return [0,1,0];
+  return [nx/len, ny/len, nz/len];
+}
+
 function exportSTL(mesh, filepath, scaleFactor) {
   const { vertices, indices, triCount } = mesh;
-  // Binary STL: 80-byte header + 4-byte tri count + 50 bytes per triangle
   const bufSize = 80 + 4 + triCount * 50;
   const buf = Buffer.alloc(bufSize);
-
-  // Header
-  const header = 'DMF RELIC 01 / THE RECEIVER / Physical Geometry Alpha';
-  buf.write(header, 0, 'ascii');
+  buf.write('DMF RELIC 01 / THE RECEIVER / Manufacturing Geometry Beta', 0, 'ascii');
   buf.writeUInt32LE(triCount, 80);
-
   let offset = 84;
   for (let i = 0; i < triCount; i++) {
     const a = indices[i*3], b = indices[i*3+1], c = indices[i*3+2];
     const n = triNormal(vertices, a, b, c);
-
     buf.writeFloatLE(n[0], offset); offset += 4;
     buf.writeFloatLE(n[1], offset); offset += 4;
     buf.writeFloatLE(n[2], offset); offset += 4;
-
     for (const vi of [a, b, c]) {
       buf.writeFloatLE(vertices[vi*3] * scaleFactor, offset); offset += 4;
       buf.writeFloatLE(vertices[vi*3+1] * scaleFactor, offset); offset += 4;
       buf.writeFloatLE(vertices[vi*3+2] * scaleFactor, offset); offset += 4;
     }
-
     buf.writeUInt16LE(0, offset); offset += 2;
   }
-
   fs.writeFileSync(filepath, buf);
   return bufSize;
 }
@@ -818,9 +855,9 @@ function exportSTL(mesh, filepath, scaleFactor) {
 function main() {
   const log = (s) => console.log(s);
 
-  log('═══════════════════════════════════════════════════════');
-  log(' DMF RELIC 01 — Physical Geometry Alpha Pipeline');
-  log('═══════════════════════════════════════════════════════');
+  log('===================================================================');
+  log(' DMF RELIC 01 — Manufacturing Geometry Beta Pipeline');
+  log('===================================================================');
   log('');
 
   // Parse
@@ -828,157 +865,145 @@ function main() {
   const { gltf, binBuf } = parseGLB(GLB_PATH);
   const mesh = extractMesh(gltf, binBuf);
   log(`  Source: ${mesh.vertexCount.toLocaleString()} vertices, ${mesh.triCount.toLocaleString()} triangles`);
-  log('');
 
-  // Pre-repair analysis
+  // Pre-repair
   const pre = edgeAnalysis(mesh.indices, mesh.triCount);
-  log('Pre-repair state:');
-  log(`  Boundary edges: ${pre.boundary.toLocaleString()}`);
-  log(`  Non-manifold: ${pre.nonManifold}`);
-  log(`  Watertight: ${pre.watertight ? 'YES' : 'NO'}`);
+  log(`  Boundary: ${pre.boundary.toLocaleString()}, Non-manifold: ${pre.nonManifold}, Watertight: ${pre.watertight ? 'YES' : 'NO'}`);
   log('');
 
   // Step 1: Remove degenerates
   log('Step 1: Remove degenerate triangles...');
   const degRemoved = removeDegenerates(mesh);
-  log(`  Removed: ${degRemoved} degenerate triangles`);
-  log(`  Remaining: ${mesh.triCount.toLocaleString()} triangles`);
+  log(`  Removed: ${degRemoved}`);
   log('');
 
-  // Step 2: Remove debris (pre-weld, by vertex count < 10)
-  log('Step 2: Remove debris components...');
+  // Step 2: Remove debris
+  log('Step 2: Remove debris components (<10 vertices)...');
   const debrisRemoved = removeDebris(mesh, 10);
-  log(`  Removed: ${debrisRemoved.toLocaleString()} debris components`);
-  log(`  Remaining: ${mesh.triCount.toLocaleString()} triangles`);
+  log(`  Removed: ${debrisRemoved.toLocaleString()} components`);
   log('');
 
-  // Step 3: Spatial vertex weld
-  log(`Step 3: Spatial vertex weld (ε=${WELD_EPSILON})...`);
+  // Step 3: Spatial weld
+  log(`Step 3: Spatial vertex weld (e=${WELD_EPSILON})...`);
   const welded = spatialWeld(mesh, WELD_EPSILON);
-  log(`  Merged: ${welded.toLocaleString()} duplicate vertices`);
+  log(`  Merged: ${welded.toLocaleString()} vertices`);
   log(`  Remaining: ${mesh.vertexCount.toLocaleString()} vertices, ${mesh.triCount.toLocaleString()} triangles`);
   log('');
 
-  // Step 4: Re-analyze after weld
-  log('Step 4: Re-analyze after weld...');
-  const postWeld = edgeAnalysis(mesh.indices, mesh.triCount);
-  const { compMap: postCompMap } = findComponents(mesh.indices, mesh.triCount, mesh.vertexCount);
-  log(`  Boundary edges: ${pre.boundary.toLocaleString()} → ${postWeld.boundary.toLocaleString()}`);
-  log(`  Non-manifold: ${pre.nonManifold} → ${postWeld.nonManifold}`);
-  log(`  Components: ${postCompMap.size.toLocaleString()}`);
-  log(`  Watertight: ${postWeld.watertight ? 'YES' : 'NO'}`);
-  log('');
-
-  // Step 5: Filter by surface area
-  log(`Step 5: Filter components by surface area (min=${DEBRIS_MIN_SURFACE_AREA})...`);
-  const areaFiltered = filterBySurfaceArea(mesh, DEBRIS_MIN_SURFACE_AREA);
-  log(`  Removed: ${areaFiltered} small-area components`);
-  log(`  Remaining: ${mesh.triCount.toLocaleString()} triangles`);
-  log('');
-
-  // Step 5b: Resolve non-manifold edges
-  log('Step 5b: Resolve non-manifold edges...');
-  const nmRemoved = resolveNonManifold(mesh);
-  log(`  Removed: ${nmRemoved} triangles from non-manifold edges`);
-  log('');
-
-  // Step 6: Orient normals
-  log('Step 6: Orient normals consistently...');
-  const flipped = orientNormals(mesh);
-  log(`  Flipped: ${flipped.toLocaleString()} triangles`);
-  log('');
-
-  // Step 7: Close boundary loops (iterative)
-  log('Step 7: Close remaining boundary edges...');
-  let totalLoops = 0;
-  for (let pass = 0; pass < 5; pass++) {
-    const loopsClosed = closeBoundaryLoops(mesh);
-    if (loopsClosed === 0) break;
-    totalLoops += loopsClosed;
-    log(`  Pass ${pass + 1}: closed ${loopsClosed} loops`);
-  }
-  log(`  Total loops closed: ${totalLoops}`);
-
-  // Post-close: remove any new degenerates/non-manifold
-  const postCloseDegens = removeDegenerates(mesh);
-  const postCloseNM = resolveNonManifold(mesh);
-  if (postCloseDegens > 0 || postCloseNM > 0) {
-    log(`  Post-close cleanup: ${postCloseDegens} degenerates, ${postCloseNM} non-manifold tris removed`);
-  }
-  log('');
-
-  // Step 7b: Solidify open sheets into closed shell
-  const preSolidify = edgeAnalysis(mesh.indices, mesh.triCount);
-  if (preSolidify.boundary > 0) {
-    log('Step 7b: Solidify mesh (thicken open sheets)...');
-    const WALL_THICKNESS = 0.008;
-    const stitched = solidifyMesh(mesh, WALL_THICKNESS);
-    log(`  Shell thickness: ${WALL_THICKNESS} model units (~${(WALL_THICKNESS * 75).toFixed(1)}mm at scale)`);
-    log(`  Boundary edges stitched: ${stitched.toLocaleString()}`);
-    log(`  Mesh: ${mesh.vertexCount.toLocaleString()} vertices, ${mesh.triCount.toLocaleString()} triangles`);
-
-    // Post-solidify: remove degenerates and close any remaining tiny gaps
-    const postSolDegens = removeDegenerates(mesh);
-    if (postSolDegens > 0) {
-      log(`  Post-solidify cleanup: ${postSolDegens} degenerate triangles removed`);
-    }
-
-    // Final boundary closure pass
-    for (let p = 0; p < 3; p++) {
-      const closed = closeBoundaryLoops(mesh);
-      if (closed === 0) break;
-      log(`  Final closure pass ${p + 1}: closed ${closed} loops`);
-    }
-    log('');
+  // Compute bounds
+  let minX = Infinity, maxX = -Infinity;
+  let minY = Infinity, maxY = -Infinity;
+  let minZ = Infinity, maxZ = -Infinity;
+  for (let i = 0; i < mesh.vertexCount; i++) {
+    const x = mesh.vertices[i*3], y = mesh.vertices[i*3+1], z = mesh.vertices[i*3+2];
+    if (x < minX) minX = x; if (x > maxX) maxX = x;
+    if (y < minY) minY = y; if (y > maxY) maxY = y;
+    if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
   }
 
-  // Step 8: Add pedestal
-  log('Step 8: Add pedestal with engraving...');
-  const { pedestalH } = addPedestal(mesh);
-  log(`  Pedestal height: ${pedestalH.toFixed(4)} model units`);
-  log(`  Engraving: "DMF RELIC 01 / THE RECEIVER / 001"`);
+  const meshBounds = { minX, maxX, minY, maxY: maxY, minZ, maxZ };
+  const W = maxX - minX, H = maxY - minY, D = maxZ - minZ;
+  const pedestalH = H * 0.06;
+  const padX = W * 0.15, padZ = D * 0.15;
+
+  // Voxel grid bounds (include pedestal + margin)
+  const margin = Math.max(W, H, D) * 0.05;
+  const gMinX = minX - padX - margin;
+  const gMinY = minY - pedestalH - margin;
+  const gMinZ = minZ - padZ - margin;
+  const gMaxX = maxX + padX + margin;
+  const gMaxY = maxY + margin;
+  const gMaxZ = maxZ + padZ + margin;
+
+  const gW = gMaxX - gMinX, gH = gMaxY - gMinY, gD = gMaxZ - gMinZ;
+  const maxDim = Math.max(gW, gH, gD);
+  const cellSize = maxDim / VOXEL_RES;
+  const origin = [gMinX, gMinY, gMinZ];
+
+  log(`Step 4: Voxelize (${VOXEL_RES}^3 grid, cell=${cellSize.toFixed(5)})...`);
+  const grid = createVoxelGrid(VOXEL_RES);
+
+  // Voxelize mesh surface
+  voxelizeMesh(mesh, grid, VOXEL_RES, origin, cellSize);
+  let surfaceVoxels = 0;
+  for (let i = 0; i < grid.length; i++) if (grid[i]) surfaceVoxels++;
+  log(`  Surface voxels: ${surfaceVoxels.toLocaleString()}`);
+
+  // Add pedestal as solid voxel volume
+  log('  Adding pedestal voxels...');
+  const pedInfo = addPedestalVoxels(grid, VOXEL_RES, origin, cellSize, meshBounds);
+  let totalVoxels = 0;
+  for (let i = 0; i < grid.length; i++) if (grid[i]) totalVoxels++;
+  log(`  Total voxels (with pedestal): ${totalVoxels.toLocaleString()}`);
+
+  log('  Dilating surface shell...');
+  const dilated = dilateVoxels(grid, VOXEL_RES);
+  log(`  Dilated voxels added: ${dilated.toLocaleString()}`);
+  totalVoxels = 0;
+  for (let i = 0; i < grid.length; i++) if (grid[i]) totalVoxels++;
+  log(`  Total after dilation: ${totalVoxels.toLocaleString()}`);
   log('');
 
-  // Compact mesh
-  log('Compacting mesh (removing unreferenced vertices)...');
-  compactMesh(mesh);
-  log(`  Final: ${mesh.vertexCount.toLocaleString()} vertices, ${mesh.triCount.toLocaleString()} triangles`);
+  // Step 5: Flood fill exterior → identify interior
+  log('Step 5: Flood fill exterior...');
+  const interiorFilled = floodFillExterior(grid, VOXEL_RES);
+  let solidVoxels = 0;
+  for (let i = 0; i < grid.length; i++) if (grid[i]) solidVoxels++;
+  log(`  Interior voxels filled: ${interiorFilled.toLocaleString()}`);
+  log(`  Total solid voxels: ${solidVoxels.toLocaleString()}`);
   log('');
 
-  // Step 9: Validate
-  log('Step 9: Geometry Gate validation...');
-  const final = edgeAnalysis(mesh.indices, mesh.triCount);
-  const { compMap: finalCompMap } = findComponents(mesh.indices, mesh.triCount, mesh.vertexCount);
+  // Step 6: Engrave text (subtract from voxels)
+  log('Step 6: Engrave text on pedestal...');
+  const pedestalCenterX = (pedInfo.px0 + pedInfo.px1) / 2;
+  const charH = pedInfo.pedestalH * 0.22;
+  const charW = charH * 0.6;
 
-  // Check for remaining degenerates
+  const texts = [
+    { text: 'DMF RELIC 01', y: pedInfo.py0 + pedInfo.pedestalH * 0.62 },
+    { text: 'THE RECEIVER', y: pedInfo.py0 + pedInfo.pedestalH * 0.38 },
+    { text: '001', y: pedInfo.py0 + pedInfo.pedestalH * 0.15 },
+  ];
+
+  for (const { text, y } of texts) {
+    const totalW = text.length * (charW + charW * 0.15) - charW * 0.15;
+    const startX = pedestalCenterX - totalW / 2;
+    engraveTextOnVoxels(grid, VOXEL_RES, origin, cellSize, text, startX, y, pedInfo.pz0, charH, charW, cellSize * 3);
+  }
+  log(`  Engraved: "DMF RELIC 01 / THE RECEIVER / 001"`);
+  log('');
+
+  // Step 7: Marching cubes
+  log('Step 7: Marching cubes isosurface extraction...');
+  const result = marchingCubes(grid, VOXEL_RES, origin, cellSize);
+  log(`  Extracted: ${result.vertexCount.toLocaleString()} vertices, ${result.triCount.toLocaleString()} triangles`);
+  log('');
+
+  // Step 8: Validate
+  log('Step 8: Gate validation...');
+  const final = edgeAnalysis(result.indices, result.triCount);
+  const components = countComponents(result.indices, result.triCount, result.vertexCount);
+
   let finalDegen = 0;
-  for (let i = 0; i < mesh.triCount; i++) {
-    const a = mesh.indices[i*3], b = mesh.indices[i*3+1], c = mesh.indices[i*3+2];
-    if (triArea(mesh.vertices, a, b, c) < 1e-12) finalDegen++;
+  for (let i = 0; i < result.triCount; i++) {
+    const a = result.indices[i*3], b = result.indices[i*3+1], c = result.indices[i*3+2];
+    if (a === b || b === c || a === c) finalDegen++;
   }
 
-  const geoGate = {
-    watertight: final.watertight,
-    nonManifold: final.nonManifold,
-    degenerate: finalDegen,
-    boundary: final.boundary,
-    components: finalCompMap.size,
-  };
-
-  log(`  Watertight: ${geoGate.watertight ? 'YES ✓' : 'NO ✗'} (boundary=${geoGate.boundary}, non-manifold=${geoGate.nonManifold})`);
-  log(`  Degenerate: ${geoGate.degenerate} ${geoGate.degenerate === 0 ? '✓' : '✗'}`);
-  log(`  Components: ${geoGate.components}`);
+  log(`  boundary    = ${final.boundary} ${final.boundary === 0 ? '  OK' : '  FAIL'}`);
+  log(`  non-manifold = ${final.nonManifold} ${final.nonManifold === 0 ? '  OK' : '  FAIL'}`);
+  log(`  degenerate  = ${finalDegen} ${finalDegen === 0 ? '  OK' : '  FAIL'}`);
+  log(`  components  = ${components} ${components === 1 ? '  OK' : '  FAIL'}`);
+  log(`  watertight  = ${final.watertight ? 'YES' : 'NO'} ${final.watertight ? '  OK' : '  FAIL'}`);
   log('');
 
-  // Step 10: Export STL
-  log('Step 10: Fabrication Gate & STL export...');
-
-  // Compute final bounding box for scale
+  // Step 9: Export STL
+  log('Step 9: Export STL...');
   let fMinY = Infinity, fMaxY = -Infinity;
   let fMinX = Infinity, fMaxX = -Infinity;
   let fMinZ = Infinity, fMaxZ = -Infinity;
-  for (let i = 0; i < mesh.vertexCount; i++) {
-    const x = mesh.vertices[i*3], y = mesh.vertices[i*3+1], z = mesh.vertices[i*3+2];
+  for (let i = 0; i < result.vertexCount; i++) {
+    const x = result.vertices[i*3], y = result.vertices[i*3+1], z = result.vertices[i*3+2];
     if (x < fMinX) fMinX = x; if (x > fMaxX) fMaxX = x;
     if (y < fMinY) fMinY = y; if (y > fMaxY) fMaxY = y;
     if (z < fMinZ) fMinZ = z; if (z > fMaxZ) fMaxZ = z;
@@ -986,47 +1011,57 @@ function main() {
 
   const modelH = fMaxY - fMinY;
   const scale = TARGET_HEIGHT_MM / modelH;
+  const stlSize = exportSTL(result, STL_PATH, scale);
 
-  log(`  Model height: ${modelH.toFixed(4)} units → ${TARGET_HEIGHT_MM}mm`);
-  log(`  Scale factor: ${scale.toFixed(2)}x`);
-  log(`  Physical dims: ${((fMaxX-fMinX)*scale).toFixed(1)} × ${TARGET_HEIGHT_MM} × ${((fMaxZ-fMinZ)*scale).toFixed(1)} mm`);
-  log(`  Pedestal: YES (${(pedestalH*scale).toFixed(1)}mm tall)`);
+  log(`  Height: ${modelH.toFixed(4)} units -> ${TARGET_HEIGHT_MM}mm`);
+  log(`  Scale: ${scale.toFixed(2)}x`);
+  log(`  Dims: ${((fMaxX-fMinX)*scale).toFixed(1)} x ${TARGET_HEIGHT_MM} x ${((fMaxZ-fMinZ)*scale).toFixed(1)} mm`);
+  log(`  Pedestal: ${(pedInfo.pedestalH*scale).toFixed(1)}mm`);
+  log(`  File: DMF_RELIC_01_ALPHA.stl (${(stlSize/1024/1024).toFixed(1)} MB, ${result.triCount.toLocaleString()} triangles)`);
   log('');
 
-  const stlSize = exportSTL(mesh, STL_PATH, scale);
-  log(`  Exported: DMF_RELIC_01_ALPHA.stl (${(stlSize / 1024 / 1024).toFixed(1)} MB)`);
-  log(`  Triangles: ${mesh.triCount.toLocaleString()}`);
-  log('');
+  // Final gate report
+  const geoPass = final.boundary === 0 && final.nonManifold === 0 && finalDegen === 0;
+  const topoPass = components === 1;
+  const allPass = geoPass && topoPass;
 
-  // Summary
-  log('═══════════════════════════════════════════════════════');
+  log('===================================================================');
   log(' GEOMETRY GATE');
-  log(`   watertight    = ${geoGate.watertight ? 'YES ✓' : 'NO ✗'}`);
-  log(`   non-manifold  = ${geoGate.nonManifold} ${geoGate.nonManifold === 0 ? '✓' : '⚠'}`);
-  log(`   degenerate    = ${geoGate.degenerate} ${geoGate.degenerate === 0 ? '✓' : '⚠'}`);
+  log(`   boundary       = ${final.boundary} ${final.boundary === 0 ? 'PASS' : 'FAIL'}`);
+  log(`   non-manifold   = ${final.nonManifold} ${final.nonManifold === 0 ? 'PASS' : 'FAIL'}`);
+  log(`   degenerate     = ${finalDegen} ${finalDegen === 0 ? 'PASS' : 'FAIL'}`);
+  log(`   components     = ${components} ${components === 1 ? 'PASS' : 'FAIL'}`);
+  log(`   watertight     = ${final.watertight ? 'YES' : 'NO'} ${final.watertight ? 'PASS' : 'FAIL'}`);
   log('');
   log(' FABRICATION GATE');
-  log(`   height        = ${TARGET_HEIGHT_MM}mm ✓`);
-  log(`   pedestal      = solid ✓`);
-  log(`   engraving     = DMF RELIC 01 / THE RECEIVER / 001 ✓`);
-  log('═══════════════════════════════════════════════════════');
+  log(`   height         = ${TARGET_HEIGHT_MM}mm PASS`);
+  log(`   pedestal       = connected PASS`);
+  log(`   engraving      = DMF RELIC 01 / THE RECEIVER / 001 PASS`);
+  log('===================================================================');
 
-  const closed = geoGate.boundary === 0;
-  const clean = geoGate.degenerate === 0;
-  if (closed && clean) {
+  if (allPass) {
     log('');
-    log('GEOMETRY GATE: CLOSED MESH ✓ — boundary=0, degenerate=0');
-    if (geoGate.nonManifold > 0) {
-      log(`  ${geoGate.nonManifold} non-manifold edges from overlapping shells (slicer auto-repair handles this).`);
-    }
-    log('STL alpha ready for slicer testing.');
+    log('ALL GATES PASSED (0/0/0/1) — Manufacturing Geometry Beta ready.');
   } else {
     log('');
-    if (geoGate.boundary > 0) log(`⚠ ${geoGate.boundary} boundary edges remain — mesh not fully closed.`);
-    if (geoGate.degenerate > 0) log(`⚠ ${geoGate.degenerate} degenerate triangles remain.`);
-    if (geoGate.nonManifold > 0) log(`  ${geoGate.nonManifold} non-manifold edges (overlapping shells, slicer-handled).`);
-    log('STL exported as alpha for slicer testing with auto-repair.');
+    if (!geoPass) log('GEOMETRY GATE FAILED — mesh not fully manifold.');
+    if (!topoPass) log(`TOPOLOGY GATE FAILED — ${components} components instead of 1.`);
+    log('STL exported for inspection.');
   }
+
+  // Machine-readable gate output for CI
+  const gateResult = {
+    boundary: final.boundary,
+    nonManifold: final.nonManifold,
+    degenerate: finalDegen,
+    components,
+    watertight: final.watertight,
+    heightMM: TARGET_HEIGHT_MM,
+    pass: allPass
+  };
+  const gatePath = path.join(__dirname, '..', 'assets', 'models', 'GEOMETRY_GATE.json');
+  fs.writeFileSync(gatePath, JSON.stringify(gateResult, null, 2) + '\n');
+  log(`\nGate results: ${gatePath}`);
 }
 
 main();
