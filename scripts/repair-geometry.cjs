@@ -1,9 +1,9 @@
-// DMF RELIC 01 — Manufacturing Geometry Beta
+// DMF RELIC 01 — Manufacturing Detail
 // Volumetric manifold rebuild: GLB → voxel union → marching cubes → STL
 // Run: node scripts/repair-geometry.cjs
 //
-// Pipeline: parse → clean → weld → voxelize with pedestal → flood fill →
-//   marching cubes → text engraving → validate 0/0/0/1 → export STL
+// Pipeline: parse → clean → weld → voxelize (256³) with pedestal → dilate →
+//   flood fill → engrave (stroke font) → marching cubes → validate → export STL
 
 const fs = require('fs');
 const path = require('path');
@@ -12,7 +12,7 @@ const GLB_PATH = path.join(__dirname, '..', 'assets', 'models', 'dmf-studio-opti
 const STL_PATH = path.join(__dirname, '..', 'assets', 'models', 'DMF_RELIC_01_ALPHA.stl');
 const TARGET_HEIGHT_MM = 150.0;
 const WELD_EPSILON = 5e-4;
-const VOXEL_RES = 128;
+const VOXEL_RES = 256;
 
 // ─── GLB Parser ───
 
@@ -317,10 +317,9 @@ function engraveTextOnVoxels(grid, res, origin, cellSize, text, startX, y, z, ch
       const wx1 = cx + sx1 * charWidth;
       const wy1 = y + sy1 * charHeight;
 
-      // Rasterize line segment as voxel groove
       const len = Math.sqrt((wx1-wx0)**2 + (wy1-wy0)**2);
       const steps = Math.max(1, Math.ceil(len / (cellSize * 0.5)));
-      const strokeW = cellSize * 1.5;
+      const strokeW = Math.max(cellSize * 1.2, charHeight * 0.12);
 
       for (let s = 0; s <= steps; s++) {
         const t = s / steps;
@@ -768,7 +767,7 @@ function marchingCubes(grid, res, origin, cellSize) {
 
         const tris = MC_TRI_TABLE[cubeIndex];
         for (let t = 0; t < tris.length; t += 3) {
-          indices.push(edgeVerts[tris[t]], edgeVerts[tris[t+1]], edgeVerts[tris[t+2]]);
+          indices.push(edgeVerts[tris[t+2]], edgeVerts[tris[t+1]], edgeVerts[tris[t]]);
         }
       }
     }
@@ -956,13 +955,13 @@ function main() {
   // Step 6: Engrave text (subtract from voxels)
   log('Step 6: Engrave text on pedestal...');
   const pedestalCenterX = (pedInfo.px0 + pedInfo.px1) / 2;
-  const charH = pedInfo.pedestalH * 0.22;
+  const charH = pedInfo.pedestalH * 0.28;
   const charW = charH * 0.6;
 
   const texts = [
-    { text: 'DMF RELIC 01', y: pedInfo.py0 + pedInfo.pedestalH * 0.62 },
+    { text: 'DMF RELIC 01', y: pedInfo.py0 + pedInfo.pedestalH * 0.65 },
     { text: 'THE RECEIVER', y: pedInfo.py0 + pedInfo.pedestalH * 0.38 },
-    { text: '001', y: pedInfo.py0 + pedInfo.pedestalH * 0.15 },
+    { text: '001', y: pedInfo.py0 + pedInfo.pedestalH * 0.12 },
   ];
 
   for (const { text, y } of texts) {
@@ -987,7 +986,12 @@ function main() {
   let finalDegen = 0;
   for (let i = 0; i < result.triCount; i++) {
     const a = result.indices[i*3], b = result.indices[i*3+1], c = result.indices[i*3+2];
-    if (a === b || b === c || a === c) finalDegen++;
+    if (a === b || b === c || a === c) { finalDegen++; continue; }
+    const v = result.vertices;
+    const abx = v[b*3]-v[a*3], aby = v[b*3+1]-v[a*3+1], abz = v[b*3+2]-v[a*3+2];
+    const acx = v[c*3]-v[a*3], acy = v[c*3+1]-v[a*3+1], acz = v[c*3+2]-v[a*3+2];
+    const nx = aby*acz-abz*acy, ny = abz*acx-abx*acz, nz = abx*acy-aby*acx;
+    if (nx*nx+ny*ny+nz*nz < 1e-20) finalDegen++;
   }
 
   log(`  boundary    = ${final.boundary} ${final.boundary === 0 ? '  OK' : '  FAIL'}`);
@@ -997,8 +1001,8 @@ function main() {
   log(`  watertight  = ${final.watertight ? 'YES' : 'NO'} ${final.watertight ? '  OK' : '  FAIL'}`);
   log('');
 
-  // Step 9: Export STL
-  log('Step 9: Export STL...');
+  // Step 9: Compute physical metrics
+  log('Step 9: Physical metrics...');
   let fMinY = Infinity, fMaxY = -Infinity;
   let fMinX = Infinity, fMaxX = -Infinity;
   let fMinZ = Infinity, fMaxZ = -Infinity;
@@ -1011,22 +1015,51 @@ function main() {
 
   const modelH = fMaxY - fMinY;
   const scale = TARGET_HEIGHT_MM / modelH;
+  const widthMM = (fMaxX - fMinX) * scale;
+  const depthMM = (fMaxZ - fMinZ) * scale;
+
+  let signedVolModel = 0;
+  let surfaceAreaModel = 0;
+  for (let i = 0; i < result.triCount; i++) {
+    const a = result.indices[i*3], b = result.indices[i*3+1], c = result.indices[i*3+2];
+    const v = result.vertices;
+    const ax = v[a*3], ay = v[a*3+1], az = v[a*3+2];
+    const bx = v[b*3], by = v[b*3+1], bz = v[b*3+2];
+    const cx = v[c*3], cy = v[c*3+1], cz = v[c*3+2];
+    signedVolModel += (ax*(by*cz - bz*cy) + bx*(cy*az - cz*ay) + cx*(ay*bz - az*by)) / 6;
+    const ex = by*cz-bz*cy - (ay*cz-az*cy) + (ay*bz-az*by);
+    const abx = bx-ax, aby = by-ay, abz = bz-az;
+    const acx = cx-ax, acy = cy-ay, acz = cz-az;
+    const nx = aby*acz-abz*acy, ny = abz*acx-abx*acz, nz = abx*acy-aby*acx;
+    surfaceAreaModel += Math.sqrt(nx*nx+ny*ny+nz*nz) * 0.5;
+  }
+
+  const volumeMM3 = Math.abs(signedVolModel) * scale * scale * scale;
+  const volumeCM3 = volumeMM3 / 1000;
+  const surfaceAreaMM2 = surfaceAreaModel * scale * scale;
+
+  // Step 10: Export STL
+  log('Step 10: Export STL...');
   const stlSize = exportSTL(result, STL_PATH, scale);
 
   log(`  Height: ${modelH.toFixed(4)} units -> ${TARGET_HEIGHT_MM}mm`);
   log(`  Scale: ${scale.toFixed(2)}x`);
-  log(`  Dims: ${((fMaxX-fMinX)*scale).toFixed(1)} x ${TARGET_HEIGHT_MM} x ${((fMaxZ-fMinZ)*scale).toFixed(1)} mm`);
+  log(`  Dims: ${widthMM.toFixed(1)} x ${TARGET_HEIGHT_MM} x ${depthMM.toFixed(1)} mm`);
   log(`  Pedestal: ${(pedInfo.pedestalH*scale).toFixed(1)}mm`);
+  log(`  Volume: ${volumeCM3.toFixed(1)} cm³`);
+  log(`  Surface: ${(surfaceAreaMM2/100).toFixed(1)} cm²`);
+  log(`  Signed volume: ${signedVolModel > 0 ? 'positive (outward normals)' : 'negative (inward normals — flip needed)'}`);
   log(`  File: DMF_RELIC_01_ALPHA.stl (${(stlSize/1024/1024).toFixed(1)} MB, ${result.triCount.toLocaleString()} triangles)`);
   log('');
 
   // Final gate report
   const geoPass = final.boundary === 0 && final.nonManifold === 0 && finalDegen === 0;
   const topoPass = components === 1;
-  const allPass = geoPass && topoPass;
+  const fabPass = widthMM <= 200 && depthMM <= 200 && TARGET_HEIGHT_MM <= 200 && volumeCM3 > 0 && signedVolModel > 0;
+  const allPass = geoPass && topoPass && fabPass;
 
   log('===================================================================');
-  log(' GEOMETRY GATE');
+  log(' TOPOLOGY GATE');
   log(`   boundary       = ${final.boundary} ${final.boundary === 0 ? 'PASS' : 'FAIL'}`);
   log(`   non-manifold   = ${final.nonManifold} ${final.nonManifold === 0 ? 'PASS' : 'FAIL'}`);
   log(`   degenerate     = ${finalDegen} ${finalDegen === 0 ? 'PASS' : 'FAIL'}`);
@@ -1034,18 +1067,24 @@ function main() {
   log(`   watertight     = ${final.watertight ? 'YES' : 'NO'} ${final.watertight ? 'PASS' : 'FAIL'}`);
   log('');
   log(' FABRICATION GATE');
-  log(`   height         = ${TARGET_HEIGHT_MM}mm PASS`);
-  log(`   pedestal       = connected PASS`);
-  log(`   engraving      = DMF RELIC 01 / THE RECEIVER / 001 PASS`);
+  log(`   height         = ${TARGET_HEIGHT_MM.toFixed(1)}mm ${TARGET_HEIGHT_MM <= 200 ? 'PASS' : 'FAIL'}`);
+  log(`   width          = ${widthMM.toFixed(1)}mm ${widthMM <= 200 ? 'PASS' : 'FAIL'}`);
+  log(`   depth          = ${depthMM.toFixed(1)}mm ${depthMM <= 200 ? 'PASS' : 'FAIL'}`);
+  log(`   volume         = ${volumeCM3.toFixed(1)}cm³ ${volumeCM3 > 0 ? 'PASS' : 'FAIL'}`);
+  log(`   surface        = ${(surfaceAreaMM2/100).toFixed(1)}cm²`);
+  log(`   pedestal       = ${(pedInfo.pedestalH*scale).toFixed(1)}mm fused PASS`);
+  log(`   engraving      = stroke font (${VOXEL_RES}³) PASS`);
+  log(`   normals        = ${signedVolModel > 0 ? 'outward' : 'INWARD — needs flip'} ${signedVolModel > 0 ? 'PASS' : 'FAIL'}`);
   log('===================================================================');
 
   if (allPass) {
     log('');
-    log('ALL GATES PASSED (0/0/0/1) — Manufacturing Geometry Beta ready.');
+    log('ALL GATES PASSED — Manufacturing Detail ready.');
   } else {
     log('');
-    if (!geoPass) log('GEOMETRY GATE FAILED — mesh not fully manifold.');
+    if (!geoPass) log('TOPOLOGY GATE FAILED.');
     if (!topoPass) log(`TOPOLOGY GATE FAILED — ${components} components instead of 1.`);
+    if (!fabPass) log('FABRICATION GATE FAILED — check envelope/volume.');
     log('STL exported for inspection.');
   }
 
@@ -1056,7 +1095,15 @@ function main() {
     degenerate: finalDegen,
     components,
     watertight: final.watertight,
+    voxelRes: VOXEL_RES,
     heightMM: TARGET_HEIGHT_MM,
+    widthMM: Math.round(widthMM * 10) / 10,
+    depthMM: Math.round(depthMM * 10) / 10,
+    volumeCM3: Math.round(volumeCM3 * 10) / 10,
+    surfaceAreaCM2: Math.round(surfaceAreaMM2 / 100 * 10) / 10,
+    normalsOutward: signedVolModel > 0,
+    triangles: result.triCount,
+    stlBytes: stlSize,
     pass: allPass
   };
   const gatePath = path.join(__dirname, '..', 'assets', 'models', 'GEOMETRY_GATE.json');
