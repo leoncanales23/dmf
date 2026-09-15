@@ -52,4 +52,20 @@ Wall thickness at scale (≥1.0mm) exceeds resin minimum (0.5mm).
 The silhouette and primary structure are viable — they need repair,
 fusion, and a stability pedestal before export to STL/3MF.
 
-**Pipeline**: `scripts/preflight-print.cjs` (analysis) → PR29 geometry repair → PR30 export
+**Repair pipeline** (`scripts/repair-geometry.cjs`):
+1. Remove 145 degenerate triangles and 8,000 debris components
+2. Spatial vertex weld (ε=5×10⁻⁴) → merged 38,707 duplicate vertices
+3. Re-analyze: boundary 96,829 → 66,602, non-manifold 10 → 794
+4. Filter components by surface area
+5. Resolve non-manifold edges (1,090 triangles removed)
+6. Orient normals consistently (40,223 flipped)
+7. Close boundary loops (87 loops), solidify open sheets (0.6mm wall)
+8. Add chamfered pedestal (8.5mm) with engraving: DMF RELIC 01 / THE RECEIVER / 001
+9. Validate: boundary=0, degenerate=0, 5 components
+10. Export: `DMF_RELIC_01_ALPHA.stl` (300K triangles, 14.3 MB, 150mm height)
+
+**Gate status**:
+- Geometry Gate: boundary=0 ✓, degenerate=0 ✓, non-manifold=14,617 (overlapping shells from solidify — slicer auto-repair)
+- Fabrication Gate: 150mm ✓, solid pedestal ✓, engraving ✓
+
+**Pipeline**: `scripts/preflight-print.cjs` (analysis) → `scripts/repair-geometry.cjs` (repair) → PR30 refinement

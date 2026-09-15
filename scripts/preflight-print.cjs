@@ -1,11 +1,25 @@
 // DMF RELIC 01 — Print Master Preflight
 // Analyzes dmf-studio-optimized.glb for 3D printing manufacturability
+// Deterministic: same GLB → same report, always.
 // Run: node scripts/preflight-print.cjs
 
 const fs = require('fs');
 const path = require('path');
 
 const GLB_PATH = path.join(__dirname, '..', 'assets', 'models', 'dmf-studio-optimized.glb');
+const TARGET_HEIGHT_MM = 150.0;
+const RESIN_MIN_FEATURE_MM = 0.05;
+const RESIN_MIN_WALL_MM = 0.5;
+
+// Deterministic PRNG (mulberry32)
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
 
 function parseGLB(filepath) {
   const buf = fs.readFileSync(filepath);
@@ -36,10 +50,12 @@ function analyze() {
   const { gltf, binBuf, version, fileSize } = parseGLB(GLB_PATH);
   const report = [];
   const ln = (s) => { report.push(s); console.log(s); };
+  const rng = mulberry32(0xD4F01);
 
   ln('# DMF RELIC 01 — Print Master Preflight Report');
   ln(`Generated: ${new Date().toISOString()}`);
   ln(`Source: dmf-studio-optimized.glb (${(fileSize / 1024).toFixed(1)} KB, glTF ${version})`);
+  ln(`Method: deterministic (seeded PRNG, same GLB → same report)`);
   ln('');
 
   ln('## Scene Structure');
@@ -95,13 +111,14 @@ function analyze() {
     else if (count === 2) manifold++;
     else nonManifold++;
   });
+  const watertight = boundary === 0 && nonManifold === 0;
 
   ln('## Manifold Analysis');
   ln(`- Total edges: ${edgeMap.size.toLocaleString()}`);
   ln(`- Manifold (2 faces): ${manifold.toLocaleString()}`);
   ln(`- Boundary (1 face): ${boundary.toLocaleString()} ${boundary > 0 ? '⚠ HOLES' : '✓'}`);
   ln(`- Non-manifold (3+): ${nonManifold} ${nonManifold > 0 ? '⚠ OVERLAPS' : '✓'}`);
-  ln(`- **Watertight: ${boundary === 0 && nonManifold === 0 ? 'YES ✓' : 'NO ✗'}**`);
+  ln(`- **Watertight: ${watertight ? 'YES ✓' : 'NO ✗'}**`);
   ln('');
 
   // Degenerate triangles
@@ -119,7 +136,7 @@ function analyze() {
   ln(`## Degenerate Triangles: ${degenerate}`);
   ln('');
 
-  // Connected components
+  // Connected components (by index connectivity only — pre-weld)
   const parent = new Int32Array(pos.count);
   const rnk = new Int32Array(pos.count);
   for (let i = 0; i < pos.count; i++) parent[i] = i;
@@ -138,43 +155,57 @@ function analyze() {
   const smallComps = components.filter(s => s >= 10 && s < 100);
   const debrisComps = components.filter(s => s < 10);
 
-  ln('## Connected Components');
+  ln('## Connected Components (pre-weld, by index connectivity)');
   ln(`- Total: ${components.length.toLocaleString()}`);
   ln(`- Large (≥100 vertices): ${largeComps.length} — primary geometry`);
   ln(`- Small (10–99 vertices): ${smallComps.length} — detail pieces or noise`);
   ln(`- Debris (<10 vertices): ${debrisComps.length} — floating orphan triangles`);
   ln(`- Largest component: ${components[0].toLocaleString()} vertices`);
   ln('');
+  ln('> **Note**: These counts use index connectivity only. Spatially coincident');
+  ln('> vertices with distinct indices appear disconnected. A spatial weld pass');
+  ln('> will likely collapse many boundary edges and merge components.');
+  ln('');
 
-  // Thin wall estimation
+  // Thin wall estimation (deterministic sampling)
+  let minWallModel = Infinity;
+  const SAMPLES = 100000;
   if (normals) {
-    let minWall = Infinity;
-    const SAMPLES = 100000;
     for (let s = 0; s < SAMPLES; s++) {
-      const i = Math.floor(Math.random() * pos.count);
-      const j = Math.floor(Math.random() * pos.count);
+      const i = Math.floor(rng() * pos.count);
+      const j = Math.floor(rng() * pos.count);
       if (i === j) continue;
       const dot = normals.data[i*3]*normals.data[j*3] + normals.data[i*3+1]*normals.data[j*3+1] + normals.data[i*3+2]*normals.data[j*3+2];
       if (dot > -0.7) continue;
       const dx = pos.data[i*3]-pos.data[j*3], dy = pos.data[i*3+1]-pos.data[j*3+1], dz = pos.data[i*3+2]-pos.data[j*3+2];
       const d = Math.sqrt(dx*dx + dy*dy + dz*dz);
-      if (d > 0.0001 && d < minWall) minWall = d;
+      if (d > 0.0001 && d < minWallModel) minWallModel = d;
     }
-    ln('## Thin Wall Estimation');
-    ln(`- Sampled ${SAMPLES.toLocaleString()} opposing-normal vertex pairs`);
-    ln(`- Minimum wall distance: ${minWall === Infinity ? 'N/A' : minWall.toFixed(6)} model units`);
-    ln('');
   }
+  const scale = TARGET_HEIGHT_MM / H;
+  const minWallMM = minWallModel === Infinity ? null : minWallModel * scale;
+
+  ln('## Thin Wall Estimation (approximate)');
+  ln(`- Method: ${SAMPLES.toLocaleString()} deterministic opposing-normal vertex pairs`);
+  ln(`- Minimum wall distance: ${minWallModel === Infinity ? 'N/A' : minWallModel.toFixed(6)} model units`);
+  if (minWallMM !== null) {
+    ln(`- At ${TARGET_HEIGHT_MM}mm scale: ~${minWallMM.toFixed(2)} mm`);
+  }
+  ln('');
+  ln('> **Caveat**: This is a statistical estimate from random vertex pairs, not');
+  ln('> a true raycasting surface-thickness analysis. The actual minimum wall');
+  ln('> thickness may be thinner in areas not sampled. Treat as indicative, not');
+  ln('> as a manufacturing specification.');
+  ln('');
 
   // Scale analysis
-  const scale = 150.0 / H;
-  ln('## Scale Analysis — 150mm Edition');
+  ln(`## Scale Analysis — ${TARGET_HEIGHT_MM}mm Edition`);
   ln(`- Scale factor: ${scale.toFixed(2)}x`);
   ln(`- Physical width: ${(W * scale).toFixed(1)} mm`);
-  ln(`- Physical height: 150.0 mm`);
+  ln(`- Physical height: ${TARGET_HEIGHT_MM} mm`);
   ln(`- Physical depth: ${(D * scale).toFixed(1)} mm`);
-  ln(`- Resin min feature (50μm) in model units: ${(0.05 / scale).toFixed(6)}`);
-  ln(`- Resin min wall (0.5mm) in model units: ${(0.5 / scale).toFixed(6)}`);
+  ln(`- Resin min feature (${RESIN_MIN_FEATURE_MM * 1000}μm) in model units: ${(RESIN_MIN_FEATURE_MM / scale).toFixed(6)}`);
+  ln(`- Resin min wall (${RESIN_MIN_WALL_MM}mm) in model units: ${(RESIN_MIN_WALL_MM / scale).toFixed(6)}`);
   ln('');
 
   // Textures
@@ -188,32 +219,46 @@ function analyze() {
     ln('');
   }
 
-  // Verdict
+  // Dynamic verdict
   ln('## Preflight Verdict');
   ln('');
-  ln('### Blockers for direct STL conversion');
-  ln(`1. **96,829 boundary edges** — mesh is not closed; slicer will fail or produce garbage`);
-  ln(`2. **9,442 disconnected components** — thousands of orphan triangles from AI generation`);
-  ln(`3. **10 non-manifold edges** — T-junctions that confuse boolean operations`);
-  ln(`4. **145 degenerate triangles** — zero-area faces that break normal computation`);
-  ln(`5. **PBR textures** — color/metallic/normal maps have no physical equivalent`);
-  ln('');
+
+  const blockers = [];
+  if (boundary > 0) blockers.push(`**${boundary.toLocaleString()} boundary edges** — mesh is not closed; slicer will fail or produce garbage`);
+  if (components.length > 1) blockers.push(`**${components.length.toLocaleString()} disconnected components** (${debrisComps.length.toLocaleString()} debris fragments) — orphan geometry from AI generation`);
+  if (nonManifold > 0) blockers.push(`**${nonManifold} non-manifold edges** — T-junctions that confuse boolean operations`);
+  if (degenerate > 0) blockers.push(`**${degenerate} degenerate triangles** — zero-area faces that break normal computation`);
+  if (gltf.images?.length) blockers.push(`**PBR textures** (${gltf.images.length}) — color/metallic/normal maps have no physical equivalent`);
+
+  if (blockers.length > 0) {
+    ln('### Blockers for direct STL conversion');
+    blockers.forEach((b, i) => ln(`${i + 1}. ${b}`));
+    ln('');
+  }
+
+  const viable = [];
+  viable.push('Silhouette and primary structure are intact');
+  if (minWallMM !== null) {
+    const wallStatus = minWallMM >= RESIN_MIN_WALL_MM ? 'exceeds' : 'BELOW';
+    viable.push(`Estimated wall thickness at scale (~${minWallMM.toFixed(1)}mm) ${wallStatus} resin minimum (${RESIN_MIN_WALL_MM}mm)`);
+  }
+  viable.push(`${TARGET_HEIGHT_MM}mm height is within consumer resin printer build volume`);
+  viable.push(`Detail features should resolve at resin resolution (${RESIN_MIN_FEATURE_MM * 1000}μm layer)`);
+
   ln('### Viable for print (with repair)');
-  ln(`- Silhouette and primary structure are intact`);
-  ln(`- Wall thickness at scale (≥1.5mm) exceeds resin minimum (0.5mm)`);
-  ln(`- 150mm height is well within consumer resin printer build volume`);
-  ln(`- Detail features should resolve at resin resolution (50μm layer)`);
+  viable.forEach(v => ln(`- ${v}`));
   ln('');
-  ln('### Required geometry work (PR29)');
-  ln(`1. Strip debris components (<10 vertices) — removes ~${debrisComps.length} orphan fragments`);
-  ln(`2. Merge overlapping vertices (weld within ε)`);
-  ln(`3. Fill boundary edges to close the mesh`);
-  ln(`4. Remove degenerate and zero-area triangles`);
-  ln(`5. Fix non-manifold edges`);
-  ln(`6. Add solid pedestal base for print stability`);
-  ln(`7. Boolean-union all remaining components into single watertight shell`);
-  ln(`8. Set origin and scale to 150mm height`);
-  ln(`9. Export STL (binary) and 3MF with manufacturing metadata`);
+
+  ln('### Required geometry work');
+  ln(`1. Remove ${degenerate} degenerate triangles and ${debrisComps.length.toLocaleString()} debris components`);
+  ln(`2. Spatial vertex weld (merge coincident vertices within ε)`);
+  ln(`3. Re-analyze: components, boundary edges, non-manifold after weld`);
+  ln(`4. Filter components by surface area (not just vertex count)`);
+  ln(`5. Orient normals consistently`);
+  ln(`6. Close remaining boundary edges`);
+  ln(`7. Add solid pedestal for print stability`);
+  ln(`8. Validate watertight`);
+  ln(`9. Scale to ${TARGET_HEIGHT_MM}mm and export STL alpha`);
 
   // Save report
   const reportPath = path.join(__dirname, '..', 'assets', 'models', 'PRINT_PREFLIGHT_REPORT.md');
