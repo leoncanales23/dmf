@@ -54,21 +54,25 @@ raycasting measurement — treat as indicative, not a manufacturing spec.
 The silhouette and primary structure are viable — they need repair,
 fusion, and a stability pedestal before export to STL/3MF.
 
-**Repair pipeline** (`scripts/repair-geometry.cjs` — Manufacturing Detail):
+**Repair pipeline** (`scripts/repair-geometry.cjs` — Hollow Core):
 
-Approach: volumetric manifold rebuild via voxelization + marching cubes.
-`repaired surfaces → voxel union (256³) → single shell → manifold validation`
+Approach: volumetric manifold rebuild via voxelization + marching cubes,
+with shell hollowing and drain engineering for resin economy.
+`repaired surfaces → voxel union (256³) → hollow shell → drains → manifold validation`
 
 1. Remove 145 degenerate triangles and 8,000 debris components
 2. Spatial vertex weld (ε=5×10⁻⁴) → merged 38,707 duplicate vertices
-3. Voxelize mesh surface (256³ grid, cell=0.011 units, ~0.76mm/voxel)
-4. Add pedestal as solid voxel volume (fused, 8.4mm at scale)
+3. Voxelize mesh surface (256³ grid, cell≈0.011 units, ~0.76mm/voxel)
+4. Add pedestal as solid voxel volume (fused, ~8.4mm at scale)
 5. Dilate surface shell (seal micro-gaps for watertight flood fill)
 6. Flood fill exterior → identify and fill interior
-7. Engrave text via stroke font: DMF RELIC 01 / THE RECEIVER / 001
-8. Marching cubes isosurface extraction → single manifold shell
-9. Validate topology gate (0/0/0/1) + fabrication gate
-10. Export: `DMF_RELIC_01_ALPHA.stl` (750K triangles, 35.8 MB, 150mm height)
+7. Hollow interior — BFS distance transform carves voxels deeper than
+   shell thickness (2.5mm / ~4 voxels), pedestal stays solid
+8. Carve drain holes — 2× ~2.5mm channels through pedestal bottom
+9. Engrave text via stroke font: DMF RELIC 01 / THE RECEIVER / 001
+10. Marching cubes isosurface extraction → single manifold shell
+11. Validate topology gate (0/0/0/1) + fabrication gate
+12. Export STL + SHA-256 hash
 
 **Topology Gate** (0/0/0/1):
 - boundary=0 ✓
@@ -77,15 +81,20 @@ Approach: volumetric manifold rebuild via voxelization + marching cubes.
 - components=1 ✓
 - watertight=YES ✓
 
-**Fabrication Gate**:
-- Envelope: 183.5 × 150.0 × 183.5 mm ✓ (fits 200mm build plate)
-- Volume: 2015.7 cm³
-- Surface area: 1722.4 cm²
+**Fabrication Gate** (Generic Resin 200mm):
+- Envelope: fits 200×200×200mm build plate ✓
+- Shell thickness: ~2.5mm (≥1.5mm minimum) ✓
+- Drains: 2× ~2.5mm through pedestal ✓
+- Material volume: reduced ≥50% from solid ✓
 - Normals: outward (positive signed volume) ✓
-- Pedestal: 8.4mm fused solid ✓
+- Pedestal: solid fused ✓
 - Engraving: stroke-font glyphs at 256³ resolution ✓
 
-**CI validation**: `validate-print` job runs preflight + repair + gate checks
-+ reproducibility (committed GEOMETRY_GATE.json must match regenerated).
+**Reproducibility**:
+- STL SHA-256 committed in GEOMETRY_GATE.json
+- CI verifies gate + preflight + STL hash match regenerated
 
-**Pipeline**: `scripts/preflight-print.cjs` (analysis) → `scripts/repair-geometry.cjs` (repair) → CI validates `GEOMETRY_GATE.json`
+**CI validation**: `validate-print` job runs preflight + repair + gate checks
++ STL SHA-256 verification + reproducibility (committed artifacts must match).
+
+**Pipeline**: `scripts/preflight-print.cjs` (analysis) → `scripts/repair-geometry.cjs` (repair) → CI validates `GEOMETRY_GATE.json` + STL hash
