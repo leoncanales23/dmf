@@ -11,6 +11,8 @@ on:
       - 'scripts/inject-training-state.cjs'
       - 'scripts/check-3d.cjs'
       - 'scripts/verify-3d-checksum.cjs'
+      - 'scripts/repair-geometry.cjs'
+      - 'scripts/preflight-print.cjs'
       - 'functions/**'
       - 'assets/models/**'
       - 'index.html'
@@ -72,3 +74,53 @@ jobs:
           grep -q 'dmf-training-memory' public/index.html
           grep -q 'MEMORY CORE 11' public/index.html
           grep -q 'dmfTraining' firebase.json
+
+  validate-print:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run print preflight analysis
+        run: node scripts/preflight-print.cjs
+
+      - name: Run geometry repair pipeline
+        run: node scripts/repair-geometry.cjs
+
+      - name: Validate geometry gate (0/0/0/1)
+        run: |
+          GATE=assets/models/GEOMETRY_GATE.json
+          test -f "$GATE"
+          node -e "
+            const g = require('./$GATE');
+            const checks = [
+              ['boundary',    g.boundary === 0],
+              ['nonManifold', g.nonManifold === 0],
+              ['degenerate',  g.degenerate === 0],
+              ['components',  g.components === 1],
+              ['watertight',  g.watertight === true],
+              ['pass',        g.pass === true],
+            ];
+            let ok = true;
+            for (const [k, v] of checks) {
+              console.log(v ? 'PASS' : 'FAIL', k, '=', g[k]);
+              if (!v) ok = false;
+            }
+            if (!ok) { console.error('GEOMETRY GATE FAILED'); process.exit(1); }
+            console.log('ALL GATES PASSED (0/0/0/1)');
+          "
+
+      - name: Validate STL exists and is non-trivial
+        run: |
+          STL=assets/models/DMF_RELIC_01_ALPHA.stl
+          test -f "$STL"
+          SIZE=$(stat -c%s "$STL")
+          test "$SIZE" -gt 1000000
+          echo "STL size: ${SIZE} bytes — OK"

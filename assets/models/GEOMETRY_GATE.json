@@ -1,0 +1,9 @@
+{
+  "boundary": 0,
+  "nonManifold": 0,
+  "degenerate": 0,
+  "components": 1,
+  "watertight": true,
+  "heightMM": 150,
+  "pass": true
+}

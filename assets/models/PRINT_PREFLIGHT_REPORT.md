@@ -1,5 +1,4 @@
 # DMF RELIC 01 — Print Master Preflight Report
-Generated: 2026-09-15T05:52:26.271Z
 Source: dmf-studio-optimized.glb (7811.1 KB, glTF 2)
 Method: deterministic (seeded PRNG, same GLB → same report)
 

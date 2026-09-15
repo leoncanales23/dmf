@@ -53,7 +53,6 @@ function analyze() {
   const rng = mulberry32(0xD4F01);
 
   ln('# DMF RELIC 01 — Print Master Preflight Report');
-  ln(`Generated: ${new Date().toISOString()}`);
   ln(`Source: dmf-studio-optimized.glb (${(fileSize / 1024).toFixed(1)} KB, glTF ${version})`);
   ln(`Method: deterministic (seeded PRNG, same GLB → same report)`);
   ln('');

@@ -52,20 +52,32 @@ Wall thickness at scale (≥1.0mm) exceeds resin minimum (0.5mm).
 The silhouette and primary structure are viable — they need repair,
 fusion, and a stability pedestal before export to STL/3MF.
 
-**Repair pipeline** (`scripts/repair-geometry.cjs`):
+**Repair pipeline** (`scripts/repair-geometry.cjs` — Manufacturing Geometry Beta):
+
+Approach: volumetric manifold rebuild via voxelization + marching cubes.
+`repaired surfaces → voxel union → single shell → manifold validation`
+
 1. Remove 145 degenerate triangles and 8,000 debris components
 2. Spatial vertex weld (ε=5×10⁻⁴) → merged 38,707 duplicate vertices
-3. Re-analyze: boundary 96,829 → 66,602, non-manifold 10 → 794
-4. Filter components by surface area
-5. Resolve non-manifold edges (1,090 triangles removed)
-6. Orient normals consistently (40,223 flipped)
-7. Close boundary loops (87 loops), solidify open sheets (0.6mm wall)
-8. Add chamfered pedestal (8.5mm) with engraving: DMF RELIC 01 / THE RECEIVER / 001
-9. Validate: boundary=0, degenerate=0, 5 components
-10. Export: `DMF_RELIC_01_ALPHA.stl` (300K triangles, 14.3 MB, 150mm height)
+3. Voxelize mesh surface (128³ grid, cell=0.022 units)
+4. Add pedestal as solid voxel volume (fused, 8.2mm at scale)
+5. Dilate surface shell (seal micro-gaps for watertight flood fill)
+6. Flood fill exterior → identify and fill interior
+7. Engrave text via stroke font: DMF RELIC 01 / THE RECEIVER / 001
+8. Marching cubes isosurface extraction → single manifold shell
+9. Validate gate: 0/0/0/1
+10. Export: `DMF_RELIC_01_ALPHA.stl` (177K triangles, 8.4 MB, 150mm height)
 
-**Gate status**:
-- Geometry Gate: boundary=0 ✓, degenerate=0 ✓, non-manifold=14,617 (overlapping shells from solidify — slicer auto-repair)
-- Fabrication Gate: 150mm ✓, solid pedestal ✓, engraving ✓
+**Gate status** (0/0/0/1):
+- boundary=0 ✓
+- non-manifold=0 ✓
+- degenerate=0 ✓
+- components=1 ✓
+- watertight=YES ✓
 
-**Pipeline**: `scripts/preflight-print.cjs` (analysis) → `scripts/repair-geometry.cjs` (repair) → PR30 refinement
+**Fabrication Gate**:
+- 150mm height ✓
+- Solid fused pedestal ✓
+- Stroke-font engraving (actual glyphs) ✓
+
+**Pipeline**: `scripts/preflight-print.cjs` (analysis) → `scripts/repair-geometry.cjs` (repair) → CI validates `GEOMETRY_GATE.json`
