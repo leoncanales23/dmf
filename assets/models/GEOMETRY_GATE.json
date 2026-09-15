@@ -4,6 +4,14 @@
   "degenerate": 0,
   "components": 1,
   "watertight": true,
+  "voxelRes": 256,
   "heightMM": 150,
+  "widthMM": 183.5,
+  "depthMM": 183.5,
+  "volumeCM3": 2015.7,
+  "surfaceAreaCM2": 1722.4,
+  "normalsOutward": true,
+  "triangles": 750128,
+  "stlBytes": 37506484,
   "pass": true
 }

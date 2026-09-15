@@ -48,36 +48,44 @@ The web-optimized GLB is **not printable** as-is:
 - 145 degenerate triangles
 - PBR textures have no physical equivalent
 
-Wall thickness at scale (≥1.0mm) exceeds resin minimum (0.5mm).
+Wall thickness at scale (~0.93mm estimated) exceeds resin minimum (0.5mm).
+This is a statistical estimate from opposing-normal vertex pairs, not a
+raycasting measurement — treat as indicative, not a manufacturing spec.
 The silhouette and primary structure are viable — they need repair,
 fusion, and a stability pedestal before export to STL/3MF.
 
-**Repair pipeline** (`scripts/repair-geometry.cjs` — Manufacturing Geometry Beta):
+**Repair pipeline** (`scripts/repair-geometry.cjs` — Manufacturing Detail):
 
 Approach: volumetric manifold rebuild via voxelization + marching cubes.
-`repaired surfaces → voxel union → single shell → manifold validation`
+`repaired surfaces → voxel union (256³) → single shell → manifold validation`
 
 1. Remove 145 degenerate triangles and 8,000 debris components
 2. Spatial vertex weld (ε=5×10⁻⁴) → merged 38,707 duplicate vertices
-3. Voxelize mesh surface (128³ grid, cell=0.022 units)
-4. Add pedestal as solid voxel volume (fused, 8.2mm at scale)
+3. Voxelize mesh surface (256³ grid, cell=0.011 units, ~0.76mm/voxel)
+4. Add pedestal as solid voxel volume (fused, 8.4mm at scale)
 5. Dilate surface shell (seal micro-gaps for watertight flood fill)
 6. Flood fill exterior → identify and fill interior
 7. Engrave text via stroke font: DMF RELIC 01 / THE RECEIVER / 001
 8. Marching cubes isosurface extraction → single manifold shell
-9. Validate gate: 0/0/0/1
-10. Export: `DMF_RELIC_01_ALPHA.stl` (177K triangles, 8.4 MB, 150mm height)
+9. Validate topology gate (0/0/0/1) + fabrication gate
+10. Export: `DMF_RELIC_01_ALPHA.stl` (750K triangles, 35.8 MB, 150mm height)
 
-**Gate status** (0/0/0/1):
+**Topology Gate** (0/0/0/1):
 - boundary=0 ✓
 - non-manifold=0 ✓
-- degenerate=0 ✓
+- degenerate=0 ✓ (area threshold, not just index equality)
 - components=1 ✓
 - watertight=YES ✓
 
 **Fabrication Gate**:
-- 150mm height ✓
-- Solid fused pedestal ✓
-- Stroke-font engraving (actual glyphs) ✓
+- Envelope: 183.5 × 150.0 × 183.5 mm ✓ (fits 200mm build plate)
+- Volume: 2015.7 cm³
+- Surface area: 1722.4 cm²
+- Normals: outward (positive signed volume) ✓
+- Pedestal: 8.4mm fused solid ✓
+- Engraving: stroke-font glyphs at 256³ resolution ✓
+
+**CI validation**: `validate-print` job runs preflight + repair + gate checks
++ reproducibility (committed GEOMETRY_GATE.json must match regenerated).
 
 **Pipeline**: `scripts/preflight-print.cjs` (analysis) → `scripts/repair-geometry.cjs` (repair) → CI validates `GEOMETRY_GATE.json`
