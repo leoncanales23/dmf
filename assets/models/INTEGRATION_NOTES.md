@@ -54,11 +54,12 @@ raycasting measurement — treat as indicative, not a manufacturing spec.
 The silhouette and primary structure are viable — they need repair,
 fusion, and a stability pedestal before export to STL/3MF.
 
-**Repair pipeline** (`scripts/repair-geometry.cjs` — Hollow Core):
+**Repair pipeline** (`scripts/repair-geometry.cjs` — Drainable Core):
 
 Approach: volumetric manifold rebuild via voxelization + marching cubes,
-with shell hollowing and drain engineering for resin economy.
-`repaired surfaces → voxel union (256³) → hollow shell → drains → manifold validation`
+with shell hollowing, drain engineering, drainability verification, and
+surface fidelity measurement.
+`repaired surfaces → voxel union (256³) → hollow shell → drains → drain verify → manifold validation`
 
 1. Remove 145 degenerate triangles and 8,000 debris components
 2. Spatial vertex weld (ε=5×10⁻⁴) → merged 38,707 duplicate vertices
@@ -68,11 +69,18 @@ with shell hollowing and drain engineering for resin economy.
 6. Flood fill exterior → identify and fill interior
 7. Hollow interior — BFS distance transform carves voxels deeper than
    shell thickness (2.5mm / ~4 voxels), pedestal stays solid
-8. Carve drain holes — 2× ~2.5mm channels through pedestal bottom
-9. Engrave text via stroke font: DMF RELIC 01 / THE RECEIVER / 001
-10. Marching cubes isosurface extraction → single manifold shell
-11. Validate topology gate (0/0/0/1) + fabrication gate
-12. Export STL + SHA-256 hash
+7b. Carve drain holes — 2× ~2.5mm channels through pedestal bottom
+7c. Connect sealed cavities to drain-reachable air — flood fill from
+    borders identifies exterior+drain-connected air, then carves channels
+    from each sealed cavity to nearest drain-connected voxel
+7d. Verify drainability — final flood fill confirms sealed cavities = 0
+    and drain-reachable volume = 100%
+8. Engrave text via stroke font: DMF RELIC 01 / THE RECEIVER / 001
+9. Marching cubes isosurface extraction → single manifold shell
+9b. Surface deviation measurement — spatial-hash nearest-neighbor lookup
+    comparing output mesh vertices to original GLB vertices (in mm at scale)
+10. Validate topology + fabrication + drainability gates
+11. Export STL + SHA-256 hash
 
 **Topology Gate** (0/0/0/1):
 - boundary=0 ✓
@@ -83,18 +91,34 @@ with shell hollowing and drain engineering for resin economy.
 
 **Fabrication Gate** (Generic Resin 200mm):
 - Envelope: fits 200×200×200mm build plate ✓
-- Shell thickness: ~2.5mm (≥1.5mm minimum) ✓
-- Drains: 2× ~2.5mm through pedestal ✓
+- Shell thickness: ~3.1mm (≥1.5mm minimum) ✓
+- Drains: 2× ~3.1mm (≥2.0mm minimum) through pedestal ✓
 - Material volume: reduced ≥50% from solid ✓
 - Normals: outward (positive signed volume) ✓
 - Pedestal: solid fused ✓
 - Engraving: stroke-font glyphs at 256³ resolution ✓
+
+**Drainability Gate**:
+- Sealed cavities after drain connection: 0 ✓
+- Drain-reachable internal air: 100% ✓
+- All cavity air reachable from at least one drain hole
+
+**Surface Fidelity** (GLB → Print Master):
+- Mean deviation: ~2.6mm (voxel quantization at 256³)
+- P95: ~7.3mm, Max: ~14.0mm (concavities/thin features smoothed)
+- Pedestal/margin vertices excluded from measurement
+
+**Printer Profiles**:
+- `plateWidthMM` / `plateDepthMM` / `buildHeightMM` — unambiguous axis naming
+- Currently: Generic Resin 200mm (200×200×200)
+- Swappable for real printer specs in PR34
 
 **Reproducibility**:
 - STL SHA-256 committed in GEOMETRY_GATE.json
 - CI verifies gate + preflight + STL hash match regenerated
 
 **CI validation**: `validate-print` job runs preflight + repair + gate checks
-+ STL SHA-256 verification + reproducibility (committed artifacts must match).
+(including drainability + fidelity) + STL SHA-256 verification +
+reproducibility (committed artifacts must match).
 
 **Pipeline**: `scripts/preflight-print.cjs` (analysis) → `scripts/repair-geometry.cjs` (repair) → CI validates `GEOMETRY_GATE.json` + STL hash

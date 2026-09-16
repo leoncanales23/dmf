@@ -1,10 +1,12 @@
-// DMF RELIC 01 — Hollow Core
-// Volumetric manifold rebuild with shell hollowing + drain engineering
+// DMF RELIC 01 — Drainable Core
+// Volumetric manifold rebuild with shell hollowing, drain engineering,
+// drainability verification, and surface fidelity measurement
 // Run: node scripts/repair-geometry.cjs
 //
 // Pipeline: parse → clean → weld → voxelize (256³) with pedestal → dilate →
-//   flood fill → hollow interior → carve drains → engrave (stroke font) →
-//   marching cubes → validate → export STL + SHA-256
+//   flood fill → hollow interior → carve drains → connect to drains →
+//   verify drainability → engrave (stroke font) → marching cubes →
+//   surface deviation → validate → export STL + SHA-256
 
 const fs = require('fs');
 const path = require('path');
@@ -19,8 +21,11 @@ const SHELL_THICKNESS_MM = 2.5;
 const DRAIN_COUNT = 2;
 const DRAIN_DIAMETER_MM = 2.5;
 
+const MIN_SHELL_MM = 1.5;
+const MIN_DRAIN_MM = 2.0;
+
 const PRINTER_PROFILES = {
-  RESIN_200: { name: 'Generic Resin 200mm', buildX: 200, buildY: 200, buildZ: 200 },
+  RESIN_200: { name: 'Generic Resin 200mm', plateWidthMM: 200, plateDepthMM: 200, buildHeightMM: 200 },
 };
 const PRINTER = PRINTER_PROFILES.RESIN_200;
 
@@ -511,13 +516,13 @@ function carveDrainHoles(grid, res, origin, cellSize, pedInfo, drainCount, drain
   return { carved, positions, drainRadiusVox };
 }
 
-// ─── Cavity Connectivity ───
+// ─── Cavity Connectivity (drain-targeted) ───
 
-function connectCavities(grid, res) {
+function connectCavitiesToDrains(grid, res) {
   const dirs = [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
   const EXTERIOR = 2;
 
-  // Flood fill from borders to mark exterior air
+  // Flood fill from borders — marks exterior air AND drain-connected interior air
   const queue = [];
   for (let i = 0; i < res; i++)
     for (let j = 0; j < res; j++)
@@ -549,8 +554,8 @@ function connectCavities(grid, res) {
     }
   }
 
-  // Find connected components of cavity air (still value 0)
-  const components = [];
+  // Any air still 0 = sealed cavity not reachable from drains/exterior
+  const sealedComponents = [];
   const CAVITY_BASE = 3;
   let nextLabel = CAVITY_BASE;
 
@@ -574,51 +579,128 @@ function connectCavities(grid, res) {
             if (grid[nIdx] === 0) { grid[nIdx] = label; cq.push(nx, ny, nz); }
           }
         }
-        components.push({ label, center: [si/count, sj/count, sk/count], size: count });
+        sealedComponents.push({ label, center: [si/count, sj/count, sk/count], size: count });
       }
 
-  // Restore: exterior → 0, all cavity labels → 0, solid stays 1
-  for (let i = 0; i < grid.length; i++) {
-    if (grid[i] !== 1) grid[i] = 0;
+  if (sealedComponents.length === 0) {
+    // Restore grid: exterior → 0, solid stays 1
+    for (let i = 0; i < grid.length; i++) {
+      if (grid[i] === EXTERIOR) grid[i] = 0;
+    }
+    return { carved: 0, sealedBefore: 0 };
   }
 
-  if (components.length <= 1) return { carved: 0, cavities: components.length };
-
-  // Sort by size descending — connect all to the largest
-  components.sort((a, b) => b.size - a.size);
+  // For each sealed component, find nearest EXTERIOR voxel and carve a channel
   let carved = 0;
+  for (const comp of sealedComponents) {
+    const [ci, cj, ck] = comp.center.map(Math.round);
+    let bestDist = Infinity, bestI = ci, bestJ = cj, bestK = ck;
 
-  for (let c = 1; c < components.length; c++) {
-    const [ai, aj, ak] = components[0].center;
-    const [bi, bj, bk] = components[c].center;
-    const di = bi - ai, dj = bj - aj, dk = bk - ak;
-    const steps = Math.max(Math.abs(Math.round(di)), Math.abs(Math.round(dj)), Math.abs(Math.round(dk)));
-    if (steps === 0) continue;
+    // BFS from component center to find nearest exterior air
+    const visited = new Set();
+    const bfs = [ci, cj, ck];
+    visited.add(voxIdx(ci, cj, ck, res));
+    let bh = 0;
+    let found = false;
+    while (bh < bfs.length && !found) {
+      const bi = bfs[bh++], bj = bfs[bh++], bk = bfs[bh++];
+      for (const [dx, dy, dz] of dirs) {
+        const ni = bi+dx, nj = bj+dy, nk = bk+dz;
+        if (ni < 0 || ni >= res || nj < 0 || nj >= res || nk < 0 || nk >= res) continue;
+        const nIdx = voxIdx(ni, nj, nk, res);
+        if (visited.has(nIdx)) continue;
+        visited.add(nIdx);
+        if (grid[nIdx] === EXTERIOR) {
+          bestI = ni; bestJ = nj; bestK = nk;
+          found = true;
+          break;
+        }
+        bfs.push(ni, nj, nk);
+      }
+    }
 
+    // Carve straight channel from sealed cavity center to nearest exterior air
+    const di = bestI - ci, dj = bestJ - cj, dk = bestK - ck;
+    const steps = Math.max(1, Math.max(Math.abs(di), Math.abs(dj), Math.abs(dk)));
     for (let s = 0; s <= steps; s++) {
       const t = s / steps;
-      const ci = Math.round(ai + t * di);
-      const cj = Math.round(aj + t * dj);
-      const ck = Math.round(ak + t * dk);
+      const pi = Math.round(ci + t * di);
+      const pj = Math.round(cj + t * dj);
+      const pk = Math.round(ck + t * dk);
       for (let d1 = -1; d1 <= 1; d1++)
         for (let d2 = -1; d2 <= 1; d2++) {
-          const ni = ci + d1, nk = ck + d2;
-          if (ni >= 0 && ni < res && cj >= 0 && cj < res && nk >= 0 && nk < res) {
-            const idx = voxIdx(ni, cj, nk, res);
+          const ni = pi + d1, nk = pk + d2;
+          if (ni >= 0 && ni < res && pj >= 0 && pj < res && nk >= 0 && nk < res) {
+            const idx = voxIdx(ni, pj, nk, res);
             if (grid[idx] === 1) { grid[idx] = 0; carved++; }
           }
         }
     }
-
-    components[0].center = [
-      (ai * components[0].size + bi * components[c].size) / (components[0].size + components[c].size),
-      (aj * components[0].size + bj * components[c].size) / (components[0].size + components[c].size),
-      (ak * components[0].size + bk * components[c].size) / (components[0].size + components[c].size),
-    ];
-    components[0].size += components[c].size;
   }
 
-  return { carved, cavities: components.length };
+  // Restore grid: exterior → 0, all cavity labels → 0, solid stays 1
+  for (let i = 0; i < grid.length; i++) {
+    if (grid[i] !== 1) grid[i] = 0;
+  }
+
+  return { carved, sealedBefore: sealedComponents.length };
+}
+
+// ─── Drainability Verification ───
+
+function verifyDrainability(grid, res) {
+  const dirs = [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+  const EXTERIOR = 2;
+
+  // Flood fill from borders
+  const queue = [];
+  for (let i = 0; i < res; i++)
+    for (let j = 0; j < res; j++)
+      for (const k of [0, res-1]) {
+        const idx = voxIdx(i, j, k, res);
+        if (grid[idx] === 0) { grid[idx] = EXTERIOR; queue.push(i, j, k); }
+      }
+  for (let j = 0; j < res; j++)
+    for (let k = 0; k < res; k++)
+      for (const i of [0, res-1]) {
+        const idx = voxIdx(i, j, k, res);
+        if (grid[idx] === 0) { grid[idx] = EXTERIOR; queue.push(i, j, k); }
+      }
+  for (let i = 0; i < res; i++)
+    for (let k = 0; k < res; k++)
+      for (const j of [0, res-1]) {
+        const idx = voxIdx(i, j, k, res);
+        if (grid[idx] === 0) { grid[idx] = EXTERIOR; queue.push(i, j, k); }
+      }
+
+  let head = 0;
+  while (head < queue.length) {
+    const x = queue[head++], y = queue[head++], z = queue[head++];
+    for (const [dx, dy, dz] of dirs) {
+      const nx = x+dx, ny = y+dy, nz = z+dz;
+      if (nx < 0 || nx >= res || ny < 0 || ny >= res || nz < 0 || nz >= res) continue;
+      const idx = voxIdx(nx, ny, nz, res);
+      if (grid[idx] === 0) { grid[idx] = EXTERIOR; queue.push(nx, ny, nz); }
+    }
+  }
+
+  // Count sealed air (still 0) and total drain-reachable air
+  let sealedVoxels = 0;
+  let reachableVoxels = 0;
+  for (let i = 0; i < grid.length; i++) {
+    if (grid[i] === 0) sealedVoxels++;
+    if (grid[i] === EXTERIOR) reachableVoxels++;
+  }
+
+  // Restore grid
+  for (let i = 0; i < grid.length; i++) {
+    if (grid[i] === EXTERIOR) grid[i] = 0;
+  }
+
+  const totalAir = sealedVoxels + reachableVoxels;
+  const reachablePct = totalAir > 0 ? (reachableVoxels / totalAir * 100) : 100;
+
+  return { sealedCavities: sealedVoxels, drainReachableVolumePct: Math.round(reachablePct * 10) / 10 };
 }
 
 // ─── Marching Cubes ───
@@ -1026,6 +1108,89 @@ function countComponents(indices, triCount, vertexCount) {
   return usedRoots.size;
 }
 
+// ─── Surface Deviation ───
+
+function computeSurfaceDeviation(originalMesh, outputMesh, scale) {
+  const { vertices: srcV, vertexCount: srcN } = originalMesh;
+  const { vertices: outV, vertexCount: outN } = outputMesh;
+
+  // Compute original mesh bounding box to exclude pedestal/margin vertices
+  let srcMinX = Infinity, srcMaxX = -Infinity;
+  let srcMinY = Infinity, srcMaxY = -Infinity;
+  let srcMinZ = Infinity, srcMaxZ = -Infinity;
+  for (let i = 0; i < srcN; i++) {
+    const x = srcV[i*3], y = srcV[i*3+1], z = srcV[i*3+2];
+    if (x < srcMinX) srcMinX = x; if (x > srcMaxX) srcMaxX = x;
+    if (y < srcMinY) srcMinY = y; if (y > srcMaxY) srcMaxY = y;
+    if (z < srcMinZ) srcMinZ = z; if (z > srcMaxZ) srcMaxZ = z;
+  }
+  const srcMargin = Math.max(srcMaxX-srcMinX, srcMaxY-srcMinY, srcMaxZ-srcMinZ) * 0.02;
+
+  // Build spatial grid of original vertices for fast nearest-neighbor lookup
+  const cellSz = Math.max(srcMaxX-srcMinX, srcMaxY-srcMinY, srcMaxZ-srcMinZ) / 50;
+  const invCell = 1 / cellSz;
+  const buckets = new Map();
+
+  for (let i = 0; i < srcN; i++) {
+    const x = srcV[i*3], y = srcV[i*3+1], z = srcV[i*3+2];
+    const gx = Math.floor(x * invCell), gy = Math.floor(y * invCell), gz = Math.floor(z * invCell);
+    const key = `${gx},${gy},${gz}`;
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(i);
+  }
+
+  const validDistances = [];
+  let skipped = 0;
+  for (let i = 0; i < outN; i++) {
+    const x = outV[i*3], y = outV[i*3+1], z = outV[i*3+2];
+
+    // Skip vertices outside original mesh bounds (pedestal, margin, engraving zones)
+    if (x < srcMinX - srcMargin || x > srcMaxX + srcMargin ||
+        y < srcMinY - srcMargin || y > srcMaxY + srcMargin ||
+        z < srcMinZ - srcMargin || z > srcMaxZ + srcMargin) {
+      skipped++;
+      continue;
+    }
+
+    const gx = Math.floor(x * invCell), gy = Math.floor(y * invCell), gz = Math.floor(z * invCell);
+    let bestDist2 = Infinity;
+
+    for (let dx = -2; dx <= 2; dx++)
+      for (let dy = -2; dy <= 2; dy++)
+        for (let dz = -2; dz <= 2; dz++) {
+          const bucket = buckets.get(`${gx+dx},${gy+dy},${gz+dz}`);
+          if (!bucket) continue;
+          for (const si of bucket) {
+            const ex = srcV[si*3]-x, ey = srcV[si*3+1]-y, ez = srcV[si*3+2]-z;
+            const d2 = ex*ex + ey*ey + ez*ez;
+            if (d2 < bestDist2) bestDist2 = d2;
+          }
+        }
+
+    if (bestDist2 < Infinity) {
+      validDistances.push(Math.sqrt(bestDist2) * scale);
+    }
+  }
+
+  if (validDistances.length === 0) {
+    return { meanMM: 0, maxMM: 0, p95MM: 0, p99MM: 0, sampledVertices: 0, skippedVertices: skipped };
+  }
+
+  validDistances.sort((a, b) => a - b);
+  const n = validDistances.length;
+  let sum = 0;
+  for (let i = 0; i < n; i++) sum += validDistances[i];
+
+  return {
+    meanMM: Math.round(sum / n * 1000) / 1000,
+    maxMM: Math.round(validDistances[n - 1] * 1000) / 1000,
+    p95MM: Math.round(validDistances[Math.floor(n * 0.95)] * 1000) / 1000,
+    p99MM: Math.round(validDistances[Math.floor(n * 0.99)] * 1000) / 1000,
+    sampledVertices: n,
+    skippedVertices: skipped,
+  };
+}
+
 // ─── STL Export ───
 
 function triNormal(v, i0, i1, i2) {
@@ -1041,7 +1206,7 @@ function exportSTL(mesh, filepath, scaleFactor) {
   const { vertices, indices, triCount } = mesh;
   const bufSize = 80 + 4 + triCount * 50;
   const buf = Buffer.alloc(bufSize);
-  buf.write('DMF RELIC 01 / THE RECEIVER / Hollow Core', 0, 'ascii');
+  buf.write('DMF RELIC 01 / THE RECEIVER / Drainable Core', 0, 'ascii');
   buf.writeUInt32LE(triCount, 80);
   let offset = 84;
   for (let i = 0; i < triCount; i++) {
@@ -1067,7 +1232,7 @@ function main() {
   const log = (s) => console.log(s);
 
   log('===================================================================');
-  log(' DMF RELIC 01 — Hollow Core Pipeline');
+  log(' DMF RELIC 01 — Drainable Core Pipeline');
   log('===================================================================');
   log('');
 
@@ -1100,6 +1265,10 @@ function main() {
   log(`  Merged: ${welded.toLocaleString()} vertices`);
   log(`  Remaining: ${mesh.vertexCount.toLocaleString()} vertices, ${mesh.triCount.toLocaleString()} triangles`);
   log('');
+
+  // Snapshot original mesh for surface deviation measurement
+  const originalVertices = new Float64Array(mesh.vertices);
+  const originalVertexCount = mesh.vertexCount;
 
   // Compute bounds
   let minX = Infinity, maxX = -Infinity;
@@ -1192,11 +1361,18 @@ function main() {
   log(`  Total solid voxels (after drains): ${solidVoxels.toLocaleString()}`);
   log('');
 
-  // Step 7b: Connect disconnected cavity chambers
-  log('Step 7b: Connect cavity chambers...');
-  const cavityInfo = connectCavities(grid, VOXEL_RES);
-  log(`  Disconnected cavities found: ${cavityInfo.cavities}`);
+  // Step 7b: Connect sealed cavities to drain-reachable air
+  log('Step 7b: Connect sealed cavities to drains...');
+  const cavityInfo = connectCavitiesToDrains(grid, VOXEL_RES);
+  log(`  Sealed cavities found: ${cavityInfo.sealedBefore}`);
   log(`  Channel voxels carved: ${cavityInfo.carved}`);
+  log('');
+
+  // Step 7c: Verify drainability — all internal air reachable from drains
+  log('Step 7c: Verify drainability...');
+  const drainability = verifyDrainability(grid, VOXEL_RES);
+  log(`  Sealed voxels remaining: ${drainability.sealedCavities}`);
+  log(`  Drain-reachable air: ${drainability.drainReachableVolumePct}%`);
   log('');
 
   // Step 8: Engrave text (subtract from voxels)
@@ -1223,6 +1399,28 @@ function main() {
   log('Step 9: Marching cubes isosurface extraction...');
   const result = marchingCubes(grid, VOXEL_RES, origin, cellSize);
   log(`  Extracted: ${result.vertexCount.toLocaleString()} vertices, ${result.triCount.toLocaleString()} triangles`);
+  log('');
+
+  // Compute scale factor early for surface deviation
+  let earlyMinY = Infinity, earlyMaxY = -Infinity;
+  for (let i = 0; i < result.vertexCount; i++) {
+    const y = result.vertices[i*3+1];
+    if (y < earlyMinY) earlyMinY = y;
+    if (y > earlyMaxY) earlyMaxY = y;
+  }
+  const earlyScale = TARGET_HEIGHT_MM / (earlyMaxY - earlyMinY);
+
+  // Step 9b: Surface deviation (fidelity measurement)
+  log('Step 9b: Surface deviation vs original GLB...');
+  const deviation = computeSurfaceDeviation(
+    { vertices: originalVertices, vertexCount: originalVertexCount },
+    result,
+    earlyScale
+  );
+  log(`  Mean:  ${deviation.meanMM}mm`);
+  log(`  P95:   ${deviation.p95MM}mm`);
+  log(`  P99:   ${deviation.p99MM}mm`);
+  log(`  Max:   ${deviation.maxMM}mm`);
   log('');
 
   // Step 10: Validate
@@ -1311,10 +1509,13 @@ function main() {
   // Final gate report
   const geoPass = final.boundary === 0 && final.nonManifold === 0 && finalDegen === 0;
   const topoPass = components === 1;
-  const envelopePass = widthMM <= PRINTER.buildX && depthMM <= PRINTER.buildZ && TARGET_HEIGHT_MM <= PRINTER.buildY;
+  const envelopePass = widthMM <= PRINTER.plateWidthMM && depthMM <= PRINTER.plateDepthMM && TARGET_HEIGHT_MM <= PRINTER.buildHeightMM;
   const hollowPass = hollowReductionPct >= 50 && volumeCM3 > 0;
   const normalsPass = signedVolModel > 0;
-  const fabPass = envelopePass && hollowPass && normalsPass;
+  const shellPass = actualShellMM >= MIN_SHELL_MM;
+  const drainPass = DRAIN_COUNT >= 2 && drainDiamActualMM >= MIN_DRAIN_MM;
+  const drainabilityPass = drainability.sealedCavities === 0;
+  const fabPass = envelopePass && hollowPass && normalsPass && shellPass && drainPass && drainabilityPass;
   const allPass = geoPass && topoPass && fabPass;
 
   log('===================================================================');
@@ -1326,17 +1527,27 @@ function main() {
   log(`   watertight     = ${final.watertight ? 'YES' : 'NO'} ${final.watertight ? 'PASS' : 'FAIL'}`);
   log('');
   log(` FABRICATION GATE (${PRINTER.name})`);
-  log(`   height         = ${TARGET_HEIGHT_MM.toFixed(1)}mm <= ${PRINTER.buildY}mm ${TARGET_HEIGHT_MM <= PRINTER.buildY ? 'PASS' : 'FAIL'}`);
-  log(`   width          = ${widthMM.toFixed(1)}mm <= ${PRINTER.buildX}mm ${widthMM <= PRINTER.buildX ? 'PASS' : 'FAIL'}`);
-  log(`   depth          = ${depthMM.toFixed(1)}mm <= ${PRINTER.buildZ}mm ${depthMM <= PRINTER.buildZ ? 'PASS' : 'FAIL'}`);
+  log(`   height         = ${TARGET_HEIGHT_MM.toFixed(1)}mm <= ${PRINTER.buildHeightMM}mm ${TARGET_HEIGHT_MM <= PRINTER.buildHeightMM ? 'PASS' : 'FAIL'}`);
+  log(`   width          = ${widthMM.toFixed(1)}mm <= ${PRINTER.plateWidthMM}mm ${widthMM <= PRINTER.plateWidthMM ? 'PASS' : 'FAIL'}`);
+  log(`   depth          = ${depthMM.toFixed(1)}mm <= ${PRINTER.plateDepthMM}mm ${depthMM <= PRINTER.plateDepthMM ? 'PASS' : 'FAIL'}`);
   log(`   material vol   = ${volumeCM3.toFixed(1)}cm³ ${volumeCM3 > 0 ? 'PASS' : 'FAIL'}`);
   log(`   hollow savings = ${hollowReductionPct.toFixed(1)}% >= 50% ${hollowReductionPct >= 50 ? 'PASS' : 'FAIL'}`);
   log(`   surface        = ${(surfaceAreaMM2/100).toFixed(1)}cm²`);
-  log(`   shell          = ${actualShellMM}mm (${shellVoxels} vox) ${actualShellMM >= 1.5 ? 'PASS' : 'FAIL'}`);
+  log(`   shell          = ${actualShellMM}mm (${shellVoxels} vox) >= ${MIN_SHELL_MM}mm ${shellPass ? 'PASS' : 'FAIL'}`);
   log(`   pedestal       = ${pedestalMM.toFixed(1)}mm solid PASS`);
-  log(`   drains         = ${DRAIN_COUNT}x ${drainDiamActualMM}mm PASS`);
+  log(`   drains         = ${DRAIN_COUNT}x ${drainDiamActualMM}mm >= ${MIN_DRAIN_MM}mm ${drainPass ? 'PASS' : 'FAIL'}`);
   log(`   engraving      = stroke font (${VOXEL_RES}³) PASS`);
   log(`   normals        = ${signedVolModel > 0 ? 'outward' : 'INWARD'} ${normalsPass ? 'PASS' : 'FAIL'}`);
+  log('');
+  log(' DRAINABILITY GATE');
+  log(`   sealed cavities = ${drainability.sealedCavities} ${drainabilityPass ? 'PASS' : 'FAIL'}`);
+  log(`   drain-reachable = ${drainability.drainReachableVolumePct}% ${drainability.drainReachableVolumePct === 100 ? 'PASS' : 'WARN'}`);
+  log('');
+  log(' FIDELITY');
+  log(`   deviation mean  = ${deviation.meanMM}mm`);
+  log(`   deviation P95   = ${deviation.p95MM}mm`);
+  log(`   deviation P99   = ${deviation.p99MM}mm`);
+  log(`   deviation max   = ${deviation.maxMM}mm`);
   log('');
   log(' REPRODUCIBILITY');
   log(`   STL SHA-256    = ${stlHash}`);
@@ -1344,7 +1555,7 @@ function main() {
 
   if (allPass) {
     log('');
-    log('ALL GATES PASSED — Hollow Core ready.');
+    log('ALL GATES PASSED — Drainable Core ready.');
   } else {
     log('');
     if (!geoPass) log('TOPOLOGY GATE FAILED.');
@@ -1372,6 +1583,11 @@ function main() {
     drainCount: DRAIN_COUNT,
     drainDiameterMM: drainDiamActualMM,
     hollowReductionPct: Math.round(hollowReductionPct * 10) / 10,
+    sealedCavities: drainability.sealedCavities,
+    drainReachableVolumePct: drainability.drainReachableVolumePct,
+    surfaceDeviationMeanMM: deviation.meanMM,
+    surfaceDeviationMaxMM: deviation.maxMM,
+    surfaceDeviationP95MM: deviation.p95MM,
     printerProfile: PRINTER.name,
     triangles: result.triCount,
     stlBytes: stlSize,
