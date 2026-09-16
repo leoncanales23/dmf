@@ -101,26 +101,28 @@ jobs:
           node -e "
             const g = require('./' + process.argv[1]);
             const checks = [
-              ['boundary',          g.boundary === 0],
-              ['nonManifold',       g.nonManifold === 0],
-              ['degenerate',        g.degenerate === 0],
-              ['components',        g.components === 1],
-              ['watertight',        g.watertight === true],
-              ['normalsOutward',    g.normalsOutward === true],
-              ['heightMM',          g.heightMM <= 200],
-              ['widthMM',           g.widthMM <= 200],
-              ['depthMM',           g.depthMM <= 200],
-              ['volumeCM3',         g.volumeCM3 > 0],
-              ['hollowReduction',   g.hollowReductionPct >= 50],
-              ['shellThickness',    g.shellThicknessMM >= 1.5],
-              ['drainCount',        g.drainCount >= 2],
-              ['stlSHA256',         typeof g.stlSHA256 === 'string' && g.stlSHA256.length === 64],
-              ['pass',              g.pass === true],
+              ['boundary',                g.boundary === 0,                             g.boundary],
+              ['nonManifold',             g.nonManifold === 0,                           g.nonManifold],
+              ['degenerate',              g.degenerate === 0,                            g.degenerate],
+              ['components',              g.components === 1,                            g.components],
+              ['watertight',              g.watertight === true,                         g.watertight],
+              ['normalsOutward',          g.normalsOutward === true,                     g.normalsOutward],
+              ['heightMM',                g.heightMM <= 200,                             g.heightMM],
+              ['widthMM',                 g.widthMM <= 200,                              g.widthMM],
+              ['depthMM',                 g.depthMM <= 200,                              g.depthMM],
+              ['volumeCM3',               g.volumeCM3 > 0,                               g.volumeCM3],
+              ['hollowReductionPct',      g.hollowReductionPct >= 50,                    g.hollowReductionPct],
+              ['shellThicknessMM',        g.shellThicknessMM >= 1.5,                     g.shellThicknessMM],
+              ['drainCount',              g.drainCount >= 2,                             g.drainCount],
+              ['sealedCavities',          g.sealedCavities === 0,                        g.sealedCavities],
+              ['drainReachableVolumePct', g.drainReachableVolumePct === 100,             g.drainReachableVolumePct],
+              ['stlSHA256',               typeof g.stlSHA256 === 'string' && g.stlSHA256.length === 64, g.stlSHA256],
+              ['pass',                    g.pass === true,                               g.pass],
             ];
             let ok = true;
-            for (const [k, v] of checks) {
-              console.log(v ? 'PASS' : 'FAIL', k, '=', g[k]);
-              if (!v) ok = false;
+            for (const [k, pass, val] of checks) {
+              console.log(pass ? 'PASS' : 'FAIL', k, '=', val);
+              if (!pass) ok = false;
             }
             if (!ok) { console.error('GATE FAILED'); process.exit(1); }
             console.log('ALL GATES PASSED');
