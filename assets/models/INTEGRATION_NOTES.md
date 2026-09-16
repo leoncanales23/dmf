@@ -110,11 +110,17 @@ bidirectional surface fidelity, and dual-format export (STL + 3MF).
 - Drain-reachable internal air: 100% ✓
 - Routing: designated-drain only (never exterior surface)
 
-**Surface Fidelity** (bidirectional, GLB ↔ Print Master):
+**Fidelity Gate** (bidirectional, GLB ↔ Print Master):
 - Forward (output→original): measures added geometry
 - Reverse (original→output): detects lost features
 - Pedestal/margin vertices excluded from forward measurement
 - Reports per-direction mean/P95/max and bidirectional max
+- Gate: worst P95 ≤ 15mm (catches catastrophic deformation)
+
+**Component Filter Gate**:
+- `keepLargestComponent()` removes marching cubes artifacts
+- Safety limit: removed triangles ≤ 1% of total (catches real geometry loss)
+- Reports `removedComponents`, `removedTriangles`, `removedPct` in gate JSON
 
 **Printer Profiles**:
 - `plateWidthMM` / `plateDepthMM` / `buildHeightMM` — unambiguous axis naming
@@ -124,15 +130,18 @@ bidirectional surface fidelity, and dual-format export (STL + 3MF).
 **Export Formats**:
 - STL: binary, scaled to mm, SHA-256 in gate
 - 3MF: ZIP container with XML model, metadata (title, designer,
-  description, creation date), scaled to mm, SHA-256 in gate
+  description, deterministic creation date), scaled to mm, SHA-256 in gate
+- Creation date uses `SOURCE_DATE_EPOCH` if set, otherwise fixed release date
 - Print Master button on landing page downloads the 3MF file
 
 **Reproducibility**:
 - STL + 3MF SHA-256 committed in GEOMETRY_GATE.json
+- 3MF creation date is deterministic (fixed constant, not `new Date()`)
 - CI verifies gate + preflight + both hashes match regenerated
 
 **CI validation**: `validate-print` job runs preflight + repair + gate checks
-(including drainability + fidelity) + STL/3MF SHA-256 verification +
-reproducibility (committed artifacts must match).
+(including drainability + fidelity + component filter) + 3MF structural
+validation (`unzip -t`, required entries, XML well-formedness) + STL/3MF
+SHA-256 verification + reproducibility (committed artifacts must match).
 
 **Pipeline**: `scripts/preflight-print.cjs` (analysis) → `scripts/repair-geometry.cjs` (repair) → CI validates `GEOMETRY_GATE.json` + STL/3MF hashes

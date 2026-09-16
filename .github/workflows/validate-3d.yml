@@ -118,6 +118,8 @@ jobs:
               ['drainReachableVolumePct', g.drainReachableVolumePct === 100,             g.drainReachableVolumePct],
               ['stlSHA256',               typeof g.stlSHA256 === 'string' && g.stlSHA256.length === 64, g.stlSHA256],
               ['threemfSHA256',           typeof g.threemfSHA256 === 'string' && g.threemfSHA256.length === 64, g.threemfSHA256],
+              ['fidelityP95MM',          g.fidelityP95MM <= g.fidelityThresholdP95MM,   g.fidelityP95MM + ' <= ' + g.fidelityThresholdP95MM],
+              ['removedPct',             g.removedPct <= g.removedThresholdPct,          g.removedPct + '% <= ' + g.removedThresholdPct + '%'],
               ['pass',                    g.pass === true,                               g.pass],
             ];
             let ok = true;
@@ -141,6 +143,33 @@ jobs:
           TMFSIZE=$(stat -c%s "$THREEMF")
           test "$TMFSIZE" -gt 100000
           echo "3MF size: ${TMFSIZE} bytes — OK"
+
+      - name: Validate 3MF structure
+        run: |
+          THREEMF=assets/models/DMF_RELIC_01.3mf
+          echo "Checking ZIP integrity..."
+          unzip -t "$THREEMF"
+          echo ""
+          echo "Checking required entries..."
+          unzip -l "$THREEMF" | grep -q '\[Content_Types\].xml'
+          unzip -l "$THREEMF" | grep -q '_rels/.rels'
+          unzip -l "$THREEMF" | grep -q '3D/3dmodel.model'
+          echo "All required entries present."
+          echo ""
+          echo "Checking XML well-formedness..."
+          unzip -p "$THREEMF" '3D/3dmodel.model' | node -e "
+            const data = require('fs').readFileSync('/dev/stdin', 'utf8');
+            if (!data.includes('<model')) { console.error('Missing <model> root'); process.exit(1); }
+            if (!data.includes('<vertices>')) { console.error('Missing <vertices>'); process.exit(1); }
+            if (!data.includes('<triangles>')) { console.error('Missing <triangles>'); process.exit(1); }
+            if (!data.includes('unit=\"millimeter\"')) { console.error('Missing unit=millimeter'); process.exit(1); }
+            const vCount = (data.match(/<vertex /g) || []).length;
+            const tCount = (data.match(/<triangle /g) || []).length;
+            if (vCount < 1000) { console.error('Too few vertices: ' + vCount); process.exit(1); }
+            if (tCount < 1000) { console.error('Too few triangles: ' + tCount); process.exit(1); }
+            console.log('3MF model: ' + vCount + ' vertices, ' + tCount + ' triangles');
+            console.log('XML structure valid.');
+          "
 
       - name: Verify STL + 3MF reproducibility (SHA-256)
         run: |

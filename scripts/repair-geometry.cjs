@@ -24,6 +24,9 @@ const DRAIN_DIAMETER_MM = 2.5;
 
 const MIN_SHELL_MM = 1.5;
 const MIN_DRAIN_MM = 2.0;
+const MAX_FIDELITY_P95_MM = 15.0;
+const MAX_REMOVED_PCT = 1.0;
+const RELEASE_DATE = '2024-09-15';
 
 const PRINTER_PROFILES = {
   RESIN_200: { name: 'Generic Resin 200mm', plateWidthMM: 200, plateDepthMM: 200, buildHeightMM: 200 },
@@ -1350,7 +1353,7 @@ function keepLargestComponent(mesh) {
     compSize.set(root, (compSize.get(root) || 0) + 1);
   }
 
-  if (compSize.size <= 1) return 0;
+  if (compSize.size <= 1) return { removedComponents: 0, removedTriangles: 0, removedPct: 0 };
 
   let maxRoot = -1, maxCount = 0;
   for (const [root, count] of compSize) {
@@ -1390,12 +1393,14 @@ function keepLargestComponent(mesh) {
     newTC++;
   }
 
-  const removed = triCount - newTC;
+  const removedTriangles = triCount - newTC;
+  const removedComponents = compSize.size - 1;
+  const removedPct = Math.round(removedTriangles / triCount * 10000) / 100;
   mesh.vertices = newV;
   mesh.vertexCount = newVC;
   mesh.indices = newI;
   mesh.triCount = newTC;
-  return removed;
+  return { removedComponents, removedTriangles, removedPct };
 }
 
 // ─── CRC32 (for ZIP/3MF) ───
@@ -1439,7 +1444,10 @@ function export3MF(mesh, filepath, scaleFactor, metadata) {
   parts.push(`  <metadata name="Title">${metadata.title}</metadata>\n`);
   parts.push(`  <metadata name="Designer">${metadata.designer}</metadata>\n`);
   parts.push(`  <metadata name="Description">${metadata.description}</metadata>\n`);
-  parts.push(`  <metadata name="CreationDate">${new Date().toISOString().split('T')[0]}</metadata>\n`);
+  const creationDate = process.env.SOURCE_DATE_EPOCH
+    ? new Date(parseInt(process.env.SOURCE_DATE_EPOCH, 10) * 1000).toISOString().split('T')[0]
+    : RELEASE_DATE;
+  parts.push(`  <metadata name="CreationDate">${creationDate}</metadata>\n`);
   parts.push('  <resources>\n    <object id="1" type="model">\n      <mesh>\n        <vertices>\n');
 
   for (let i = 0; i < vertexCount; i++) {
@@ -1746,11 +1754,15 @@ function main() {
 
   // Step 9a: Keep only the largest connected component
   const preComponents = countComponents(result.indices, result.triCount, result.vertexCount);
+  let componentFilter = { removedComponents: 0, removedTriangles: 0, removedPct: 0 };
   if (preComponents > 1) {
     log(`  Components: ${preComponents} — filtering to largest...`);
-    const removed = keepLargestComponent(result);
-    log(`  Removed ${removed.toLocaleString()} triangles from ${preComponents - 1} small components`);
+    componentFilter = keepLargestComponent(result);
+    log(`  Removed ${componentFilter.removedTriangles.toLocaleString()} triangles (${componentFilter.removedPct}%) from ${componentFilter.removedComponents} small components`);
     log(`  Result: ${result.vertexCount.toLocaleString()} vertices, ${result.triCount.toLocaleString()} triangles`);
+    if (componentFilter.removedPct > MAX_REMOVED_PCT) {
+      log(`  WARNING: removed ${componentFilter.removedPct}% > ${MAX_REMOVED_PCT}% — possible real geometry loss`);
+    }
   }
   log('');
 
@@ -1878,8 +1890,11 @@ function main() {
   const shellPass = actualShellMM >= MIN_SHELL_MM;
   const drainPass = DRAIN_COUNT >= 2 && drainDiamActualMM >= MIN_DRAIN_MM;
   const drainabilityPass = drainability.sealedCavityCount === 0 && drainability.drainReachableVolumePct === 100;
+  const fidelityP95 = Math.max(deviation.forward.p95MM, deviation.reverse.p95MM);
+  const fidelityPass = fidelityP95 <= MAX_FIDELITY_P95_MM;
+  const componentFilterPass = componentFilter.removedPct <= MAX_REMOVED_PCT;
   const fabPass = envelopePass && hollowPass && normalsPass && shellPass && drainPass && drainabilityPass;
-  const allPass = geoPass && topoPass && fabPass;
+  const allPass = geoPass && topoPass && fabPass && fidelityPass && componentFilterPass;
 
   log('===================================================================');
   log(' TOPOLOGY GATE');
@@ -1908,7 +1923,7 @@ function main() {
   log(`   internal void   = ${drainability.internalVoidVoxels} voxels`);
   log(`   drain-reachable = ${drainability.drainReachableVolumePct}% ${drainability.drainReachableVolumePct === 100 ? 'PASS' : 'FAIL'}`);
   log('');
-  log(' FIDELITY (bidirectional)');
+  log(' FIDELITY GATE (bidirectional)');
   log(`   forward mean    = ${deviation.forward.meanMM}mm`);
   log(`   forward P95     = ${deviation.forward.p95MM}mm`);
   log(`   forward max     = ${deviation.forward.maxMM}mm`);
@@ -1917,6 +1932,12 @@ function main() {
   log(`   reverse max     = ${deviation.reverse.maxMM}mm`);
   log(`   bidir mean      = ${deviation.bidirectionalMeanMM}mm`);
   log(`   bidir max       = ${deviation.bidirectionalMaxMM}mm`);
+  log(`   worst P95       = ${fidelityP95}mm <= ${MAX_FIDELITY_P95_MM}mm ${fidelityPass ? 'PASS' : 'FAIL'}`);
+  log('');
+  log(' COMPONENT FILTER GATE');
+  log(`   removed comps   = ${componentFilter.removedComponents}`);
+  log(`   removed tris    = ${componentFilter.removedTriangles}`);
+  log(`   removed pct     = ${componentFilter.removedPct}% <= ${MAX_REMOVED_PCT}% ${componentFilterPass ? 'PASS' : 'FAIL'}`);
   log('');
   log(' REPRODUCIBILITY');
   log(`   STL SHA-256    = ${stlHash}`);
@@ -1931,6 +1952,8 @@ function main() {
     if (!geoPass) log('TOPOLOGY GATE FAILED.');
     if (!topoPass) log(`TOPOLOGY GATE FAILED — ${components} components instead of 1.`);
     if (!fabPass) log('FABRICATION GATE FAILED — check envelope/volume/normals/drainability.');
+    if (!fidelityPass) log(`FIDELITY GATE FAILED — worst P95 ${fidelityP95}mm > ${MAX_FIDELITY_P95_MM}mm.`);
+    if (!componentFilterPass) log(`COMPONENT FILTER GATE FAILED — removed ${componentFilter.removedPct}% > ${MAX_REMOVED_PCT}%.`);
     log('Files exported for inspection.');
   }
 
@@ -1965,6 +1988,12 @@ function main() {
     surfaceDeviationReverseP95MM: deviation.reverse.p95MM,
     bidirectionalMeanMM: deviation.bidirectionalMeanMM,
     bidirectionalMaxMM: deviation.bidirectionalMaxMM,
+    fidelityP95MM: fidelityP95,
+    fidelityThresholdP95MM: MAX_FIDELITY_P95_MM,
+    removedComponents: componentFilter.removedComponents,
+    removedTriangles: componentFilter.removedTriangles,
+    removedPct: componentFilter.removedPct,
+    removedThresholdPct: MAX_REMOVED_PCT,
     printerProfile: PRINTER.name,
     triangles: result.triCount,
     stlBytes: stlSize,

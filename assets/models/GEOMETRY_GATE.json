@@ -28,11 +28,17 @@
   "surfaceDeviationReverseP95MM": 9.608,
   "bidirectionalMeanMM": 2.114,
   "bidirectionalMaxMM": 17.275,
+  "fidelityP95MM": 9.608,
+  "fidelityThresholdP95MM": 15,
+  "removedComponents": 6,
+  "removedTriangles": 72,
+  "removedPct": 0.01,
+  "removedThresholdPct": 1,
   "printerProfile": "Generic Resin 200mm",
   "triangles": 1162492,
   "stlBytes": 58124684,
   "stlSHA256": "267265a8e7369e85e291c21fd305ecf40bc0acbbee1848abcf4b09755ede66bd",
   "threemfBytes": 10413306,
-  "threemfSHA256": "656a06eda718314c664faefc09d7779cccba4bc0429bb355ba00793415cddca3",
+  "threemfSHA256": "ca896af51d718b2586a93c29515d59f8f72d3b60d294e1359f19d1db33c1ae82",
   "pass": true
 }
