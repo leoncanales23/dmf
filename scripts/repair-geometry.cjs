@@ -1,18 +1,28 @@
-// DMF RELIC 01 — Manufacturing Detail
-// Volumetric manifold rebuild: GLB → voxel union → marching cubes → STL
+// DMF RELIC 01 — Hollow Core
+// Volumetric manifold rebuild with shell hollowing + drain engineering
 // Run: node scripts/repair-geometry.cjs
 //
 // Pipeline: parse → clean → weld → voxelize (256³) with pedestal → dilate →
-//   flood fill → engrave (stroke font) → marching cubes → validate → export STL
+//   flood fill → hollow interior → carve drains → engrave (stroke font) →
+//   marching cubes → validate → export STL + SHA-256
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const GLB_PATH = path.join(__dirname, '..', 'assets', 'models', 'dmf-studio-optimized.glb');
 const STL_PATH = path.join(__dirname, '..', 'assets', 'models', 'DMF_RELIC_01_ALPHA.stl');
 const TARGET_HEIGHT_MM = 150.0;
 const WELD_EPSILON = 5e-4;
 const VOXEL_RES = 256;
+const SHELL_THICKNESS_MM = 2.5;
+const DRAIN_COUNT = 2;
+const DRAIN_DIAMETER_MM = 2.5;
+
+const PRINTER_PROFILES = {
+  RESIN_200: { name: 'Generic Resin 200mm', buildX: 200, buildY: 200, buildZ: 200 },
+};
+const PRINTER = PRINTER_PROFILES.RESIN_200;
 
 // ─── GLB Parser ───
 
@@ -407,6 +417,208 @@ function floodFillExterior(grid, res) {
     else if (grid[i] === 2) { grid[i] = 0; }
   }
   return interior;
+}
+
+// ─── Hollow Interior ───
+
+function hollowInterior(grid, res, shellVoxels, pedestalJMax) {
+  const dist = new Int16Array(res * res * res).fill(-1);
+  const queue = [];
+
+  for (let i = 0; i < res; i++) {
+    for (let j = 0; j < res; j++) {
+      for (let k = 0; k < res; k++) {
+        if (grid[voxIdx(i, j, k, res)] === 0) {
+          dist[voxIdx(i, j, k, res)] = 0;
+          queue.push(i, j, k);
+        }
+      }
+    }
+  }
+
+  const dirs = [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+  let head = 0;
+  while (head < queue.length) {
+    const x = queue[head++], y = queue[head++], z = queue[head++];
+    const d = dist[voxIdx(x, y, z, res)];
+    for (const [dx, dy, dz] of dirs) {
+      const nx = x+dx, ny = y+dy, nz = z+dz;
+      if (nx < 0 || nx >= res || ny < 0 || ny >= res || nz < 0 || nz >= res) continue;
+      const idx = voxIdx(nx, ny, nz, res);
+      if (dist[idx] === -1) {
+        dist[idx] = d + 1;
+        queue.push(nx, ny, nz);
+      }
+    }
+  }
+
+  let hollowed = 0;
+  for (let i = 0; i < res; i++) {
+    for (let j = 0; j < res; j++) {
+      if (j <= pedestalJMax) continue;
+      for (let k = 0; k < res; k++) {
+        const idx = voxIdx(i, j, k, res);
+        if (grid[idx] === 1 && dist[idx] > shellVoxels) {
+          grid[idx] = 0;
+          hollowed++;
+        }
+      }
+    }
+  }
+
+  return hollowed;
+}
+
+function carveDrainHoles(grid, res, origin, cellSize, pedInfo, drainCount, drainDiameterMM, approxScale, shellVoxels) {
+  const drainRadiusModel = (drainDiameterMM / 2) / approxScale;
+  const drainRadiusVox = Math.max(1, Math.ceil(drainRadiusModel / cellSize));
+
+  const cx = (pedInfo.px0 + pedInfo.px1) / 2;
+  const cz = (pedInfo.pz0 + pedInfo.pz1) / 2;
+  const spacing = (pedInfo.px1 - pedInfo.px0) * 0.25;
+
+  const positions = [];
+  if (drainCount >= 2) {
+    positions.push({ x: cx - spacing, z: cz });
+    positions.push({ x: cx + spacing, z: cz });
+  }
+  if (drainCount >= 3) {
+    positions.push({ x: cx, z: cz - spacing });
+  }
+
+  const j0 = Math.max(0, Math.floor((pedInfo.py0 - origin[1]) / cellSize));
+  const j1 = Math.min(res - 1, Math.ceil((pedInfo.py1 - origin[1]) / cellSize) + shellVoxels + 3);
+
+  let carved = 0;
+  for (const { x: dx, z: dz } of positions) {
+    const ci = Math.round((dx - origin[0]) / cellSize);
+    const ck = Math.round((dz - origin[2]) / cellSize);
+
+    for (let i = ci - drainRadiusVox; i <= ci + drainRadiusVox; i++) {
+      for (let k = ck - drainRadiusVox; k <= ck + drainRadiusVox; k++) {
+        const di = i - ci, dk = k - ck;
+        if (di*di + dk*dk > drainRadiusVox*drainRadiusVox) continue;
+        for (let j = j0; j <= j1; j++) {
+          if (i >= 0 && i < res && j >= 0 && j < res && k >= 0 && k < res) {
+            const idx = voxIdx(i, j, k, res);
+            if (grid[idx] === 1) { grid[idx] = 0; carved++; }
+          }
+        }
+      }
+    }
+  }
+
+  return { carved, positions, drainRadiusVox };
+}
+
+// ─── Cavity Connectivity ───
+
+function connectCavities(grid, res) {
+  const dirs = [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+  const EXTERIOR = 2;
+
+  // Flood fill from borders to mark exterior air
+  const queue = [];
+  for (let i = 0; i < res; i++)
+    for (let j = 0; j < res; j++)
+      for (const k of [0, res-1]) {
+        const idx = voxIdx(i, j, k, res);
+        if (grid[idx] === 0) { grid[idx] = EXTERIOR; queue.push(i, j, k); }
+      }
+  for (let j = 0; j < res; j++)
+    for (let k = 0; k < res; k++)
+      for (const i of [0, res-1]) {
+        const idx = voxIdx(i, j, k, res);
+        if (grid[idx] === 0) { grid[idx] = EXTERIOR; queue.push(i, j, k); }
+      }
+  for (let i = 0; i < res; i++)
+    for (let k = 0; k < res; k++)
+      for (const j of [0, res-1]) {
+        const idx = voxIdx(i, j, k, res);
+        if (grid[idx] === 0) { grid[idx] = EXTERIOR; queue.push(i, j, k); }
+      }
+
+  let head = 0;
+  while (head < queue.length) {
+    const x = queue[head++], y = queue[head++], z = queue[head++];
+    for (const [dx, dy, dz] of dirs) {
+      const nx = x+dx, ny = y+dy, nz = z+dz;
+      if (nx < 0 || nx >= res || ny < 0 || ny >= res || nz < 0 || nz >= res) continue;
+      const idx = voxIdx(nx, ny, nz, res);
+      if (grid[idx] === 0) { grid[idx] = EXTERIOR; queue.push(nx, ny, nz); }
+    }
+  }
+
+  // Find connected components of cavity air (still value 0)
+  const components = [];
+  const CAVITY_BASE = 3;
+  let nextLabel = CAVITY_BASE;
+
+  for (let i = 0; i < res; i++)
+    for (let j = 0; j < res; j++)
+      for (let k = 0; k < res; k++) {
+        const idx = voxIdx(i, j, k, res);
+        if (grid[idx] !== 0) continue;
+        const label = nextLabel++;
+        const cq = [i, j, k];
+        grid[idx] = label;
+        let si = 0, sj = 0, sk = 0, count = 0;
+        let ch = 0;
+        while (ch < cq.length) {
+          const cx = cq[ch++], cy = cq[ch++], cz = cq[ch++];
+          si += cx; sj += cy; sk += cz; count++;
+          for (const [dx, dy, dz] of dirs) {
+            const nx = cx+dx, ny = cy+dy, nz = cz+dz;
+            if (nx < 0 || nx >= res || ny < 0 || ny >= res || nz < 0 || nz >= res) continue;
+            const nIdx = voxIdx(nx, ny, nz, res);
+            if (grid[nIdx] === 0) { grid[nIdx] = label; cq.push(nx, ny, nz); }
+          }
+        }
+        components.push({ label, center: [si/count, sj/count, sk/count], size: count });
+      }
+
+  // Restore: exterior → 0, all cavity labels → 0, solid stays 1
+  for (let i = 0; i < grid.length; i++) {
+    if (grid[i] !== 1) grid[i] = 0;
+  }
+
+  if (components.length <= 1) return { carved: 0, cavities: components.length };
+
+  // Sort by size descending — connect all to the largest
+  components.sort((a, b) => b.size - a.size);
+  let carved = 0;
+
+  for (let c = 1; c < components.length; c++) {
+    const [ai, aj, ak] = components[0].center;
+    const [bi, bj, bk] = components[c].center;
+    const di = bi - ai, dj = bj - aj, dk = bk - ak;
+    const steps = Math.max(Math.abs(Math.round(di)), Math.abs(Math.round(dj)), Math.abs(Math.round(dk)));
+    if (steps === 0) continue;
+
+    for (let s = 0; s <= steps; s++) {
+      const t = s / steps;
+      const ci = Math.round(ai + t * di);
+      const cj = Math.round(aj + t * dj);
+      const ck = Math.round(ak + t * dk);
+      for (let d1 = -1; d1 <= 1; d1++)
+        for (let d2 = -1; d2 <= 1; d2++) {
+          const ni = ci + d1, nk = ck + d2;
+          if (ni >= 0 && ni < res && cj >= 0 && cj < res && nk >= 0 && nk < res) {
+            const idx = voxIdx(ni, cj, nk, res);
+            if (grid[idx] === 1) { grid[idx] = 0; carved++; }
+          }
+        }
+    }
+
+    components[0].center = [
+      (ai * components[0].size + bi * components[c].size) / (components[0].size + components[c].size),
+      (aj * components[0].size + bj * components[c].size) / (components[0].size + components[c].size),
+      (ak * components[0].size + bk * components[c].size) / (components[0].size + components[c].size),
+    ];
+    components[0].size += components[c].size;
+  }
+
+  return { carved, cavities: components.length };
 }
 
 // ─── Marching Cubes ───
@@ -829,7 +1041,7 @@ function exportSTL(mesh, filepath, scaleFactor) {
   const { vertices, indices, triCount } = mesh;
   const bufSize = 80 + 4 + triCount * 50;
   const buf = Buffer.alloc(bufSize);
-  buf.write('DMF RELIC 01 / THE RECEIVER / Manufacturing Geometry Beta', 0, 'ascii');
+  buf.write('DMF RELIC 01 / THE RECEIVER / Hollow Core', 0, 'ascii');
   buf.writeUInt32LE(triCount, 80);
   let offset = 84;
   for (let i = 0; i < triCount; i++) {
@@ -855,7 +1067,7 @@ function main() {
   const log = (s) => console.log(s);
 
   log('===================================================================');
-  log(' DMF RELIC 01 — Manufacturing Geometry Beta Pipeline');
+  log(' DMF RELIC 01 — Hollow Core Pipeline');
   log('===================================================================');
   log('');
 
@@ -949,11 +1161,46 @@ function main() {
   let solidVoxels = 0;
   for (let i = 0; i < grid.length; i++) if (grid[i]) solidVoxels++;
   log(`  Interior voxels filled: ${interiorFilled.toLocaleString()}`);
-  log(`  Total solid voxels: ${solidVoxels.toLocaleString()}`);
+  log(`  Total solid voxels (before hollowing): ${solidVoxels.toLocaleString()}`);
+  const solidVoxelsBefore = solidVoxels;
   log('');
 
-  // Step 6: Engrave text (subtract from voxels)
-  log('Step 6: Engrave text on pedestal...');
+  // Step 6: Hollow interior — BFS distance transform + shell carve
+  const approxModelH = (maxY - minY) + pedestalH;
+  const approxScale = TARGET_HEIGHT_MM / approxModelH;
+  const cellSizeMM = cellSize * approxScale;
+  const shellVoxels = Math.max(3, Math.ceil(SHELL_THICKNESS_MM / cellSizeMM));
+  const pedestalJMax = Math.ceil((pedInfo.py1 - origin[1]) / cellSize);
+
+  log(`Step 6: Hollow interior (shell=${shellVoxels} voxels, ~${(shellVoxels * cellSizeMM).toFixed(1)}mm)...`);
+  const hollowedCount = hollowInterior(grid, VOXEL_RES, shellVoxels, pedestalJMax);
+  solidVoxels = 0;
+  for (let i = 0; i < grid.length; i++) if (grid[i]) solidVoxels++;
+  const hollowReductionPct = ((solidVoxelsBefore - solidVoxels) / solidVoxelsBefore * 100);
+  log(`  Hollowed voxels: ${hollowedCount.toLocaleString()}`);
+  log(`  Solid voxels remaining: ${solidVoxels.toLocaleString()}`);
+  log(`  Volume reduction: ${hollowReductionPct.toFixed(1)}%`);
+  log('');
+
+  // Step 7: Carve drain holes through pedestal
+  log(`Step 7: Carve drain holes (${DRAIN_COUNT}x ${DRAIN_DIAMETER_MM}mm)...`);
+  const drainInfo = carveDrainHoles(grid, VOXEL_RES, origin, cellSize, pedInfo, DRAIN_COUNT, DRAIN_DIAMETER_MM, approxScale, shellVoxels);
+  log(`  Drain voxels carved: ${drainInfo.carved.toLocaleString()}`);
+  log(`  Drain radius: ${drainInfo.drainRadiusVox} voxels`);
+  solidVoxels = 0;
+  for (let i = 0; i < grid.length; i++) if (grid[i]) solidVoxels++;
+  log(`  Total solid voxels (after drains): ${solidVoxels.toLocaleString()}`);
+  log('');
+
+  // Step 7b: Connect disconnected cavity chambers
+  log('Step 7b: Connect cavity chambers...');
+  const cavityInfo = connectCavities(grid, VOXEL_RES);
+  log(`  Disconnected cavities found: ${cavityInfo.cavities}`);
+  log(`  Channel voxels carved: ${cavityInfo.carved}`);
+  log('');
+
+  // Step 8: Engrave text (subtract from voxels)
+  log('Step 8: Engrave text on pedestal...');
   const pedestalCenterX = (pedInfo.px0 + pedInfo.px1) / 2;
   const charH = pedInfo.pedestalH * 0.28;
   const charW = charH * 0.6;
@@ -972,14 +1219,14 @@ function main() {
   log(`  Engraved: "DMF RELIC 01 / THE RECEIVER / 001"`);
   log('');
 
-  // Step 7: Marching cubes
-  log('Step 7: Marching cubes isosurface extraction...');
+  // Step 9: Marching cubes
+  log('Step 9: Marching cubes isosurface extraction...');
   const result = marchingCubes(grid, VOXEL_RES, origin, cellSize);
   log(`  Extracted: ${result.vertexCount.toLocaleString()} vertices, ${result.triCount.toLocaleString()} triangles`);
   log('');
 
-  // Step 8: Validate
-  log('Step 8: Gate validation...');
+  // Step 10: Validate
+  log('Step 10: Gate validation...');
   const final = edgeAnalysis(result.indices, result.triCount);
   const components = countComponents(result.indices, result.triCount, result.vertexCount);
 
@@ -1001,8 +1248,8 @@ function main() {
   log(`  watertight  = ${final.watertight ? 'YES' : 'NO'} ${final.watertight ? '  OK' : '  FAIL'}`);
   log('');
 
-  // Step 9: Compute physical metrics
-  log('Step 9: Physical metrics...');
+  // Step 11: Compute physical metrics
+  log('Step 11: Physical metrics...');
   let fMinY = Infinity, fMaxY = -Infinity;
   let fMinX = Infinity, fMaxX = -Infinity;
   let fMinZ = Infinity, fMaxZ = -Infinity;
@@ -1038,24 +1285,36 @@ function main() {
   const volumeCM3 = volumeMM3 / 1000;
   const surfaceAreaMM2 = surfaceAreaModel * scale * scale;
 
-  // Step 10: Export STL
-  log('Step 10: Export STL...');
+  // Step 12: Export STL + SHA-256
+  log('Step 12: Export STL...');
   const stlSize = exportSTL(result, STL_PATH, scale);
+  const stlHash = crypto.createHash('sha256').update(fs.readFileSync(STL_PATH)).digest('hex');
+
+  const pedestalMM = pedInfo.pedestalH * scale;
+  const actualShellMM = Math.round(shellVoxels * cellSizeMM * 10) / 10;
+  const drainDiamActualMM = Math.round(drainInfo.drainRadiusVox * 2 * cellSizeMM * 10) / 10;
 
   log(`  Height: ${modelH.toFixed(4)} units -> ${TARGET_HEIGHT_MM}mm`);
   log(`  Scale: ${scale.toFixed(2)}x`);
   log(`  Dims: ${widthMM.toFixed(1)} x ${TARGET_HEIGHT_MM} x ${depthMM.toFixed(1)} mm`);
-  log(`  Pedestal: ${(pedInfo.pedestalH*scale).toFixed(1)}mm`);
-  log(`  Volume: ${volumeCM3.toFixed(1)} cm³`);
+  log(`  Pedestal: ${pedestalMM.toFixed(1)}mm (solid)`);
+  log(`  Shell: ${actualShellMM}mm (${shellVoxels} voxels)`);
+  log(`  Drains: ${DRAIN_COUNT}x ${drainDiamActualMM}mm`);
+  log(`  Material volume: ${volumeCM3.toFixed(1)} cm³`);
   log(`  Surface: ${(surfaceAreaMM2/100).toFixed(1)} cm²`);
+  log(`  Hollow reduction: ${hollowReductionPct.toFixed(1)}%`);
   log(`  Signed volume: ${signedVolModel > 0 ? 'positive (outward normals)' : 'negative (inward normals — flip needed)'}`);
   log(`  File: DMF_RELIC_01_ALPHA.stl (${(stlSize/1024/1024).toFixed(1)} MB, ${result.triCount.toLocaleString()} triangles)`);
+  log(`  SHA-256: ${stlHash}`);
   log('');
 
   // Final gate report
   const geoPass = final.boundary === 0 && final.nonManifold === 0 && finalDegen === 0;
   const topoPass = components === 1;
-  const fabPass = widthMM <= 200 && depthMM <= 200 && TARGET_HEIGHT_MM <= 200 && volumeCM3 > 0 && signedVolModel > 0;
+  const envelopePass = widthMM <= PRINTER.buildX && depthMM <= PRINTER.buildZ && TARGET_HEIGHT_MM <= PRINTER.buildY;
+  const hollowPass = hollowReductionPct >= 50 && volumeCM3 > 0;
+  const normalsPass = signedVolModel > 0;
+  const fabPass = envelopePass && hollowPass && normalsPass;
   const allPass = geoPass && topoPass && fabPass;
 
   log('===================================================================');
@@ -1066,25 +1325,31 @@ function main() {
   log(`   components     = ${components} ${components === 1 ? 'PASS' : 'FAIL'}`);
   log(`   watertight     = ${final.watertight ? 'YES' : 'NO'} ${final.watertight ? 'PASS' : 'FAIL'}`);
   log('');
-  log(' FABRICATION GATE');
-  log(`   height         = ${TARGET_HEIGHT_MM.toFixed(1)}mm ${TARGET_HEIGHT_MM <= 200 ? 'PASS' : 'FAIL'}`);
-  log(`   width          = ${widthMM.toFixed(1)}mm ${widthMM <= 200 ? 'PASS' : 'FAIL'}`);
-  log(`   depth          = ${depthMM.toFixed(1)}mm ${depthMM <= 200 ? 'PASS' : 'FAIL'}`);
-  log(`   volume         = ${volumeCM3.toFixed(1)}cm³ ${volumeCM3 > 0 ? 'PASS' : 'FAIL'}`);
+  log(` FABRICATION GATE (${PRINTER.name})`);
+  log(`   height         = ${TARGET_HEIGHT_MM.toFixed(1)}mm <= ${PRINTER.buildY}mm ${TARGET_HEIGHT_MM <= PRINTER.buildY ? 'PASS' : 'FAIL'}`);
+  log(`   width          = ${widthMM.toFixed(1)}mm <= ${PRINTER.buildX}mm ${widthMM <= PRINTER.buildX ? 'PASS' : 'FAIL'}`);
+  log(`   depth          = ${depthMM.toFixed(1)}mm <= ${PRINTER.buildZ}mm ${depthMM <= PRINTER.buildZ ? 'PASS' : 'FAIL'}`);
+  log(`   material vol   = ${volumeCM3.toFixed(1)}cm³ ${volumeCM3 > 0 ? 'PASS' : 'FAIL'}`);
+  log(`   hollow savings = ${hollowReductionPct.toFixed(1)}% >= 50% ${hollowReductionPct >= 50 ? 'PASS' : 'FAIL'}`);
   log(`   surface        = ${(surfaceAreaMM2/100).toFixed(1)}cm²`);
-  log(`   pedestal       = ${(pedInfo.pedestalH*scale).toFixed(1)}mm fused PASS`);
+  log(`   shell          = ${actualShellMM}mm (${shellVoxels} vox) ${actualShellMM >= 1.5 ? 'PASS' : 'FAIL'}`);
+  log(`   pedestal       = ${pedestalMM.toFixed(1)}mm solid PASS`);
+  log(`   drains         = ${DRAIN_COUNT}x ${drainDiamActualMM}mm PASS`);
   log(`   engraving      = stroke font (${VOXEL_RES}³) PASS`);
-  log(`   normals        = ${signedVolModel > 0 ? 'outward' : 'INWARD — needs flip'} ${signedVolModel > 0 ? 'PASS' : 'FAIL'}`);
+  log(`   normals        = ${signedVolModel > 0 ? 'outward' : 'INWARD'} ${normalsPass ? 'PASS' : 'FAIL'}`);
+  log('');
+  log(' REPRODUCIBILITY');
+  log(`   STL SHA-256    = ${stlHash}`);
   log('===================================================================');
 
   if (allPass) {
     log('');
-    log('ALL GATES PASSED — Manufacturing Detail ready.');
+    log('ALL GATES PASSED — Hollow Core ready.');
   } else {
     log('');
     if (!geoPass) log('TOPOLOGY GATE FAILED.');
     if (!topoPass) log(`TOPOLOGY GATE FAILED — ${components} components instead of 1.`);
-    if (!fabPass) log('FABRICATION GATE FAILED — check envelope/volume.');
+    if (!fabPass) log('FABRICATION GATE FAILED — check envelope/volume/normals.');
     log('STL exported for inspection.');
   }
 
@@ -1102,8 +1367,15 @@ function main() {
     volumeCM3: Math.round(volumeCM3 * 10) / 10,
     surfaceAreaCM2: Math.round(surfaceAreaMM2 / 100 * 10) / 10,
     normalsOutward: signedVolModel > 0,
+    shellThicknessMM: actualShellMM,
+    shellVoxels,
+    drainCount: DRAIN_COUNT,
+    drainDiameterMM: drainDiamActualMM,
+    hollowReductionPct: Math.round(hollowReductionPct * 10) / 10,
+    printerProfile: PRINTER.name,
     triangles: result.triCount,
     stlBytes: stlSize,
+    stlSHA256: stlHash,
     pass: allPass
   };
   const gatePath = path.join(__dirname, '..', 'assets', 'models', 'GEOMETRY_GATE.json');
