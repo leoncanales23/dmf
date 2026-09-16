@@ -1,12 +1,12 @@
-// DMF RELIC 01 — Drainable Core
-// Volumetric manifold rebuild with shell hollowing, drain engineering,
-// drainability verification, and surface fidelity measurement
+// DMF RELIC 01 — Manufacturing Master
+// Volumetric manifold rebuild with designated-drain routing, true internal
+// drainability, bidirectional surface fidelity, and 3MF export
 // Run: node scripts/repair-geometry.cjs
 //
 // Pipeline: parse → clean → weld → voxelize (256³) with pedestal → dilate →
 //   flood fill → hollow interior → carve drains → connect to drains →
 //   verify drainability → engrave (stroke font) → marching cubes →
-//   surface deviation → validate → export STL + SHA-256
+//   bidirectional surface deviation → validate → export STL + 3MF + SHA-256
 
 const fs = require('fs');
 const path = require('path');
@@ -14,6 +14,7 @@ const crypto = require('crypto');
 
 const GLB_PATH = path.join(__dirname, '..', 'assets', 'models', 'dmf-studio-optimized.glb');
 const STL_PATH = path.join(__dirname, '..', 'assets', 'models', 'DMF_RELIC_01_ALPHA.stl');
+const THREEMF_PATH = path.join(__dirname, '..', 'assets', 'models', 'DMF_RELIC_01.3mf');
 const TARGET_HEIGHT_MM = 150.0;
 const WELD_EPSILON = 5e-4;
 const VOXEL_RES = 256;
@@ -516,13 +517,27 @@ function carveDrainHoles(grid, res, origin, cellSize, pedInfo, drainCount, drain
   return { carved, positions, drainRadiusVox };
 }
 
-// ─── Cavity Connectivity (drain-targeted) ───
+// ─── Cavity Connectivity (designated-drain routing) ───
 
-function connectCavitiesToDrains(grid, res) {
+function connectCavitiesToDrains(grid, res, drainPositions, origin, cellSize, drainRadiusVox) {
   const dirs = [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
   const EXTERIOR = 2;
+  const total = res * res * res;
 
-  // Flood fill from borders — marks exterior air AND drain-connected interior air
+  const drainIK = new Set();
+  for (const pos of drainPositions) {
+    const ci = Math.round((pos.x - origin[0]) / cellSize);
+    const ck = Math.round((pos.z - origin[2]) / cellSize);
+    for (let di = -drainRadiusVox; di <= drainRadiusVox; di++)
+      for (let dk = -drainRadiusVox; dk <= drainRadiusVox; dk++) {
+        if (di*di + dk*dk > drainRadiusVox * drainRadiusVox) continue;
+        const ni = ci + di, nk = ck + dk;
+        if (ni >= 0 && ni < res && nk >= 0 && nk < res)
+          drainIK.add(ni * res + nk);
+      }
+  }
+
+  // Flood fill from borders → marks all reachable air as EXTERIOR
   const queue = [];
   for (let i = 0; i < res; i++)
     for (let j = 0; j < res; j++)
@@ -554,7 +569,35 @@ function connectCavitiesToDrains(grid, res) {
     }
   }
 
-  // Any air still 0 = sealed cavity not reachable from drains/exterior
+  // Identify ocean: flood fill from borders blocking drain columns
+  const isOcean = new Uint8Array(total);
+  const oq = [];
+  function seedOcean(i, j, k) {
+    const idx = voxIdx(i, j, k, res);
+    if (grid[idx] === EXTERIOR && isOcean[idx] === 0 && !drainIK.has(i * res + k)) {
+      isOcean[idx] = 1; oq.push(i, j, k);
+    }
+  }
+  for (let a = 0; a < res; a++)
+    for (let b = 0; b < res; b++) {
+      seedOcean(a, b, 0); seedOcean(a, b, res-1);
+      seedOcean(0, a, b); seedOcean(res-1, a, b);
+      seedOcean(a, 0, b); seedOcean(a, res-1, b);
+    }
+  let oh = 0;
+  while (oh < oq.length) {
+    const x = oq[oh++], y = oq[oh++], z = oq[oh++];
+    for (const [dx, dy, dz] of dirs) {
+      const nx = x+dx, ny = y+dy, nz = z+dz;
+      if (nx < 0 || nx >= res || ny < 0 || ny >= res || nz < 0 || nz >= res) continue;
+      const idx = voxIdx(nx, ny, nz, res);
+      if (grid[idx] === EXTERIOR && isOcean[idx] === 0 && !drainIK.has(nx * res + nz)) {
+        isOcean[idx] = 1; oq.push(nx, ny, nz);
+      }
+    }
+  }
+
+  // Find sealed cavities (air still 0)
   const sealedComponents = [];
   const CAVITY_BASE = 3;
   let nextLabel = CAVITY_BASE;
@@ -583,25 +626,24 @@ function connectCavitiesToDrains(grid, res) {
       }
 
   if (sealedComponents.length === 0) {
-    // Restore grid: exterior → 0, solid stays 1
     for (let i = 0; i < grid.length; i++) {
       if (grid[i] === EXTERIOR) grid[i] = 0;
     }
     return { carved: 0, sealedBefore: 0 };
   }
 
-  // For each sealed component, find nearest EXTERIOR voxel and carve a channel
+  // Route each sealed cavity to nearest interior drain-reachable air
+  // (EXTERIOR but not ocean — avoids punching through the figure's surface)
   let carved = 0;
   for (const comp of sealedComponents) {
     const [ci, cj, ck] = comp.center.map(Math.round);
-    let bestDist = Infinity, bestI = ci, bestJ = cj, bestK = ck;
 
-    // BFS from component center to find nearest exterior air
     const visited = new Set();
     const bfs = [ci, cj, ck];
     visited.add(voxIdx(ci, cj, ck, res));
     let bh = 0;
     let found = false;
+    let targetI = ci, targetJ = cj, targetK = ck;
     while (bh < bfs.length && !found) {
       const bi = bfs[bh++], bj = bfs[bh++], bk = bfs[bh++];
       for (const [dx, dy, dz] of dirs) {
@@ -610,8 +652,8 @@ function connectCavitiesToDrains(grid, res) {
         const nIdx = voxIdx(ni, nj, nk, res);
         if (visited.has(nIdx)) continue;
         visited.add(nIdx);
-        if (grid[nIdx] === EXTERIOR) {
-          bestI = ni; bestJ = nj; bestK = nk;
+        if (grid[nIdx] === EXTERIOR && isOcean[nIdx] === 0) {
+          targetI = ni; targetJ = nj; targetK = nk;
           found = true;
           break;
         }
@@ -619,8 +661,21 @@ function connectCavitiesToDrains(grid, res) {
       }
     }
 
-    // Carve straight channel from sealed cavity center to nearest exterior air
-    const di = bestI - ci, dj = bestJ - cj, dk = bestK - ck;
+    if (!found) {
+      let bestDist = Infinity;
+      for (const pos of drainPositions) {
+        const di = Math.round((pos.x - origin[0]) / cellSize) - ci;
+        const dk = Math.round((pos.z - origin[2]) / cellSize) - ck;
+        const d = di*di + dk*dk;
+        if (d < bestDist) {
+          bestDist = d;
+          targetI = Math.round((pos.x - origin[0]) / cellSize);
+          targetK = Math.round((pos.z - origin[2]) / cellSize);
+        }
+      }
+    }
+
+    const di = targetI - ci, dj = targetJ - cj, dk = targetK - ck;
     const steps = Math.max(1, Math.max(Math.abs(di), Math.abs(dj), Math.abs(dk)));
     for (let s = 0; s <= steps; s++) {
       const t = s / steps;
@@ -638,7 +693,6 @@ function connectCavitiesToDrains(grid, res) {
     }
   }
 
-  // Restore grid: exterior → 0, all cavity labels → 0, solid stays 1
   for (let i = 0; i < grid.length; i++) {
     if (grid[i] !== 1) grid[i] = 0;
   }
@@ -646,61 +700,125 @@ function connectCavitiesToDrains(grid, res) {
   return { carved, sealedBefore: sealedComponents.length };
 }
 
-// ─── Drainability Verification ───
+// ─── Drainability Verification (true internal metric) ───
 
-function verifyDrainability(grid, res) {
+function verifyDrainability(grid, res, drainPositions, origin, cellSize, drainRadiusVox) {
   const dirs = [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
-  const EXTERIOR = 2;
+  const total = res * res * res;
 
-  // Flood fill from borders
-  const queue = [];
-  for (let i = 0; i < res; i++)
-    for (let j = 0; j < res; j++)
-      for (const k of [0, res-1]) {
-        const idx = voxIdx(i, j, k, res);
-        if (grid[idx] === 0) { grid[idx] = EXTERIOR; queue.push(i, j, k); }
+  const drainIK = new Set();
+  for (const pos of drainPositions) {
+    const ci = Math.round((pos.x - origin[0]) / cellSize);
+    const ck = Math.round((pos.z - origin[2]) / cellSize);
+    for (let di = -drainRadiusVox; di <= drainRadiusVox; di++)
+      for (let dk = -drainRadiusVox; dk <= drainRadiusVox; dk++) {
+        if (di*di + dk*dk > drainRadiusVox * drainRadiusVox) continue;
+        const ni = ci + di, nk = ck + dk;
+        if (ni >= 0 && ni < res && nk >= 0 && nk < res)
+          drainIK.add(ni * res + nk);
       }
-  for (let j = 0; j < res; j++)
-    for (let k = 0; k < res; k++)
-      for (const i of [0, res-1]) {
-        const idx = voxIdx(i, j, k, res);
-        if (grid[idx] === 0) { grid[idx] = EXTERIOR; queue.push(i, j, k); }
-      }
-  for (let i = 0; i < res; i++)
-    for (let k = 0; k < res; k++)
-      for (const j of [0, res-1]) {
-        const idx = voxIdx(i, j, k, res);
-        if (grid[idx] === 0) { grid[idx] = EXTERIOR; queue.push(i, j, k); }
-      }
+  }
 
-  let head = 0;
-  while (head < queue.length) {
-    const x = queue[head++], y = queue[head++], z = queue[head++];
+  // Phase 1: Flood fill from borders, blocking drain columns → exterior ocean
+  const ocean = new Uint8Array(total);
+  const q1 = [];
+  function seedOcean(i, j, k) {
+    const idx = voxIdx(i, j, k, res);
+    if (grid[idx] === 0 && ocean[idx] === 0 && !drainIK.has(i * res + k)) {
+      ocean[idx] = 1; q1.push(i, j, k);
+    }
+  }
+  for (let a = 0; a < res; a++)
+    for (let b = 0; b < res; b++) {
+      seedOcean(a, b, 0); seedOcean(a, b, res-1);
+      seedOcean(0, a, b); seedOcean(res-1, a, b);
+      seedOcean(a, 0, b); seedOcean(a, res-1, b);
+    }
+  let h1 = 0;
+  while (h1 < q1.length) {
+    const x = q1[h1++], y = q1[h1++], z = q1[h1++];
     for (const [dx, dy, dz] of dirs) {
       const nx = x+dx, ny = y+dy, nz = z+dz;
       if (nx < 0 || nx >= res || ny < 0 || ny >= res || nz < 0 || nz >= res) continue;
       const idx = voxIdx(nx, ny, nz, res);
-      if (grid[idx] === 0) { grid[idx] = EXTERIOR; queue.push(nx, ny, nz); }
+      if (grid[idx] === 0 && ocean[idx] === 0 && !drainIK.has(nx * res + nz)) {
+        ocean[idx] = 1; q1.push(nx, ny, nz);
+      }
     }
   }
 
-  // Count sealed air (still 0) and total drain-reachable air
-  let sealedVoxels = 0;
-  let reachableVoxels = 0;
-  for (let i = 0; i < grid.length; i++) {
-    if (grid[i] === 0) sealedVoxels++;
-    if (grid[i] === EXTERIOR) reachableVoxels++;
+  // Phase 2: Normal flood fill from borders → all reachable air
+  const reachable = new Uint8Array(total);
+  const q2 = [];
+  function seedReachable(i, j, k) {
+    const idx = voxIdx(i, j, k, res);
+    if (grid[idx] === 0 && reachable[idx] === 0) {
+      reachable[idx] = 1; q2.push(i, j, k);
+    }
+  }
+  for (let a = 0; a < res; a++)
+    for (let b = 0; b < res; b++) {
+      seedReachable(a, b, 0); seedReachable(a, b, res-1);
+      seedReachable(0, a, b); seedReachable(res-1, a, b);
+      seedReachable(a, 0, b); seedReachable(a, res-1, b);
+    }
+  let h2 = 0;
+  while (h2 < q2.length) {
+    const x = q2[h2++], y = q2[h2++], z = q2[h2++];
+    for (const [dx, dy, dz] of dirs) {
+      const nx = x+dx, ny = y+dy, nz = z+dz;
+      if (nx < 0 || nx >= res || ny < 0 || ny >= res || nz < 0 || nz >= res) continue;
+      const idx = voxIdx(nx, ny, nz, res);
+      if (grid[idx] === 0 && reachable[idx] === 0) {
+        reachable[idx] = 1; q2.push(nx, ny, nz);
+      }
+    }
   }
 
-  // Restore grid
-  for (let i = 0; i < grid.length; i++) {
-    if (grid[i] === EXTERIOR) grid[i] = 0;
+  // Classify: ocean / internal-reachable / sealed
+  let oceanCount = 0, internalReachable = 0, sealedVoxels = 0;
+  for (let idx = 0; idx < total; idx++) {
+    if (grid[idx] !== 0) continue;
+    if (ocean[idx] === 1) { oceanCount++; }
+    else if (reachable[idx] === 1) { internalReachable++; }
+    else { sealedVoxels++; }
   }
 
-  const totalAir = sealedVoxels + reachableVoxels;
-  const reachablePct = totalAir > 0 ? (reachableVoxels / totalAir * 100) : 100;
+  // Count sealed cavity components (not just voxels)
+  const visited = new Uint8Array(total);
+  let sealedCavityCount = 0;
+  for (let i = 0; i < res; i++)
+    for (let j = 0; j < res; j++)
+      for (let k = 0; k < res; k++) {
+        const idx = voxIdx(i, j, k, res);
+        if (grid[idx] !== 0 || reachable[idx] === 1 || ocean[idx] === 1 || visited[idx] === 1) continue;
+        sealedCavityCount++;
+        visited[idx] = 1;
+        const cq = [i, j, k];
+        let ch = 0;
+        while (ch < cq.length) {
+          const cx = cq[ch++], cy = cq[ch++], cz = cq[ch++];
+          for (const [dx, dy, dz] of dirs) {
+            const nx = cx+dx, ny = cy+dy, nz = cz+dz;
+            if (nx < 0 || nx >= res || ny < 0 || ny >= res || nz < 0 || nz >= res) continue;
+            const nIdx = voxIdx(nx, ny, nz, res);
+            if (grid[nIdx] === 0 && reachable[nIdx] === 0 && ocean[nIdx] === 0 && visited[nIdx] === 0) {
+              visited[nIdx] = 1; cq.push(nx, ny, nz);
+            }
+          }
+        }
+      }
 
-  return { sealedCavities: sealedVoxels, drainReachableVolumePct: Math.round(reachablePct * 10) / 10 };
+  const internalVoid = internalReachable + sealedVoxels;
+  const pct = internalVoid > 0 ? Math.round(internalReachable / internalVoid * 1000) / 10 : 100;
+
+  return {
+    sealedCavityCount,
+    sealedAirVoxels: sealedVoxels,
+    internalVoidVoxels: internalVoid,
+    drainReachableInternalVoxels: internalReachable,
+    drainReachableVolumePct: pct,
+  };
 }
 
 // ─── Marching Cubes ───
@@ -1108,46 +1226,41 @@ function countComponents(indices, triCount, vertexCount) {
   return usedRoots.size;
 }
 
-// ─── Surface Deviation ───
+// ─── Surface Deviation (bidirectional) ───
 
-function computeSurfaceDeviation(originalMesh, outputMesh, scale) {
-  const { vertices: srcV, vertexCount: srcN } = originalMesh;
-  const { vertices: outV, vertexCount: outN } = outputMesh;
-
-  // Compute original mesh bounding box to exclude pedestal/margin vertices
-  let srcMinX = Infinity, srcMaxX = -Infinity;
-  let srcMinY = Infinity, srcMaxY = -Infinity;
-  let srcMinZ = Infinity, srcMaxZ = -Infinity;
-  for (let i = 0; i < srcN; i++) {
-    const x = srcV[i*3], y = srcV[i*3+1], z = srcV[i*3+2];
-    if (x < srcMinX) srcMinX = x; if (x > srcMaxX) srcMaxX = x;
-    if (y < srcMinY) srcMinY = y; if (y > srcMaxY) srcMaxY = y;
-    if (z < srcMinZ) srcMinZ = z; if (z > srcMaxZ) srcMaxZ = z;
+function directionalDeviation(refV, refN, queryV, queryN, scale, clipBounds) {
+  let rMinX = Infinity, rMaxX = -Infinity;
+  let rMinY = Infinity, rMaxY = -Infinity;
+  let rMinZ = Infinity, rMaxZ = -Infinity;
+  for (let i = 0; i < refN; i++) {
+    const x = refV[i*3], y = refV[i*3+1], z = refV[i*3+2];
+    if (x < rMinX) rMinX = x; if (x > rMaxX) rMaxX = x;
+    if (y < rMinY) rMinY = y; if (y > rMaxY) rMaxY = y;
+    if (z < rMinZ) rMinZ = z; if (z > rMaxZ) rMaxZ = z;
   }
-  const srcMargin = Math.max(srcMaxX-srcMinX, srcMaxY-srcMinY, srcMaxZ-srcMinZ) * 0.02;
 
-  // Build spatial grid of original vertices for fast nearest-neighbor lookup
-  const cellSz = Math.max(srcMaxX-srcMinX, srcMaxY-srcMinY, srcMaxZ-srcMinZ) / 50;
+  const cellSz = Math.max(rMaxX-rMinX, rMaxY-rMinY, rMaxZ-rMinZ) / 50;
   const invCell = 1 / cellSz;
   const buckets = new Map();
 
-  for (let i = 0; i < srcN; i++) {
-    const x = srcV[i*3], y = srcV[i*3+1], z = srcV[i*3+2];
+  for (let i = 0; i < refN; i++) {
+    const x = refV[i*3], y = refV[i*3+1], z = refV[i*3+2];
     const gx = Math.floor(x * invCell), gy = Math.floor(y * invCell), gz = Math.floor(z * invCell);
     const key = `${gx},${gy},${gz}`;
     if (!buckets.has(key)) buckets.set(key, []);
     buckets.get(key).push(i);
   }
 
+  const margin = clipBounds ? Math.max(rMaxX-rMinX, rMaxY-rMinY, rMaxZ-rMinZ) * 0.02 : 0;
   const validDistances = [];
   let skipped = 0;
-  for (let i = 0; i < outN; i++) {
-    const x = outV[i*3], y = outV[i*3+1], z = outV[i*3+2];
+  for (let i = 0; i < queryN; i++) {
+    const x = queryV[i*3], y = queryV[i*3+1], z = queryV[i*3+2];
 
-    // Skip vertices outside original mesh bounds (pedestal, margin, engraving zones)
-    if (x < srcMinX - srcMargin || x > srcMaxX + srcMargin ||
-        y < srcMinY - srcMargin || y > srcMaxY + srcMargin ||
-        z < srcMinZ - srcMargin || z > srcMaxZ + srcMargin) {
+    if (clipBounds &&
+        (x < rMinX - margin || x > rMaxX + margin ||
+         y < rMinY - margin || y > rMaxY + margin ||
+         z < rMinZ - margin || z > rMaxZ + margin)) {
       skipped++;
       continue;
     }
@@ -1161,7 +1274,7 @@ function computeSurfaceDeviation(originalMesh, outputMesh, scale) {
           const bucket = buckets.get(`${gx+dx},${gy+dy},${gz+dz}`);
           if (!bucket) continue;
           for (const si of bucket) {
-            const ex = srcV[si*3]-x, ey = srcV[si*3+1]-y, ez = srcV[si*3+2]-z;
+            const ex = refV[si*3]-x, ey = refV[si*3+1]-y, ez = refV[si*3+2]-z;
             const d2 = ex*ex + ey*ey + ez*ez;
             if (d2 < bestDist2) bestDist2 = d2;
           }
@@ -1191,6 +1304,236 @@ function computeSurfaceDeviation(originalMesh, outputMesh, scale) {
   };
 }
 
+function computeSurfaceDeviation(originalMesh, outputMesh, scale) {
+  const { vertices: srcV, vertexCount: srcN } = originalMesh;
+  const { vertices: outV, vertexCount: outN } = outputMesh;
+
+  const forward = directionalDeviation(srcV, srcN, outV, outN, scale, true);
+  const reverse = directionalDeviation(outV, outN, srcV, srcN, scale, false);
+
+  return {
+    forward,
+    reverse,
+    bidirectionalMeanMM: Math.round((forward.meanMM + reverse.meanMM) / 2 * 1000) / 1000,
+    bidirectionalMaxMM: Math.max(forward.maxMM, reverse.maxMM),
+  };
+}
+
+// ─── Largest Component Filter ───
+
+function keepLargestComponent(mesh) {
+  const { vertices, indices, triCount, vertexCount } = mesh;
+
+  const parent = new Int32Array(vertexCount);
+  const rnk = new Uint8Array(vertexCount);
+  for (let i = 0; i < vertexCount; i++) parent[i] = i;
+  function find(x) {
+    while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; }
+    return x;
+  }
+  function union(a, b) {
+    a = find(a); b = find(b);
+    if (a === b) return;
+    if (rnk[a] < rnk[b]) { const t = a; a = b; b = t; }
+    parent[b] = a;
+    if (rnk[a] === rnk[b]) rnk[a]++;
+  }
+
+  for (let i = 0; i < triCount; i++) {
+    union(indices[i*3], indices[i*3+1]);
+    union(indices[i*3+1], indices[i*3+2]);
+  }
+
+  const compSize = new Map();
+  for (let i = 0; i < triCount; i++) {
+    const root = find(indices[i*3]);
+    compSize.set(root, (compSize.get(root) || 0) + 1);
+  }
+
+  if (compSize.size <= 1) return 0;
+
+  let maxRoot = -1, maxCount = 0;
+  for (const [root, count] of compSize) {
+    if (count > maxCount) { maxCount = count; maxRoot = root; }
+  }
+
+  const used = new Uint8Array(vertexCount);
+  for (let i = 0; i < triCount; i++) {
+    if (find(indices[i*3]) !== maxRoot) continue;
+    used[indices[i*3]] = 1;
+    used[indices[i*3+1]] = 1;
+    used[indices[i*3+2]] = 1;
+  }
+
+  const remap = new Int32Array(vertexCount).fill(-1);
+  let newVC = 0;
+  for (let i = 0; i < vertexCount; i++) {
+    if (used[i]) remap[i] = newVC++;
+  }
+
+  const newV = new Float64Array(newVC * 3);
+  for (let i = 0; i < vertexCount; i++) {
+    if (remap[i] >= 0) {
+      newV[remap[i]*3] = vertices[i*3];
+      newV[remap[i]*3+1] = vertices[i*3+1];
+      newV[remap[i]*3+2] = vertices[i*3+2];
+    }
+  }
+
+  let newTC = 0;
+  const newI = new Uint32Array(triCount * 3);
+  for (let i = 0; i < triCount; i++) {
+    if (find(indices[i*3]) !== maxRoot) continue;
+    newI[newTC*3] = remap[indices[i*3]];
+    newI[newTC*3+1] = remap[indices[i*3+1]];
+    newI[newTC*3+2] = remap[indices[i*3+2]];
+    newTC++;
+  }
+
+  const removed = triCount - newTC;
+  mesh.vertices = newV;
+  mesh.vertexCount = newVC;
+  mesh.indices = newI;
+  mesh.triCount = newTC;
+  return removed;
+}
+
+// ─── CRC32 (for ZIP/3MF) ───
+
+const CRC32_TABLE = new Uint32Array(256);
+for (let n = 0; n < 256; n++) {
+  let c = n;
+  for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+  CRC32_TABLE[n] = c;
+}
+function crc32(buf) {
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < buf.length; i++) crc = CRC32_TABLE[(crc ^ buf[i]) & 0xFF] ^ (crc >>> 8);
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+// ─── 3MF Export ───
+
+function export3MF(mesh, filepath, scaleFactor, metadata) {
+  const zlib = require('zlib');
+  const { vertices, indices, triCount, vertexCount } = mesh;
+
+  const contentTypes = Buffer.from(
+    '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">\n' +
+    '  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />\n' +
+    '  <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml" />\n' +
+    '</Types>\n'
+  );
+
+  const rels = Buffer.from(
+    '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n' +
+    '  <Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel" />\n' +
+    '</Relationships>\n'
+  );
+
+  const parts = [];
+  parts.push('<?xml version="1.0" encoding="UTF-8"?>\n');
+  parts.push('<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">\n');
+  parts.push(`  <metadata name="Title">${metadata.title}</metadata>\n`);
+  parts.push(`  <metadata name="Designer">${metadata.designer}</metadata>\n`);
+  parts.push(`  <metadata name="Description">${metadata.description}</metadata>\n`);
+  parts.push(`  <metadata name="CreationDate">${new Date().toISOString().split('T')[0]}</metadata>\n`);
+  parts.push('  <resources>\n    <object id="1" type="model">\n      <mesh>\n        <vertices>\n');
+
+  for (let i = 0; i < vertexCount; i++) {
+    const x = (vertices[i*3] * scaleFactor).toFixed(4);
+    const y = (vertices[i*3+1] * scaleFactor).toFixed(4);
+    const z = (vertices[i*3+2] * scaleFactor).toFixed(4);
+    parts.push(`          <vertex x="${x}" y="${y}" z="${z}" />\n`);
+  }
+
+  parts.push('        </vertices>\n        <triangles>\n');
+
+  for (let i = 0; i < triCount; i++) {
+    parts.push(`          <triangle v1="${indices[i*3]}" v2="${indices[i*3+1]}" v3="${indices[i*3+2]}" />\n`);
+  }
+
+  parts.push('        </triangles>\n      </mesh>\n    </object>\n  </resources>\n');
+  parts.push('  <build>\n    <item objectid="1" />\n  </build>\n');
+  parts.push('</model>\n');
+
+  const modelData = Buffer.from(parts.join(''));
+
+  const entries = [
+    { name: '[Content_Types].xml', data: contentTypes },
+    { name: '_rels/.rels', data: rels },
+    { name: '3D/3dmodel.model', data: modelData },
+  ];
+
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+
+  for (const entry of entries) {
+    const compressed = zlib.deflateRawSync(entry.data, { level: 6 });
+    const useDeflate = compressed.length < entry.data.length;
+    const method = useDeflate ? 8 : 0;
+    const stored = useDeflate ? compressed : entry.data;
+    const entryCrc = crc32(entry.data);
+    const nameB = Buffer.from(entry.name, 'utf8');
+
+    const lh = Buffer.alloc(30 + nameB.length);
+    lh.writeUInt32LE(0x04034b50, 0);
+    lh.writeUInt16LE(20, 4);
+    lh.writeUInt16LE(0, 6);
+    lh.writeUInt16LE(method, 8);
+    lh.writeUInt16LE(0, 10);
+    lh.writeUInt16LE(0, 12);
+    lh.writeUInt32LE(entryCrc, 14);
+    lh.writeUInt32LE(stored.length, 18);
+    lh.writeUInt32LE(entry.data.length, 22);
+    lh.writeUInt16LE(nameB.length, 26);
+    lh.writeUInt16LE(0, 28);
+    nameB.copy(lh, 30);
+    localParts.push(lh, stored);
+
+    const ch = Buffer.alloc(46 + nameB.length);
+    ch.writeUInt32LE(0x02014b50, 0);
+    ch.writeUInt16LE(20, 4);
+    ch.writeUInt16LE(20, 6);
+    ch.writeUInt16LE(0, 8);
+    ch.writeUInt16LE(method, 10);
+    ch.writeUInt16LE(0, 12);
+    ch.writeUInt16LE(0, 14);
+    ch.writeUInt32LE(entryCrc, 16);
+    ch.writeUInt32LE(stored.length, 20);
+    ch.writeUInt32LE(entry.data.length, 24);
+    ch.writeUInt16LE(nameB.length, 28);
+    ch.writeUInt16LE(0, 30);
+    ch.writeUInt16LE(0, 32);
+    ch.writeUInt16LE(0, 34);
+    ch.writeUInt16LE(0, 36);
+    ch.writeUInt32LE(0, 38);
+    ch.writeUInt32LE(offset, 42);
+    nameB.copy(ch, 46);
+    centralParts.push(ch);
+
+    offset += lh.length + stored.length;
+  }
+
+  const centralDir = Buffer.concat(centralParts);
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(0, 4);
+  eocd.writeUInt16LE(0, 6);
+  eocd.writeUInt16LE(entries.length, 8);
+  eocd.writeUInt16LE(entries.length, 10);
+  eocd.writeUInt32LE(centralDir.length, 12);
+  eocd.writeUInt32LE(offset, 16);
+  eocd.writeUInt16LE(0, 20);
+
+  const zipBuf = Buffer.concat([...localParts, centralDir, eocd]);
+  fs.writeFileSync(filepath, zipBuf);
+  return zipBuf.length;
+}
+
 // ─── STL Export ───
 
 function triNormal(v, i0, i1, i2) {
@@ -1206,7 +1549,7 @@ function exportSTL(mesh, filepath, scaleFactor) {
   const { vertices, indices, triCount } = mesh;
   const bufSize = 80 + 4 + triCount * 50;
   const buf = Buffer.alloc(bufSize);
-  buf.write('DMF RELIC 01 / THE RECEIVER / Drainable Core', 0, 'ascii');
+  buf.write('DMF RELIC 01 / THE RECEIVER / Manufacturing Master', 0, 'ascii');
   buf.writeUInt32LE(triCount, 80);
   let offset = 84;
   for (let i = 0; i < triCount; i++) {
@@ -1232,7 +1575,7 @@ function main() {
   const log = (s) => console.log(s);
 
   log('===================================================================');
-  log(' DMF RELIC 01 — Drainable Core Pipeline');
+  log(' DMF RELIC 01 — Manufacturing Master Pipeline');
   log('===================================================================');
   log('');
 
@@ -1361,18 +1704,19 @@ function main() {
   log(`  Total solid voxels (after drains): ${solidVoxels.toLocaleString()}`);
   log('');
 
-  // Step 7b: Connect sealed cavities to drain-reachable air
-  log('Step 7b: Connect sealed cavities to drains...');
-  const cavityInfo = connectCavitiesToDrains(grid, VOXEL_RES);
+  // Step 7b: Connect sealed cavities to designated drains
+  log('Step 7b: Connect sealed cavities to designated drains...');
+  const cavityInfo = connectCavitiesToDrains(grid, VOXEL_RES, drainInfo.positions, origin, cellSize, drainInfo.drainRadiusVox);
   log(`  Sealed cavities found: ${cavityInfo.sealedBefore}`);
   log(`  Channel voxels carved: ${cavityInfo.carved}`);
   log('');
 
-  // Step 7c: Verify drainability — all internal air reachable from drains
+  // Step 7c: Verify drainability — true internal metric (excludes exterior ocean)
   log('Step 7c: Verify drainability...');
-  const drainability = verifyDrainability(grid, VOXEL_RES);
-  log(`  Sealed voxels remaining: ${drainability.sealedCavities}`);
-  log(`  Drain-reachable air: ${drainability.drainReachableVolumePct}%`);
+  const drainability = verifyDrainability(grid, VOXEL_RES, drainInfo.positions, origin, cellSize, drainInfo.drainRadiusVox);
+  log(`  Sealed cavities: ${drainability.sealedCavityCount} (${drainability.sealedAirVoxels} voxels)`);
+  log(`  Internal void: ${drainability.internalVoidVoxels} voxels`);
+  log(`  Drain-reachable internal: ${drainability.drainReachableInternalVoxels} voxels (${drainability.drainReachableVolumePct}%)`);
   log('');
 
   // Step 8: Engrave text (subtract from voxels)
@@ -1399,6 +1743,15 @@ function main() {
   log('Step 9: Marching cubes isosurface extraction...');
   const result = marchingCubes(grid, VOXEL_RES, origin, cellSize);
   log(`  Extracted: ${result.vertexCount.toLocaleString()} vertices, ${result.triCount.toLocaleString()} triangles`);
+
+  // Step 9a: Keep only the largest connected component
+  const preComponents = countComponents(result.indices, result.triCount, result.vertexCount);
+  if (preComponents > 1) {
+    log(`  Components: ${preComponents} — filtering to largest...`);
+    const removed = keepLargestComponent(result);
+    log(`  Removed ${removed.toLocaleString()} triangles from ${preComponents - 1} small components`);
+    log(`  Result: ${result.vertexCount.toLocaleString()} vertices, ${result.triCount.toLocaleString()} triangles`);
+  }
   log('');
 
   // Compute scale factor early for surface deviation
@@ -1410,17 +1763,18 @@ function main() {
   }
   const earlyScale = TARGET_HEIGHT_MM / (earlyMaxY - earlyMinY);
 
-  // Step 9b: Surface deviation (fidelity measurement)
-  log('Step 9b: Surface deviation vs original GLB...');
+  // Step 9b: Bidirectional surface deviation (fidelity measurement)
+  log('Step 9b: Bidirectional surface deviation vs original GLB...');
   const deviation = computeSurfaceDeviation(
     { vertices: originalVertices, vertexCount: originalVertexCount },
     result,
     earlyScale
   );
-  log(`  Mean:  ${deviation.meanMM}mm`);
-  log(`  P95:   ${deviation.p95MM}mm`);
-  log(`  P99:   ${deviation.p99MM}mm`);
-  log(`  Max:   ${deviation.maxMM}mm`);
+  log(`  Forward (output→original):`);
+  log(`    Mean: ${deviation.forward.meanMM}mm  P95: ${deviation.forward.p95MM}mm  Max: ${deviation.forward.maxMM}mm`);
+  log(`  Reverse (original→output):`);
+  log(`    Mean: ${deviation.reverse.meanMM}mm  P95: ${deviation.reverse.p95MM}mm  Max: ${deviation.reverse.maxMM}mm`);
+  log(`  Bidirectional: mean=${deviation.bidirectionalMeanMM}mm  max=${deviation.bidirectionalMaxMM}mm`);
   log('');
 
   // Step 10: Validate
@@ -1483,10 +1837,17 @@ function main() {
   const volumeCM3 = volumeMM3 / 1000;
   const surfaceAreaMM2 = surfaceAreaModel * scale * scale;
 
-  // Step 12: Export STL + SHA-256
-  log('Step 12: Export STL...');
+  // Step 12: Export STL + 3MF + SHA-256
+  log('Step 12: Export STL + 3MF...');
   const stlSize = exportSTL(result, STL_PATH, scale);
   const stlHash = crypto.createHash('sha256').update(fs.readFileSync(STL_PATH)).digest('hex');
+
+  const threemfSize = export3MF(result, THREEMF_PATH, scale, {
+    title: 'DMF RELIC 01',
+    designer: 'DMF Manufacturing Pipeline',
+    description: 'THE RECEIVER — Edition 001',
+  });
+  const threemfHash = crypto.createHash('sha256').update(fs.readFileSync(THREEMF_PATH)).digest('hex');
 
   const pedestalMM = pedInfo.pedestalH * scale;
   const actualShellMM = Math.round(shellVoxels * cellSizeMM * 10) / 10;
@@ -1502,8 +1863,10 @@ function main() {
   log(`  Surface: ${(surfaceAreaMM2/100).toFixed(1)} cm²`);
   log(`  Hollow reduction: ${hollowReductionPct.toFixed(1)}%`);
   log(`  Signed volume: ${signedVolModel > 0 ? 'positive (outward normals)' : 'negative (inward normals — flip needed)'}`);
-  log(`  File: DMF_RELIC_01_ALPHA.stl (${(stlSize/1024/1024).toFixed(1)} MB, ${result.triCount.toLocaleString()} triangles)`);
-  log(`  SHA-256: ${stlHash}`);
+  log(`  STL: DMF_RELIC_01_ALPHA.stl (${(stlSize/1024/1024).toFixed(1)} MB, ${result.triCount.toLocaleString()} triangles)`);
+  log(`  STL SHA-256: ${stlHash}`);
+  log(`  3MF: DMF_RELIC_01.3mf (${(threemfSize/1024/1024).toFixed(1)} MB)`);
+  log(`  3MF SHA-256: ${threemfHash}`);
   log('');
 
   // Final gate report
@@ -1514,7 +1877,7 @@ function main() {
   const normalsPass = signedVolModel > 0;
   const shellPass = actualShellMM >= MIN_SHELL_MM;
   const drainPass = DRAIN_COUNT >= 2 && drainDiamActualMM >= MIN_DRAIN_MM;
-  const drainabilityPass = drainability.sealedCavities === 0;
+  const drainabilityPass = drainability.sealedCavityCount === 0 && drainability.drainReachableVolumePct === 100;
   const fabPass = envelopePass && hollowPass && normalsPass && shellPass && drainPass && drainabilityPass;
   const allPass = geoPass && topoPass && fabPass;
 
@@ -1540,28 +1903,35 @@ function main() {
   log(`   normals        = ${signedVolModel > 0 ? 'outward' : 'INWARD'} ${normalsPass ? 'PASS' : 'FAIL'}`);
   log('');
   log(' DRAINABILITY GATE');
-  log(`   sealed cavities = ${drainability.sealedCavities} ${drainabilityPass ? 'PASS' : 'FAIL'}`);
-  log(`   drain-reachable = ${drainability.drainReachableVolumePct}% ${drainability.drainReachableVolumePct === 100 ? 'PASS' : 'WARN'}`);
+  log(`   sealed cavities = ${drainability.sealedCavityCount} ${drainability.sealedCavityCount === 0 ? 'PASS' : 'FAIL'}`);
+  log(`   sealed voxels   = ${drainability.sealedAirVoxels}`);
+  log(`   internal void   = ${drainability.internalVoidVoxels} voxels`);
+  log(`   drain-reachable = ${drainability.drainReachableVolumePct}% ${drainability.drainReachableVolumePct === 100 ? 'PASS' : 'FAIL'}`);
   log('');
-  log(' FIDELITY');
-  log(`   deviation mean  = ${deviation.meanMM}mm`);
-  log(`   deviation P95   = ${deviation.p95MM}mm`);
-  log(`   deviation P99   = ${deviation.p99MM}mm`);
-  log(`   deviation max   = ${deviation.maxMM}mm`);
+  log(' FIDELITY (bidirectional)');
+  log(`   forward mean    = ${deviation.forward.meanMM}mm`);
+  log(`   forward P95     = ${deviation.forward.p95MM}mm`);
+  log(`   forward max     = ${deviation.forward.maxMM}mm`);
+  log(`   reverse mean    = ${deviation.reverse.meanMM}mm`);
+  log(`   reverse P95     = ${deviation.reverse.p95MM}mm`);
+  log(`   reverse max     = ${deviation.reverse.maxMM}mm`);
+  log(`   bidir mean      = ${deviation.bidirectionalMeanMM}mm`);
+  log(`   bidir max       = ${deviation.bidirectionalMaxMM}mm`);
   log('');
   log(' REPRODUCIBILITY');
   log(`   STL SHA-256    = ${stlHash}`);
+  log(`   3MF SHA-256    = ${threemfHash}`);
   log('===================================================================');
 
   if (allPass) {
     log('');
-    log('ALL GATES PASSED — Drainable Core ready.');
+    log('ALL GATES PASSED — Manufacturing Master ready.');
   } else {
     log('');
     if (!geoPass) log('TOPOLOGY GATE FAILED.');
     if (!topoPass) log(`TOPOLOGY GATE FAILED — ${components} components instead of 1.`);
-    if (!fabPass) log('FABRICATION GATE FAILED — check envelope/volume/normals.');
-    log('STL exported for inspection.');
+    if (!fabPass) log('FABRICATION GATE FAILED — check envelope/volume/normals/drainability.');
+    log('Files exported for inspection.');
   }
 
   // Machine-readable gate output for CI
@@ -1583,15 +1953,24 @@ function main() {
     drainCount: DRAIN_COUNT,
     drainDiameterMM: drainDiamActualMM,
     hollowReductionPct: Math.round(hollowReductionPct * 10) / 10,
-    sealedCavities: drainability.sealedCavities,
+    sealedCavityCount: drainability.sealedCavityCount,
+    sealedAirVoxels: drainability.sealedAirVoxels,
+    internalVoidVoxels: drainability.internalVoidVoxels,
     drainReachableVolumePct: drainability.drainReachableVolumePct,
-    surfaceDeviationMeanMM: deviation.meanMM,
-    surfaceDeviationMaxMM: deviation.maxMM,
-    surfaceDeviationP95MM: deviation.p95MM,
+    surfaceDeviationMeanMM: deviation.forward.meanMM,
+    surfaceDeviationMaxMM: deviation.forward.maxMM,
+    surfaceDeviationP95MM: deviation.forward.p95MM,
+    surfaceDeviationReverseMeanMM: deviation.reverse.meanMM,
+    surfaceDeviationReverseMaxMM: deviation.reverse.maxMM,
+    surfaceDeviationReverseP95MM: deviation.reverse.p95MM,
+    bidirectionalMeanMM: deviation.bidirectionalMeanMM,
+    bidirectionalMaxMM: deviation.bidirectionalMaxMM,
     printerProfile: PRINTER.name,
     triangles: result.triCount,
     stlBytes: stlSize,
     stlSHA256: stlHash,
+    threemfBytes: threemfSize,
+    threemfSHA256: threemfHash,
     pass: allPass
   };
   const gatePath = path.join(__dirname, '..', 'assets', 'models', 'GEOMETRY_GATE.json');

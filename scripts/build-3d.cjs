@@ -136,7 +136,7 @@ const bodyInjection = `${BODY_MARKER}
           '<div class="dmf-signal-actions">',
             '<a class="dmf-signal-cta dmf-signal-view3d" href="javascript:void(0)" role="button"><span data-dmf-en="View Relic" data-dmf-es="Ver Reliquia">View Relic</span><span aria-hidden="true"> \\u2192</span></a>',
             '<a class="dmf-signal-cta dmf-signal-cta--secondary" href="assets/models/dmf-studio-optimized.glb" download><span data-dmf-en="Download Digital Relic" data-dmf-es="Descargar Reliquia Digital">Download Digital Relic</span></a>',
-            '<a class="dmf-signal-cta dmf-signal-cta--tertiary" href="javascript:void(0)" role="button" aria-disabled="true"><span data-dmf-en="3D Print Master" data-dmf-es="Modelo Impresi\\u00f3n 3D">3D Print Master</span><span class="dmf-signal-chip-inline" data-dmf-en="Coming Soon" data-dmf-es="Pr\\u00f3ximamente">Coming Soon</span></a>',
+            '<a class="dmf-signal-cta dmf-signal-cta--tertiary" href="assets/models/DMF_RELIC_01.3mf" download><span data-dmf-en="3D Print Master" data-dmf-es="Modelo Impresi\\u00f3n 3D">3D Print Master</span></a>',
           '</div>',
           '<span class="dmf-signal-hint" data-dmf-en="Interactive \\u00b7 drag to orbit" data-dmf-es="Interactivo \\u00b7 arrastra para rotar">Interactive \\u00b7 drag to orbit</span>',
         '</div>',

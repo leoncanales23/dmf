@@ -114,9 +114,10 @@ jobs:
               ['hollowReductionPct',      g.hollowReductionPct >= 50,                    g.hollowReductionPct],
               ['shellThicknessMM',        g.shellThicknessMM >= 1.5,                     g.shellThicknessMM],
               ['drainCount',              g.drainCount >= 2,                             g.drainCount],
-              ['sealedCavities',          g.sealedCavities === 0,                        g.sealedCavities],
+              ['sealedCavityCount',       g.sealedCavityCount === 0,                     g.sealedCavityCount],
               ['drainReachableVolumePct', g.drainReachableVolumePct === 100,             g.drainReachableVolumePct],
               ['stlSHA256',               typeof g.stlSHA256 === 'string' && g.stlSHA256.length === 64, g.stlSHA256],
+              ['threemfSHA256',           typeof g.threemfSHA256 === 'string' && g.threemfSHA256.length === 64, g.threemfSHA256],
               ['pass',                    g.pass === true,                               g.pass],
             ];
             let ok = true;
@@ -128,25 +129,39 @@ jobs:
             console.log('ALL GATES PASSED');
           " "$GATE"
 
-      - name: Validate STL exists and is non-trivial
+      - name: Validate STL and 3MF exist and are non-trivial
         run: |
           STL=assets/models/DMF_RELIC_01_ALPHA.stl
           test -f "$STL"
           SIZE=$(stat -c%s "$STL")
           test "$SIZE" -gt 1000000
           echo "STL size: ${SIZE} bytes — OK"
+          THREEMF=assets/models/DMF_RELIC_01.3mf
+          test -f "$THREEMF"
+          TMFSIZE=$(stat -c%s "$THREEMF")
+          test "$TMFSIZE" -gt 100000
+          echo "3MF size: ${TMFSIZE} bytes — OK"
 
-      - name: Verify STL reproducibility (SHA-256)
+      - name: Verify STL + 3MF reproducibility (SHA-256)
         run: |
-          EXPECTED=$(node -e "const g=require('./assets/models/GEOMETRY_GATE.json'); console.log(g.stlSHA256)")
-          ACTUAL=$(sha256sum assets/models/DMF_RELIC_01_ALPHA.stl | cut -d' ' -f1)
-          if [ "$EXPECTED" != "$ACTUAL" ]; then
+          EXPECTED_STL=$(node -e "const g=require('./assets/models/GEOMETRY_GATE.json'); console.log(g.stlSHA256)")
+          ACTUAL_STL=$(sha256sum assets/models/DMF_RELIC_01_ALPHA.stl | cut -d' ' -f1)
+          if [ "$EXPECTED_STL" != "$ACTUAL_STL" ]; then
             echo "FAIL: STL SHA-256 mismatch"
-            echo "  Expected: $EXPECTED"
-            echo "  Actual:   $ACTUAL"
+            echo "  Expected: $EXPECTED_STL"
+            echo "  Actual:   $ACTUAL_STL"
             exit 1
           fi
-          echo "STL SHA-256 verified: $ACTUAL"
+          echo "STL SHA-256 verified: $ACTUAL_STL"
+          EXPECTED_3MF=$(node -e "const g=require('./assets/models/GEOMETRY_GATE.json'); console.log(g.threemfSHA256)")
+          ACTUAL_3MF=$(sha256sum assets/models/DMF_RELIC_01.3mf | cut -d' ' -f1)
+          if [ "$EXPECTED_3MF" != "$ACTUAL_3MF" ]; then
+            echo "FAIL: 3MF SHA-256 mismatch"
+            echo "  Expected: $EXPECTED_3MF"
+            echo "  Actual:   $ACTUAL_3MF"
+            exit 1
+          fi
+          echo "3MF SHA-256 verified: $ACTUAL_3MF"
 
       - name: Verify pipeline reproducibility
         run: |
