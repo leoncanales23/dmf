@@ -54,11 +54,11 @@ raycasting measurement — treat as indicative, not a manufacturing spec.
 The silhouette and primary structure are viable — they need repair,
 fusion, and a stability pedestal before export to STL/3MF.
 
-**Repair pipeline** (`scripts/repair-geometry.cjs` — Drainable Core):
+**Repair pipeline** (`scripts/repair-geometry.cjs` — Manufacturing Master):
 
 Approach: volumetric manifold rebuild via voxelization + marching cubes,
-with shell hollowing, drain engineering, drainability verification, and
-surface fidelity measurement.
+with shell hollowing, designated-drain routing, true internal drainability,
+bidirectional surface fidelity, and dual-format export (STL + 3MF).
 `repaired surfaces → voxel union (256³) → hollow shell → drains → drain verify → manifold validation`
 
 1. Remove 145 degenerate triangles and 8,000 debris components
@@ -70,17 +70,22 @@ surface fidelity measurement.
 7. Hollow interior — BFS distance transform carves voxels deeper than
    shell thickness (2.5mm / ~4 voxels), pedestal stays solid
 7b. Carve drain holes — 2× ~2.5mm channels through pedestal bottom
-7c. Connect sealed cavities to drain-reachable air — flood fill from
-    borders identifies exterior+drain-connected air, then carves channels
-    from each sealed cavity to nearest drain-connected voxel
-7d. Verify drainability — final flood fill confirms sealed cavities = 0
-    and drain-reachable volume = 100%
+7c. Connect sealed cavities to designated drains — receives drain positions
+    from step 7b, BFS from each sealed cavity to nearest drain-column air
+    (never routes through the figure's exterior surface)
+7d. Verify drainability — true internal metric: flood fill from borders
+    with drain columns blocked identifies exterior ocean; normal flood fill
+    identifies all reachable air; internal void = total air − ocean;
+    drain-reachable internal = reachable − ocean; reports sealed cavity
+    count, sealed air voxels, and drain-reachable percentage
 8. Engrave text via stroke font: DMF RELIC 01 / THE RECEIVER / 001
 9. Marching cubes isosurface extraction → single manifold shell
-9b. Surface deviation measurement — spatial-hash nearest-neighbor lookup
-    comparing output mesh vertices to original GLB vertices (in mm at scale)
+9a. Keep largest connected component (remove marching cubes artifacts)
+9b. Bidirectional surface deviation — forward (output→original) and
+    reverse (original→output) nearest-neighbor lookup via spatial hash;
+    reports per-direction mean/P95/max and bidirectional max
 10. Validate topology + fabrication + drainability gates
-11. Export STL + SHA-256 hash
+11. Export STL + 3MF (with metadata) + SHA-256 hashes
 
 **Topology Gate** (0/0/0/1):
 - boundary=0 ✓
@@ -98,27 +103,36 @@ surface fidelity measurement.
 - Pedestal: solid fused ✓
 - Engraving: stroke-font glyphs at 256³ resolution ✓
 
-**Drainability Gate**:
-- Sealed cavities after drain connection: 0 ✓
+**Drainability Gate** (true internal metric):
+- Exterior ocean excluded from denominator
+- Sealed cavity count: 0 ✓
+- Sealed air voxels: 0 ✓
 - Drain-reachable internal air: 100% ✓
-- All cavity air reachable from at least one drain hole
+- Routing: designated-drain only (never exterior surface)
 
-**Surface Fidelity** (GLB → Print Master):
-- Mean deviation: ~2.6mm (voxel quantization at 256³)
-- P95: ~7.3mm, Max: ~14.0mm (concavities/thin features smoothed)
-- Pedestal/margin vertices excluded from measurement
+**Surface Fidelity** (bidirectional, GLB ↔ Print Master):
+- Forward (output→original): measures added geometry
+- Reverse (original→output): detects lost features
+- Pedestal/margin vertices excluded from forward measurement
+- Reports per-direction mean/P95/max and bidirectional max
 
 **Printer Profiles**:
 - `plateWidthMM` / `plateDepthMM` / `buildHeightMM` — unambiguous axis naming
 - Currently: Generic Resin 200mm (200×200×200)
 - Swappable for real printer specs in PR34
 
+**Export Formats**:
+- STL: binary, scaled to mm, SHA-256 in gate
+- 3MF: ZIP container with XML model, metadata (title, designer,
+  description, creation date), scaled to mm, SHA-256 in gate
+- Print Master button on landing page downloads the 3MF file
+
 **Reproducibility**:
-- STL SHA-256 committed in GEOMETRY_GATE.json
-- CI verifies gate + preflight + STL hash match regenerated
+- STL + 3MF SHA-256 committed in GEOMETRY_GATE.json
+- CI verifies gate + preflight + both hashes match regenerated
 
 **CI validation**: `validate-print` job runs preflight + repair + gate checks
-(including drainability + fidelity) + STL SHA-256 verification +
+(including drainability + fidelity) + STL/3MF SHA-256 verification +
 reproducibility (committed artifacts must match).
 
-**Pipeline**: `scripts/preflight-print.cjs` (analysis) → `scripts/repair-geometry.cjs` (repair) → CI validates `GEOMETRY_GATE.json` + STL hash
+**Pipeline**: `scripts/preflight-print.cjs` (analysis) → `scripts/repair-geometry.cjs` (repair) → CI validates `GEOMETRY_GATE.json` + STL/3MF hashes
