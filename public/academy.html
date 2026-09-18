@@ -227,8 +227,16 @@ a:hover{color:#ff7a45}
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
+var __dmfFirebaseReady = false;
 if (window.__DMF_FIREBASE_CONFIG__) {
-  firebase.initializeApp(window.__DMF_FIREBASE_CONFIG__);
+  try {
+    if (typeof firebase !== 'undefined' && firebase.initializeApp) {
+      firebase.initializeApp(window.__DMF_FIREBASE_CONFIG__);
+      __dmfFirebaseReady = !!(firebase.apps && firebase.apps.length > 0 && firebase.auth && firebase.firestore);
+    }
+  } catch (e) {
+    __dmfFirebaseReady = false;
+  }
 }
 </script>
 <script src="/academy-config.js"></script>
@@ -239,27 +247,32 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   var DEMO_MODE = !!(window.__DMF_ACADEMY_DEMO__);
   var auth = null;
   var hasAccess = false;
-  var firebaseReady = typeof firebase !== 'undefined' && !!firebase.auth;
-
-  try { auth = JSON.parse(sessionStorage.getItem('dmf_auth')); } catch (e) { /* ignore */ }
 
   // --- Entitlement (Firestore) ---
   function checkEntitlement(uid, callback) {
-    if (typeof firebase !== 'undefined' && firebase.firestore) {
-      firebase.firestore().collection('enrollments').doc(uid).get()
-        .then(function (doc) {
-          callback(doc.exists && doc.data().status === 'active');
-        })
-        .catch(function () { callback(false); });
+    if (__dmfFirebaseReady) {
+      try {
+        firebase.firestore().collection('enrollments').doc(uid).get()
+          .then(function (doc) {
+            var data = doc.exists ? doc.data() : null;
+            callback(!!(data && data.status === 'active'));
+          })
+          .catch(function () { callback(false); });
+      } catch (e) {
+        callback(false);
+      }
     } else {
       callback(false);
     }
   }
 
   // --- Auth routing ---
-  if (DEMO_MODE && auth && auth.demo) {
-    hasAccess = true;
-  } else if (firebaseReady) {
+  if (DEMO_MODE) {
+    try { auth = JSON.parse(sessionStorage.getItem('dmf_auth')); } catch (e) { /* ignore */ }
+    if (auth && auth.demo) {
+      hasAccess = true;
+    }
+  } else if (__dmfFirebaseReady) {
     firebase.auth().onAuthStateChanged(function (user) {
       if (user) {
         auth = { email: user.email, uid: user.uid };

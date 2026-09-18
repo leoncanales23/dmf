@@ -11,7 +11,7 @@ const DEMO = process.env.DMF_ACADEMY_DEMO === 'true';
 
 const FIREBASE_API_KEY = process.env.DMF_FIREBASE_API_KEY || '';
 const FIREBASE_AUTH_DOMAIN = process.env.DMF_FIREBASE_AUTH_DOMAIN || '';
-const FIREBASE_PROJECT_ID = process.env.DMF_FIREBASE_PROJECT_ID || 'vibraaltoai-11f55';
+const FIREBASE_PROJECT_ID = process.env.DMF_FIREBASE_PROJECT_ID || 'dmf-academy';
 
 const lines = [];
 lines.push('// DMF Academy — Runtime Environment (generated at build time)');

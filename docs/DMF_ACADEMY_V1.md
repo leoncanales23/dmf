@@ -6,6 +6,23 @@ The Student Portal is a client-side SPA served alongside the existing DMF landin
 It does not modify or interfere with the 3D/WebGL pipeline, Manufacturing Master,
 or any existing inject scripts (PR25–35 scope is frozen).
 
+### Infrastructure Separation
+
+DMF uses two separate Firebase projects intentionally:
+
+| Concern | Firebase Project | Purpose |
+|---------|-----------------|---------|
+| **Hosting** | `vibraaltoai-11f55` | Firebase Hosting for `dmf.vibraalto.cl` (landing, 3D, dmfTraining) |
+| **Academy Auth + Firestore** | `dmf-academy` | Firebase Authentication, Cloud Firestore (enrollments) |
+| **Video Streaming** | Cloudflare Stream | HLS video delivery via per-lesson UID mapping |
+
+The web app hosted on `vibraaltoai-11f55` consumes Firebase Auth + Firestore
+from the `dmf-academy` project via runtime configuration injected by `academy-env.js`.
+
+**Do not merge these projects.** `.firebaserc` points to `vibraaltoai-11f55`
+for Hosting deployments. Firestore rules must be deployed separately with
+`--project dmf-academy`.
+
 ### File Structure
 
 ```
@@ -18,6 +35,8 @@ public/
 scripts/
   inject-academy-link.cjs — Injects "Student Access" link into landing nav
   inject-academy-env.cjs  — Generates academy-env.js from env vars at build time
+
+firestore.rules       — Firestore security rules for dmf-academy project
 
 docs/
   DMF_ACADEMY_V1.md   — This file
@@ -52,7 +71,8 @@ It uses the `DMF_ACADEMY_LINK` marker to avoid duplicate injection.
 
 `inject-academy-env.cjs` generates `public/academy-env.js` from environment variables,
 setting `window.__DMF_STREAM_BASE__`, `window.__DMF_ACADEMY_DEMO__`, and
-`window.__DMF_FIREBASE_CONFIG__` for runtime use.
+`window.__DMF_FIREBASE_CONFIG__` for runtime use. The Firebase config points to the
+`dmf-academy` project (via `DMF_FIREBASE_PROJECT_ID` GitHub Secret).
 
 ## Modules
 
@@ -132,9 +152,9 @@ that serves HLS at `/{uid}/manifest/video.m3u8`.
 |---------------------------|----------------------------|------------------------------------------|
 | `DMF_STREAM_BASE`         | `http://localhost:8080`    | HLS stream server base URL               |
 | `DMF_ACADEMY_DEMO`        | (not set)                  | Set `true` to enable demo login mode     |
-| `DMF_FIREBASE_API_KEY`    | (not set)                  | Firebase Web API key                     |
-| `DMF_FIREBASE_AUTH_DOMAIN`| `{projectId}.firebaseapp.com` | Firebase Auth domain                  |
-| `DMF_FIREBASE_PROJECT_ID` | `vibraaltoai-11f55`        | Firebase project ID                      |
+| `DMF_FIREBASE_API_KEY`    | (not set)                  | Firebase Web API key (dmf-academy)       |
+| `DMF_FIREBASE_AUTH_DOMAIN`| `dmf-academy.firebaseapp.com` | Firebase Auth domain (dmf-academy)    |
+| `DMF_FIREBASE_PROJECT_ID` | `dmf-academy`              | Firebase project ID for Auth + Firestore |
 | `MP_PUBLIC_KEY`            | —                          | Mercado Pago public key (existing)       |
 | `MP_ACCESS_TOKEN`          | —                          | Mercado Pago access token (existing)     |
 | `PORT`                     | `3000`                     | Express server port (existing)           |
@@ -142,40 +162,83 @@ that serves HLS at `/{uid}/manifest/video.m3u8`.
 
 ## Demo Mode
 
-When `DMF_ACADEMY_DEMO=true` (build-time env) or `?demo=true` on the login page:
+When `DMF_ACADEMY_DEMO=true` (build-time env only):
 - Login accepts any email/password
 - Auth stored in `sessionStorage` (not persistent)
 - All modules unlocked (no sequential gating)
 - No Firebase Auth required
 - Entitlement check bypassed
 
+Demo mode is activated **only** via build-time environment variable.
+Query string `?demo=true` is **not** supported — it was removed to prevent
+production bypass. Do not set `DMF_ACADEMY_DEMO` in production.
+
 ## Authentication
 
 Firebase Auth SDK loaded from CDN (firebase-app-compat + firebase-auth-compat v10.12.0).
 Initialized at page load if `window.__DMF_FIREBASE_CONFIG__` is set by `academy-env.js`.
 
+The Firebase config points to the **`dmf-academy`** project, not the hosting project.
+
+Initialization is guarded: if `firebase.initializeApp()` fails or the SDK is not
+loaded, login shows "Authentication service is not configured." instead of
+throwing an unhandled exception.
+
 Flow:
 1. `login.html`: `signInWithEmailAndPassword` → redirect to `/academy`
 2. `academy.html`: `onAuthStateChanged` → if user exists, check entitlement → init
 
-Fallback: demo mode uses `sessionStorage`-based auth with no external deps.
+Firebase Auth maintains its own session persistence. Production auth does **not**
+depend on `sessionStorage` (`dmf_auth`) — that key is used exclusively by demo mode.
+
+### Error Handling
+
+Login error codes are mapped to safe, non-enumerating messages:
+
+| Firebase Code | User Message |
+|---------------|-------------|
+| `auth/invalid-credential` | Invalid email or password. |
+| `auth/user-not-found` | Invalid email or password. |
+| `auth/wrong-password` | Invalid email or password. |
+| `auth/invalid-email` | Please enter a valid email address. |
+| `auth/too-many-requests` | Too many attempts. Try again later. |
+| `auth/user-disabled` | This account has been disabled. Contact support. |
+
+No error code reveals whether an email exists in the system.
 
 ## Entitlement
 
 Separated from authentication. Auth answers "who are you?", entitlement answers
 "do you have access?"
 
-Implementation: Firestore document check at `enrollments/{uid}`.
+Implementation: Firestore document check at `enrollments/{uid}` in the
+**`dmf-academy`** project.
 - Document must exist with `status: 'active'` for access to be granted
 - Requires firebase-firestore-compat SDK (loaded in academy.html)
 - In demo mode, entitlement check is bypassed
 
+Access is **fail-closed**: any Firestore error, missing document, or non-active
+status results in "Access Required." Access is never granted by:
+- Query parameters
+- localStorage / sessionStorage
+- URL patterns
+- Payment result URLs
+- Email alone
+- Presence of streamUid
+
 ### Firestore Setup Required
 
-1. Enable Cloud Firestore in the Firebase console for project `vibraaltoai-11f55`
-2. Create collection `enrollments`
-3. Add a document with ID = user's Firebase Auth UID, containing `{ status: "active" }`
-4. Deploy Firestore security rules allowing authenticated users to read their own document:
+1. Open Firebase console for project **`dmf-academy`**
+2. Enable **Authentication** → Email/Password provider
+3. Enable **Cloud Firestore** database
+4. Deploy security rules: `firebase deploy --only firestore:rules --project dmf-academy`
+5. Create a test user in Firebase Auth
+6. Get the user's Firebase UID from the Auth console
+7. Create document `enrollments/{uid}` with content: `{ status: "active" }`
+
+### Firestore Security Rules
+
+File: `firestore.rules`
 
 ```
 rules_version = '2';
@@ -183,10 +246,39 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /enrollments/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update, delete: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
 ```
+
+Key properties:
+- Authenticated user can only read their own enrollment document
+- No client can create, update, or delete enrollment documents
+- All other collections are deny-by-default
+- Enrollment grants are done by backend/admin only (not implemented yet)
+
+## Firestore Rules Deployment
+
+**IMPORTANT**: `.firebaserc` points to `vibraaltoai-11f55` (the Hosting project).
+Firestore rules belong to the **`dmf-academy`** project.
+
+To deploy Firestore rules:
+
+```bash
+firebase deploy --only firestore:rules --project dmf-academy
+```
+
+**NEVER** run `firebase deploy --only firestore:rules` without `--project dmf-academy`.
+Without the project flag, rules would deploy to the hosting project, which is wrong.
+
+The CI/CD deploy workflow (`deploy.yml`) deploys **only Hosting** (and optionally
+the dmfTraining function). It does **not** deploy Firestore rules automatically.
+Firestore rules must be deployed manually or via a separate workflow targeting
+`dmf-academy`.
 
 ## Progress Tracking
 
@@ -212,10 +304,16 @@ must be connected to payment webhooks (production gap).
 - [x] Module lock enforced on direct URL access
 - [x] Build-time runtime config (inject-academy-env.cjs)
 - [x] CI hardened for MP4/TS/M3U8 (excluding public/uploads/)
+- [x] Cloudflare Stream hosting (per-lesson UID mapping)
+- [x] Firestore security rules (deny client writes, user-scoped reads)
+- [x] Firebase init guard (graceful failure)
+- [x] Login error handling (non-enumerating)
+- [x] Demo mode restricted to build-time only
+- [x] Two-project architecture documented (Hosting vs Academy)
 - [ ] Firestore enrollment documents linked to Mercado Pago payments
 - [ ] Payment webhook → entitlement grant flow
 - [ ] Server-side progress persistence (Firestore or API)
-- [ ] HLS stream hosting (Bunny.net or equivalent CDN)
+- [ ] Signed playback URLs (Cloudflare Stream)
 - [ ] Work submission system for practice assignments
 - [ ] Review/feedback workflow for instructors
 - [ ] Email notifications (enrollment confirmation, review ready)
@@ -228,11 +326,15 @@ must be connected to payment webhooks (production gap).
 - `textContent` used for all dynamic content rendering (XSS safe)
 - `escHtml()` helper for innerHTML where needed (module cards)
 - Stream URLs configured via build-time injection, not hardcoded
-- Auth tokens in `sessionStorage` (cleared on tab close in demo mode)
+- Demo auth in `sessionStorage` only — production uses Firebase Auth session persistence
 - Entitlement check separate from authentication (Firestore document)
 - URL parameters never trusted for access decisions
 - Firebase config injected at build time from environment variables
 - Locked modules enforced in client-side router
+- Firestore rules deny all client writes (enrollment admin-only)
+- Firebase init failures handled gracefully (no unhandled exceptions)
+- Login errors do not reveal user existence
+- No `?demo=true` query string activation in production
 
 ## CI Validation
 
@@ -243,3 +345,10 @@ must be connected to payment webhooks (production gap).
 4. No secrets in frontend files
 5. Firebase rewrites correct (academy routes before catch-all)
 6. HLS stream URLs configurable (not hardcoded)
+7. Cloudflare Stream UID mapping validated
+8. No Cloudflare secrets or hardcoded domains in frontend
+9. Firestore rules exist and enforce security (enrollments, deny writes)
+10. Docs reference `dmf-academy` project
+11. No frontend files reference `vibraaltoai-11f55` (hosting project)
+12. Login does not allow demo via query string
+13. No service account or admin credentials in frontend
