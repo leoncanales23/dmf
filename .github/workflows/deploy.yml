@@ -34,6 +34,8 @@ jobs:
           node scripts/inject-transmission.cjs
           node scripts/inject-compute-uplink.cjs
           node scripts/inject-training-state.cjs
+          node scripts/inject-academy-link.cjs
+          node scripts/inject-academy-env.cjs
           cp -r assets/images/* public/assets/images/ 2>/dev/null || true
           cp -r assets/logos/* public/assets/logos/ 2>/dev/null || true
           cp -r assets/docs/* public/assets/docs/ 2>/dev/null || true

@@ -222,33 +222,58 @@ a:hover{color:#ff7a45}
   </div>
 </div>
 
+<script src="/academy-env.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+if (window.__DMF_FIREBASE_CONFIG__) {
+  firebase.initializeApp(window.__DMF_FIREBASE_CONFIG__);
+}
+</script>
 <script src="/academy-config.js"></script>
 <script>
 (function () {
   'use strict';
 
-  // --- Auth check ---
+  var DEMO_MODE = !!(window.__DMF_ACADEMY_DEMO__);
   var auth = null;
+  var hasAccess = false;
+  var firebaseReady = typeof firebase !== 'undefined' && !!firebase.auth;
+
   try { auth = JSON.parse(sessionStorage.getItem('dmf_auth')); } catch (e) { /* ignore */ }
 
-  var firebaseUser = null;
-  if (typeof firebase !== 'undefined' && firebase.auth) {
+  // --- Entitlement (Firestore) ---
+  function checkEntitlement(uid, callback) {
+    if (typeof firebase !== 'undefined' && firebase.firestore) {
+      firebase.firestore().collection('enrollments').doc(uid).get()
+        .then(function (doc) {
+          callback(doc.exists && doc.data().status === 'active');
+        })
+        .catch(function () { callback(false); });
+    } else {
+      callback(false);
+    }
+  }
+
+  // --- Auth routing ---
+  if (DEMO_MODE && auth && auth.demo) {
+    hasAccess = true;
+  } else if (firebaseReady) {
     firebase.auth().onAuthStateChanged(function (user) {
       if (user) {
-        firebaseUser = user;
         auth = { email: user.email, uid: user.uid };
-        init();
-      } else if (!auth) {
+        checkEntitlement(user.uid, function (granted) {
+          hasAccess = granted;
+          init();
+        });
+      } else {
         window.location.href = '/login';
       }
     });
-  }
-
-  if (!auth && !firebaseUser) {
-    if (typeof firebase === 'undefined' || !firebase.auth) {
-      window.location.href = '/login';
-      return;
-    }
+  } else {
+    window.location.href = '/login';
+    return;
   }
 
   // --- Progress Store ---
@@ -310,12 +335,8 @@ a:hover{color:#ff7a45}
     }
   };
 
-  // --- Entitlement ---
   function hasCourseAccess() {
-    if (auth && auth.demo) return true;
-    // Future: check Firestore entitlement, API call, etc.
-    // For now, authenticated = access (placeholder for entitlement layer)
-    return !!auth;
+    return hasAccess;
   }
 
   // --- Language ---
@@ -573,7 +594,19 @@ a:hover{color:#ff7a45}
 
     var moduleMatch = path.match(/^\/academy\/module\/(\d{2})$/);
     if (moduleMatch) {
-      renderModuleView(moduleMatch[1]);
+      var modId = moduleMatch[1];
+      var targetMod = null;
+      for (var mi = 0; mi < MODULES.length; mi++) {
+        if (MODULES[mi].id === modId) { targetMod = MODULES[mi]; break; }
+      }
+      if (!targetMod || getModuleState(targetMod) === 'LOCKED') {
+        history.replaceState(null, '', '/academy');
+        renderDashboard();
+        dashboardView.style.display = 'block';
+        window.scrollTo(0, 0);
+        return;
+      }
+      renderModuleView(modId);
     } else {
       renderDashboard();
       dashboardView.style.display = 'block';
@@ -610,7 +643,7 @@ a:hover{color:#ff7a45}
     route();
   }
 
-  if (auth) init();
+  if (DEMO_MODE && auth && auth.demo) init();
 })();
 </script>
 

@@ -14,6 +14,7 @@ on:
       - 'scripts/repair-geometry.cjs'
       - 'scripts/preflight-print.cjs'
       - 'scripts/inject-academy-link.cjs'
+      - 'scripts/inject-academy-env.cjs'
       - 'functions/**'
       - 'assets/models/**'
       - 'index.html'
@@ -55,6 +56,7 @@ jobs:
           node scripts/inject-compute-uplink.cjs
           node scripts/inject-training-state.cjs
           node scripts/inject-academy-link.cjs
+          node scripts/inject-academy-env.cjs
           cat assets/models/dmf-signal.part0.b64 \
               assets/models/dmf-signal.part1.b64 \
               assets/models/dmf-signal.part2.b64 \
@@ -106,15 +108,17 @@ jobs:
             console.log('Module count: ' + moduleCount + ' — OK');
           "
 
-      - name: Validate no HLS stream files in repo
+      - name: Validate no media stream files in repo
         run: |
-          STREAMS=$(find . -name '*.m3u8' -not -path '*/node_modules/*' -not -path '*/.git/*' || true)
-          if [ -n "$STREAMS" ]; then
-            echo "FAIL: HLS manifest files found in repo:"
-            echo "$STREAMS"
+          MEDIA=$(find . \( -name '*.m3u8' -o -name '*.mp4' -o -name '*.ts' \) \
+            -not -path '*/node_modules/*' -not -path '*/.git/*' \
+            -not -path './public/uploads/*' || true)
+          if [ -n "$MEDIA" ]; then
+            echo "FAIL: Media/stream files found in repo:"
+            echo "$MEDIA"
             exit 1
           fi
-          echo "No HLS stream files in repo — OK"
+          echo "No media/stream files in repo — OK"
 
       - name: Validate no secrets in frontend
         run: |

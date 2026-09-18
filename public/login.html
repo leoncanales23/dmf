@@ -76,11 +76,19 @@ a:hover{color:#ff7a45}
   </div>
 </div>
 
+<script src="/academy-env.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script>
+if (window.__DMF_FIREBASE_CONFIG__) {
+  firebase.initializeApp(window.__DMF_FIREBASE_CONFIG__);
+}
+</script>
 <script>
 (function () {
   'use strict';
 
-  var DEMO_MODE = false;
+  var DEMO_MODE = !!(window.__DMF_ACADEMY_DEMO__);
   var meta = document.querySelector('meta[name="dmf-demo"]');
   if (meta && meta.content === 'true') DEMO_MODE = true;
   if (window.location.search.indexOf('demo=true') !== -1) DEMO_MODE = true;
