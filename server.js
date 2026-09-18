@@ -1,10 +1,16 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const { MercadoPagoConfig, Preference } = require('mercadopago');
 
 const app = express();
 app.use(express.json());
 app.use(express.static('.'));
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
+app.get('/academy', (req, res) => res.sendFile(path.join(__dirname, 'public', 'academy.html')));
+app.get('/academy/*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'academy.html')));
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN
