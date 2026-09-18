@@ -271,6 +271,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     try { auth = JSON.parse(sessionStorage.getItem('dmf_auth')); } catch (e) { /* ignore */ }
     if (auth && auth.demo) {
       hasAccess = true;
+    } else {
+      window.location.href = '/login';
+      return;
     }
   } else if (__dmfFirebaseReady) {
     firebase.auth().onAuthStateChanged(function (user) {

@@ -36,7 +36,8 @@ scripts/
   inject-academy-link.cjs — Injects "Student Access" link into landing nav
   inject-academy-env.cjs  — Generates academy-env.js from env vars at build time
 
-firestore.rules       — Firestore security rules for dmf-academy project
+firestore.rules           — Firestore security rules for dmf-academy project
+firebase.academy.json     — Firestore-only Firebase config for dmf-academy project
 
 docs/
   DMF_ACADEMY_V1.md   — This file
@@ -202,9 +203,9 @@ Login error codes are mapped to safe, non-enumerating messages:
 | `auth/wrong-password` | Invalid email or password. |
 | `auth/invalid-email` | Please enter a valid email address. |
 | `auth/too-many-requests` | Too many attempts. Try again later. |
-| `auth/user-disabled` | This account has been disabled. Contact support. |
+| `auth/user-disabled` | Invalid email or password. |
 
-No error code reveals whether an email exists in the system.
+No error code reveals whether an email exists in the system, including disabled accounts.
 
 ## Entitlement
 
@@ -263,22 +264,49 @@ Key properties:
 
 ## Firestore Rules Deployment
 
-**IMPORTANT**: `.firebaserc` points to `vibraaltoai-11f55` (the Hosting project).
-Firestore rules belong to the **`dmf-academy`** project.
+### Project Isolation
 
-To deploy Firestore rules:
+DMF uses **two separate Firebase configs** to prevent accidental cross-deployment:
+
+| Config File | Firebase Project | Contains |
+|-------------|-----------------|----------|
+| `firebase.json` | `vibraaltoai-11f55` (via `.firebaserc`) | Hosting, Functions (dmfTraining) |
+| `firebase.academy.json` | `dmf-academy` (via `--project` flag) | Firestore rules only |
+
+`firebase.json` does **not** contain any Firestore configuration. This ensures
+that even an accidental `firebase deploy` (which uses `.firebaserc` default =
+`vibraaltoai-11f55`) cannot deploy Firestore rules to the wrong project.
+
+### Deploy Command
+
+The **only** correct command to deploy DMF Academy Firestore rules:
 
 ```bash
-firebase deploy --only firestore:rules --project dmf-academy
+firebase deploy \
+  --config firebase.academy.json \
+  --only firestore:rules \
+  --project dmf-academy
 ```
 
-**NEVER** run `firebase deploy --only firestore:rules` without `--project dmf-academy`.
-Without the project flag, rules would deploy to the hosting project, which is wrong.
+> **WARNING**: NEVER deploy DMF Academy Firestore rules with the default Firebase
+> project. The `.firebaserc` default is `vibraaltoai-11f55` (Hosting). Using
+> `firebase deploy --only firestore:rules` without `--config firebase.academy.json`
+> and `--project dmf-academy` would target the wrong project.
+
+### Unsafe Commands (NEVER use)
+
+```bash
+# WRONG — uses .firebaserc default (vibraaltoai-11f55)
+firebase deploy --only firestore:rules
+
+# WRONG — deploys everything to hosting project
+firebase deploy
+```
 
 The CI/CD deploy workflow (`deploy.yml`) deploys **only Hosting** (and optionally
-the dmfTraining function). It does **not** deploy Firestore rules automatically.
-Firestore rules must be deployed manually or via a separate workflow targeting
-`dmf-academy`.
+the dmfTraining function) to `vibraaltoai-11f55`. It does **not** deploy Firestore
+rules. It does **not** reference `firebase.academy.json`. Firestore rules must be
+deployed manually or via a separate workflow targeting `dmf-academy`.
 
 ## Progress Tracking
 
@@ -310,6 +338,7 @@ must be connected to payment webhooks (production gap).
 - [x] Login error handling (non-enumerating)
 - [x] Demo mode restricted to build-time only
 - [x] Two-project architecture documented (Hosting vs Academy)
+- [x] Firebase config isolation (firebase.academy.json separate from firebase.json)
 - [ ] Firestore enrollment documents linked to Mercado Pago payments
 - [ ] Payment webhook → entitlement grant flow
 - [ ] Server-side progress persistence (Firestore or API)
@@ -348,7 +377,12 @@ must be connected to payment webhooks (production gap).
 7. Cloudflare Stream UID mapping validated
 8. No Cloudflare secrets or hardcoded domains in frontend
 9. Firestore rules exist and enforce security (enrollments, deny writes)
-10. Docs reference `dmf-academy` project
-11. No frontend files reference `vibraaltoai-11f55` (hosting project)
-12. Login does not allow demo via query string
-13. No service account or admin credentials in frontend
+10. `firebase.academy.json` exists with Firestore-only config (no hosting/functions/storage)
+11. `firebase.json` does NOT contain Firestore config
+12. `.firebaserc` default is `vibraaltoai-11f55`
+13. Docs reference `firebase.academy.json` and `--project dmf-academy`
+14. `deploy.yml` does not deploy Firestore or reference `firebase.academy.json`
+15. No workflow deploys Firestore without `--project dmf-academy`
+16. No frontend files reference `vibraaltoai-11f55` (hosting project)
+17. Login does not allow demo via query string
+18. No service account or admin credentials in frontend

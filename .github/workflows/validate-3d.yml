@@ -22,6 +22,7 @@ on:
       - 'public/academy.html'
       - 'public/academy-config.js'
       - 'firebase.json'
+      - 'firebase.academy.json'
       - 'server.js'
       - 'firestore.rules'
       - '.github/workflows/deploy.yml'
@@ -203,10 +204,70 @@ jobs:
           grep -q 'allow create, update, delete: if false' firestore.rules || { echo "FAIL: client writes not denied"; exit 1; }
           echo "Firestore rules validated — OK"
 
-      - name: Validate docs reference dmf-academy project
+      - name: Validate firebase.academy.json exists and is correct
         run: |
+          test -f firebase.academy.json || { echo "FAIL: firebase.academy.json not found"; exit 1; }
+          node -e "
+            const cfg = require('./firebase.academy.json');
+            if (!cfg.firestore || !cfg.firestore.rules) {
+              console.error('FAIL: firebase.academy.json must contain firestore.rules');
+              process.exit(1);
+            }
+            if (cfg.hosting) { console.error('FAIL: firebase.academy.json must NOT contain hosting'); process.exit(1); }
+            if (cfg.functions) { console.error('FAIL: firebase.academy.json must NOT contain functions'); process.exit(1); }
+            if (cfg.storage) { console.error('FAIL: firebase.academy.json must NOT contain storage'); process.exit(1); }
+            console.log('firebase.academy.json validated — Firestore only, OK');
+          "
+
+      - name: Validate firebase.json does not contain Firestore
+        run: |
+          node -e "
+            const cfg = require('./firebase.json');
+            if (cfg.firestore) {
+              console.error('FAIL: firebase.json must NOT contain firestore config (use firebase.academy.json)');
+              process.exit(1);
+            }
+            console.log('firebase.json has no Firestore config — OK');
+          "
+
+      - name: Validate .firebaserc points to hosting project
+        run: |
+          node -e "
+            const rc = JSON.parse(require('fs').readFileSync('.firebaserc', 'utf8'));
+            if (rc.projects.default !== 'vibraaltoai-11f55') {
+              console.error('FAIL: .firebaserc default must be vibraaltoai-11f55, found: ' + rc.projects.default);
+              process.exit(1);
+            }
+            console.log('.firebaserc default project: vibraaltoai-11f55 — OK');
+          "
+
+      - name: Validate docs reference firebase.academy.json and --project dmf-academy
+        run: |
+          grep -q 'firebase.academy.json' docs/DMF_ACADEMY_V1.md || { echo "FAIL: docs must reference firebase.academy.json"; exit 1; }
+          grep -q '\-\-project dmf-academy' docs/DMF_ACADEMY_V1.md || { echo "FAIL: docs must reference --project dmf-academy"; exit 1; }
           grep -q 'dmf-academy' docs/DMF_ACADEMY_V1.md || { echo "FAIL: docs must reference dmf-academy project"; exit 1; }
-          echo "Docs reference dmf-academy — OK"
+          echo "Docs reference firebase.academy.json and dmf-academy — OK"
+
+      - name: Validate deploy.yml does not deploy Firestore
+        run: |
+          if grep -qE 'firebase\.academy\.json|--only.*firestore' .github/workflows/deploy.yml; then
+            echo "FAIL: deploy.yml must not deploy Firestore or reference firebase.academy.json"
+            exit 1
+          fi
+          echo "deploy.yml does not deploy Firestore — OK"
+
+      - name: Validate no workflow deploys Firestore without --project dmf-academy
+        run: |
+          for wf in .github/workflows/*.yml; do
+            if grep -q 'firestore' "$wf" 2>/dev/null; then
+              if echo "$wf" | grep -q 'validate-3d.yml'; then continue; fi
+              if grep -qE 'firebase deploy.*firestore' "$wf" && ! grep -qE '\-\-project dmf-academy' "$wf"; then
+                echo "FAIL: $wf deploys Firestore without --project dmf-academy"
+                exit 1
+              fi
+            fi
+          done
+          echo "No workflow deploys Firestore without --project dmf-academy — OK"
 
       - name: Validate no Auth/Firestore configured toward hosting project
         run: |
