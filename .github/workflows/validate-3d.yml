@@ -23,6 +23,7 @@ on:
       - 'public/academy-config.js'
       - 'firebase.json'
       - 'server.js'
+      - 'firestore.rules'
       - '.github/workflows/deploy.yml'
       - '.github/workflows/validate-3d.yml'
 
@@ -193,6 +194,52 @@ jobs:
             fi
           done
           echo "No Cloudflare secrets in frontend files — OK"
+
+      - name: Validate Firestore rules exist and are secure
+        run: |
+          test -f firestore.rules || { echo "FAIL: firestore.rules not found"; exit 1; }
+          grep -q 'match /enrollments/{userId}' firestore.rules || { echo "FAIL: enrollments rule missing"; exit 1; }
+          grep -q 'request.auth.uid == userId' firestore.rules || { echo "FAIL: uid check missing in rules"; exit 1; }
+          grep -q 'allow create, update, delete: if false' firestore.rules || { echo "FAIL: client writes not denied"; exit 1; }
+          echo "Firestore rules validated — OK"
+
+      - name: Validate docs reference dmf-academy project
+        run: |
+          grep -q 'dmf-academy' docs/DMF_ACADEMY_V1.md || { echo "FAIL: docs must reference dmf-academy project"; exit 1; }
+          echo "Docs reference dmf-academy — OK"
+
+      - name: Validate no Auth/Firestore configured toward hosting project
+        run: |
+          node -e "
+            const fs = require('fs');
+            const files = ['public/academy.html', 'public/academy-config.js', 'public/login.html', 'scripts/inject-academy-env.cjs'];
+            for (const f of files) {
+              const src = fs.readFileSync(f, 'utf8');
+              if (/vibraaltoai-11f55/.test(src)) {
+                console.error('FAIL: ' + f + ' references vibraaltoai-11f55 (hosting project)');
+                process.exit(1);
+              }
+            }
+            console.log('No frontend/script files reference hosting project — OK');
+          "
+
+      - name: Validate login does not allow demo via query string
+        run: |
+          if grep -q 'demo=true' public/login.html; then
+            echo "FAIL: login.html still allows demo activation via query string"
+            exit 1
+          fi
+          echo "No query-string demo activation in login — OK"
+
+      - name: Validate no service accounts or admin credentials in public
+        run: |
+          for f in public/login.html public/academy.html public/academy-config.js; do
+            if grep -qiE 'service[_-]?account|admin[_-]?sdk|firebase[_-]?admin|FIREBASE_TOKEN' "$f"; then
+              echo "FAIL: Possible admin credential reference in $f"
+              exit 1
+            fi
+          done
+          echo "No admin credentials in frontend files — OK"
 
   validate-print:
     runs-on: ubuntu-latest

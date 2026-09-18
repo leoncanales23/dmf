@@ -80,8 +80,16 @@ a:hover{color:#ff7a45}
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script>
+var __dmfFirebaseReady = false;
 if (window.__DMF_FIREBASE_CONFIG__) {
-  firebase.initializeApp(window.__DMF_FIREBASE_CONFIG__);
+  try {
+    if (typeof firebase !== 'undefined' && firebase.initializeApp) {
+      firebase.initializeApp(window.__DMF_FIREBASE_CONFIG__);
+      __dmfFirebaseReady = !!(firebase.apps && firebase.apps.length > 0 && firebase.auth);
+    }
+  } catch (e) {
+    __dmfFirebaseReady = false;
+  }
 }
 </script>
 <script>
@@ -89,9 +97,6 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   'use strict';
 
   var DEMO_MODE = !!(window.__DMF_ACADEMY_DEMO__);
-  var meta = document.querySelector('meta[name="dmf-demo"]');
-  if (meta && meta.content === 'true') DEMO_MODE = true;
-  if (window.location.search.indexOf('demo=true') !== -1) DEMO_MODE = true;
 
   var demoBadge = document.getElementById('demoBadge');
   if (DEMO_MODE && demoBadge) demoBadge.style.display = 'flex';
@@ -132,7 +137,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       return;
     }
 
-    if (typeof firebase !== 'undefined' && firebase.auth) {
+    if (__dmfFirebaseReady) {
       firebase.auth().signInWithEmailAndPassword(email, password)
         .then(function () {
           window.location.href = '/academy';
@@ -140,15 +145,16 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         .catch(function (err) {
           btn.disabled = false;
           btn.textContent = 'ENTER PORTAL';
-          var msg = 'Login failed.';
-          if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') msg = 'Invalid email or password.';
+          var msg = 'Invalid email or password.';
           if (err.code === 'auth/too-many-requests') msg = 'Too many attempts. Try again later.';
+          else if (err.code === 'auth/user-disabled') msg = 'This account has been disabled. Contact support.';
+          else if (err.code === 'auth/invalid-email') msg = 'Please enter a valid email address.';
           showError(msg);
         });
     } else {
       btn.disabled = false;
       btn.textContent = 'ENTER PORTAL';
-      showError('Authentication service not configured. Enable demo mode or configure Firebase Auth.');
+      showError('Authentication service is not configured.');
     }
   });
 })();
