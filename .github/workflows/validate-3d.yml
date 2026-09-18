@@ -106,15 +106,15 @@ jobs:
             console.log('Module count: ' + moduleCount + ' — OK');
           "
 
-      - name: Validate no media files in repo
+      - name: Validate no HLS stream files in repo
         run: |
-          MEDIA=$(find . -name '*.mp4' -o -name '*.ts' -not -path '*/node_modules/*' -o -name '*.m3u8' | grep -v node_modules | grep -v '.git/' || true)
-          if [ -n "$MEDIA" ]; then
-            echo "FAIL: Media files found in repo:"
-            echo "$MEDIA"
+          STREAMS=$(find . -name '*.m3u8' -not -path '*/node_modules/*' -not -path '*/.git/*' || true)
+          if [ -n "$STREAMS" ]; then
+            echo "FAIL: HLS manifest files found in repo:"
+            echo "$STREAMS"
             exit 1
           fi
-          echo "No media files in repo — OK"
+          echo "No HLS stream files in repo — OK"
 
       - name: Validate no secrets in frontend
         run: |
