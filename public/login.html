@@ -147,7 +147,6 @@ if (window.__DMF_FIREBASE_CONFIG__) {
           btn.textContent = 'ENTER PORTAL';
           var msg = 'Invalid email or password.';
           if (err.code === 'auth/too-many-requests') msg = 'Too many attempts. Try again later.';
-          else if (err.code === 'auth/user-disabled') msg = 'This account has been disabled. Contact support.';
           else if (err.code === 'auth/invalid-email') msg = 'Please enter a valid email address.';
           showError(msg);
         });
