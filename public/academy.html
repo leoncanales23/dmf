@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DMF Academy — Student Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:#0a0806;color:#f2ede6;font-family:'Archivo',sans-serif;min-height:100vh}
+::selection{background:#ff5b1e;color:#0a0806}
+a{color:#ff5b1e;text-decoration:none;transition:color .2s}
+a:hover{color:#ff7a45}
+
+/* TOP BAR */
+.portal-bar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:14px clamp(16px,4vw,48px);background:rgba(10,8,6,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(242,237,230,.06)}
+.portal-brand{display:flex;align-items:center;gap:16px}
+.portal-brand-name{font-family:'Anton',sans-serif;font-size:18px;letter-spacing:.12em;text-transform:uppercase;color:#f2ede6}
+.portal-brand-sep{width:1px;height:18px;background:rgba(242,237,230,.2)}
+.portal-brand-label{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#ff5b1e}
+.portal-user{display:flex;align-items:center;gap:16px}
+.portal-user-email{font-size:11px;color:#665f58;letter-spacing:.04em}
+.portal-logout{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#8a8178;background:none;border:1px solid rgba(242,237,230,.12);padding:7px 14px;cursor:pointer;font-family:'Archivo',sans-serif;transition:border-color .2s,color .2s}
+.portal-logout:hover{border-color:#ff5b1e;color:#ff5b1e}
+
+/* BREADCRUMB */
+.breadcrumb{padding:80px clamp(16px,4vw,48px) 0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#665f58}
+.breadcrumb a{color:#8a8178;font-size:11px}
+.breadcrumb span{margin:0 8px;color:#3a3632}
+
+/* DASHBOARD */
+.dashboard{padding:32px clamp(16px,4vw,48px) 60px}
+.dash-header{margin-bottom:48px}
+.dash-kicker{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.dash-kicker-line{width:36px;height:1px;background:#ff5b1e}
+.dash-kicker-text{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#ff5b1e}
+.dash-title{font-family:'Anton',sans-serif;font-size:clamp(32px,5vw,56px);text-transform:uppercase;line-height:1;margin-bottom:16px}
+.dash-stats{display:flex;flex-wrap:wrap;gap:32px;margin-bottom:8px}
+.dash-stat{display:flex;flex-direction:column}
+.dash-stat-num{font-family:'Anton',sans-serif;font-size:36px;color:#ff5b1e;line-height:1}
+.dash-stat-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#665f58;margin-top:4px}
+.dash-progress-bar{width:100%;max-width:480px;height:3px;background:rgba(242,237,230,.08);margin-top:16px;position:relative}
+.dash-progress-fill{height:100%;background:#ff5b1e;transition:width .6s ease}
+
+/* MODULE GRID */
+.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.mod-card{border:1px solid rgba(242,237,230,.08);padding:24px;cursor:pointer;transition:border-color .3s,background .3s;position:relative;overflow:hidden}
+.mod-card:hover{border-color:rgba(255,91,30,.4);background:rgba(255,91,30,.03)}
+.mod-card-locked{opacity:.4;cursor:not-allowed;pointer-events:none}
+.mod-card-head{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
+.mod-card-num{font-family:'Anton',sans-serif;font-size:14px;color:#ff5b1e}
+.mod-card-code{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#665f58}
+.mod-card-title{font-size:16px;font-weight:700;color:#f2ede6;margin-bottom:6px;line-height:1.3}
+.mod-card-desc{font-size:13px;line-height:1.6;color:#8a8178;margin-bottom:14px}
+.mod-card-footer{display:flex;align-items:center;justify-content:space-between}
+.mod-card-dur{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#665f58}
+.mod-card-state{font-size:9px;letter-spacing:.16em;text-transform:uppercase;padding:4px 10px}
+.state-available{color:#ff5b1e;border:1px solid rgba(255,91,30,.3)}
+.state-in-progress{color:#ffb599;background:rgba(255,91,30,.1);border:1px solid rgba(255,91,30,.3)}
+.state-completed{color:#4ecdc4;border:1px solid rgba(78,205,196,.3)}
+.state-locked{color:#665f58;border:1px solid rgba(242,237,230,.08)}
+.state-review{color:#ffd93d;border:1px solid rgba(255,217,61,.3)}
+.mod-card-progress{width:100%;height:2px;background:rgba(242,237,230,.06);margin-top:14px}
+.mod-card-progress-fill{height:100%;background:#ff5b1e;transition:width .4s}
+
+/* MODULE VIEW */
+.module-view{display:none;padding:32px clamp(16px,4vw,48px) 80px}
+.mv-header{margin-bottom:40px}
+.mv-kicker{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.mv-kicker-num{font-family:'Anton',sans-serif;font-size:14px;color:#ff5b1e}
+.mv-kicker-code{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#665f58}
+.mv-title{font-family:'Anton',sans-serif;font-size:clamp(24px,4vw,42px);text-transform:uppercase;line-height:1.05;margin-bottom:10px}
+.mv-desc{font-size:14px;line-height:1.7;color:#8a8178;max-width:640px}
+
+/* VIDEO PLAYER */
+.mv-player{position:relative;width:100%;max-width:960px;aspect-ratio:16/9;background:#000;margin-bottom:32px;border:1px solid rgba(242,237,230,.06)}
+.mv-player video{width:100%;height:100%;display:block;background:#000}
+.mv-player-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#665f58;font-size:12px;letter-spacing:.14em;text-transform:uppercase;gap:12px}
+.mv-player-placeholder svg{width:48px;height:48px;fill:none;stroke:#665f58;stroke-width:1.5}
+
+/* LESSON LIST */
+.mv-lessons{max-width:960px;margin-bottom:40px}
+.mv-lessons-title{font-family:'Anton',sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;color:#f2ede6}
+.lesson-item{display:flex;align-items:center;gap:16px;padding:16px 18px;border:1px solid rgba(242,237,230,.06);margin-bottom:6px;cursor:pointer;transition:border-color .2s,background .2s}
+.lesson-item:hover{border-color:rgba(255,91,30,.3);background:rgba(255,91,30,.02)}
+.lesson-item.is-active{border-color:#ff5b1e;background:rgba(255,91,30,.06)}
+.lesson-item.is-completed{border-left:3px solid #4ecdc4}
+.lesson-num{font-family:'Anton',sans-serif;font-size:13px;color:#665f58;min-width:28px}
+.lesson-title{flex:1;font-size:14px;font-weight:600;color:#f2ede6}
+.lesson-dur{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#665f58}
+.lesson-check{width:20px;height:20px;border:1px solid rgba(242,237,230,.15);display:flex;align-items:center;justify-content:center;font-size:11px;color:#4ecdc4;cursor:pointer;transition:border-color .2s}
+.lesson-check:hover{border-color:#4ecdc4}
+.lesson-check.is-done{background:rgba(78,205,196,.1);border-color:#4ecdc4}
+
+/* PRACTICE BLOCK */
+.mv-practice{max-width:960px;padding:28px;border:1px solid rgba(255,91,30,.25);background:rgba(255,91,30,.03);margin-bottom:32px}
+.mv-practice-title{font-family:'Anton',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:.08em;color:#ff5b1e;margin-bottom:12px}
+.mv-practice-desc{font-size:14px;line-height:1.7;color:#d8d0c6;margin-bottom:20px}
+.mv-practice-submit{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;font-family:'Anton',sans-serif;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#0a0806;background:#ff5b1e;border:none;cursor:pointer;transition:background .2s}
+.mv-practice-submit:hover{background:#ff7a45}
+
+/* NAV BUTTONS */
+.mv-nav{display:flex;gap:16px;max-width:960px;margin-top:40px}
+.mv-nav-btn{flex:1;padding:16px;text-align:center;font-family:'Anton',sans-serif;font-size:14px;letter-spacing:.1em;text-transform:uppercase;border:1px solid rgba(242,237,230,.1);color:#8a8178;background:none;cursor:pointer;transition:border-color .2s,color .2s}
+.mv-nav-btn:hover{border-color:#ff5b1e;color:#ff5b1e}
+.mv-nav-btn-next{color:#0a0806;background:#ff5b1e;border-color:#ff5b1e}
+.mv-nav-btn-next:hover{background:#ff7a45;border-color:#ff7a45}
+
+/* NO ACCESS */
+.no-access{display:none;padding:120px clamp(16px,4vw,48px) 80px;text-align:center}
+.no-access-title{font-family:'Anton',sans-serif;font-size:clamp(28px,4vw,48px);text-transform:uppercase;margin-bottom:16px}
+.no-access-desc{font-size:15px;line-height:1.7;color:#8a8178;max-width:480px;margin:0 auto 32px}
+.no-access-cta{display:inline-block;padding:16px 40px;font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:#0a0806;background:#ff5b1e;transition:background .2s}
+.no-access-cta:hover{background:#ff7a45;color:#0a0806}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .portal-user-email{display:none}
+  .dash-stats{gap:20px}
+  .mod-grid{grid-template-columns:1fr}
+  .mv-nav{flex-direction:column}
+}
+@media(max-width:480px){
+  .portal-brand-sep,.portal-brand-label{display:none}
+  .portal-bar{padding:12px 16px}
+  .mv-player{aspect-ratio:auto;height:56vw;min-height:200px}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<nav class="portal-bar">
+  <div class="portal-brand">
+    <a href="/" class="portal-brand-name">Demian Muller</a>
+    <div class="portal-brand-sep"></div>
+    <span class="portal-brand-label">Student Portal</span>
+  </div>
+  <div class="portal-user">
+    <span class="portal-user-email" id="userEmail"></span>
+    <button class="portal-logout" id="logoutBtn">Logout</button>
+  </div>
+</nav>
+
+<!-- NO ACCESS STATE -->
+<div class="no-access" id="noAccessView">
+  <div class="no-access-title">Access Required</div>
+  <div class="no-access-desc">You need an active DMF Academy enrollment to access the student portal. Choose a plan that fits your goals.</div>
+  <a href="/#academy" class="no-access-cta">View Plans</a>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboardView" style="display:none">
+  <div class="breadcrumb">
+    <a href="/">DMF</a><span>/</span>Academy
+  </div>
+  <div class="dashboard">
+    <div class="dash-header">
+      <div class="dash-kicker">
+        <div class="dash-kicker-line"></div>
+        <span class="dash-kicker-text">Training Status</span>
+      </div>
+      <div class="dash-title">Student Portal</div>
+      <div class="dash-stats">
+        <div class="dash-stat">
+          <div class="dash-stat-num" id="statModules">00/08</div>
+          <div class="dash-stat-label">Modules</div>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-num" id="statLessons">00/32</div>
+          <div class="dash-stat-label">Lessons</div>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-num" id="statPct">0%</div>
+          <div class="dash-stat-label">Transmission Complete</div>
+        </div>
+      </div>
+      <div class="dash-progress-bar">
+        <div class="dash-progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="mod-grid" id="moduleGrid"></div>
+  </div>
+</div>
+
+<!-- MODULE VIEW -->
+<div class="module-view" id="moduleView">
+  <div class="breadcrumb" id="mvBreadcrumb"></div>
+  <div style="padding:32px clamp(16px,4vw,48px) 80px">
+    <div class="mv-header">
+      <div class="mv-kicker">
+        <span class="mv-kicker-num" id="mvNum"></span>
+        <span class="mv-kicker-code" id="mvCode"></span>
+      </div>
+      <div class="mv-title" id="mvTitle"></div>
+      <div class="mv-desc" id="mvDesc"></div>
+    </div>
+
+    <div class="mv-player" id="videoPlayer">
+      <video id="videoEl" controls playsinline></video>
+      <div class="mv-player-placeholder" id="playerPlaceholder">
+        <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22"/><polygon points="19,14 19,34 36,24"/></svg>
+        <span>Select a lesson to begin</span>
+      </div>
+    </div>
+
+    <div class="mv-lessons" id="lessonList">
+      <div class="mv-lessons-title">Lessons</div>
+      <div id="lessonsContainer"></div>
+    </div>
+
+    <div class="mv-practice" id="practiceBlock">
+      <div class="mv-practice-title">Practice Assignment</div>
+      <div class="mv-practice-desc" id="practiceDesc"></div>
+      <button class="mv-practice-submit" id="practiceSubmitBtn">Submit Work for Review</button>
+    </div>
+
+    <div class="mv-nav" id="moduleNav"></div>
+  </div>
+</div>
+
+<script src="/academy-config.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // --- Auth check ---
+  var auth = null;
+  try { auth = JSON.parse(sessionStorage.getItem('dmf_auth')); } catch (e) { /* ignore */ }
+
+  var firebaseUser = null;
+  if (typeof firebase !== 'undefined' && firebase.auth) {
+    firebase.auth().onAuthStateChanged(function (user) {
+      if (user) {
+        firebaseUser = user;
+        auth = { email: user.email, uid: user.uid };
+        init();
+      } else if (!auth) {
+        window.location.href = '/login';
+      }
+    });
+  }
+
+  if (!auth && !firebaseUser) {
+    if (typeof firebase === 'undefined' || !firebase.auth) {
+      window.location.href = '/login';
+      return;
+    }
+  }
+
+  // --- Progress Store ---
+  var ProgressStore = {
+    _key: 'dmf_progress',
+    _data: null,
+    _load: function () {
+      if (this._data) return this._data;
+      try {
+        this._data = JSON.parse(localStorage.getItem(this._key)) || {};
+      } catch (e) {
+        this._data = {};
+      }
+      return this._data;
+    },
+    _save: function () {
+      try { localStorage.setItem(this._key, JSON.stringify(this._data)); } catch (e) { /* ignore */ }
+    },
+    isLessonComplete: function (modId, lessonId) {
+      var d = this._load();
+      return !!(d[modId] && d[modId][lessonId]);
+    },
+    markLessonComplete: function (modId, lessonId) {
+      var d = this._load();
+      if (!d[modId]) d[modId] = {};
+      d[modId][lessonId] = Date.now();
+      this._save();
+    },
+    toggleLesson: function (modId, lessonId) {
+      var d = this._load();
+      if (d[modId] && d[modId][lessonId]) {
+        delete d[modId][lessonId];
+        if (Object.keys(d[modId]).length === 0) delete d[modId];
+      } else {
+        if (!d[modId]) d[modId] = {};
+        d[modId][lessonId] = Date.now();
+      }
+      this._save();
+    },
+    getModuleProgress: function (modId, totalLessons) {
+      var d = this._load();
+      var done = d[modId] ? Object.keys(d[modId]).length : 0;
+      return { completed: done, total: totalLessons, pct: totalLessons > 0 ? Math.round((done / totalLessons) * 100) : 0 };
+    },
+    getOverallProgress: function (modules) {
+      var totalLessons = 0, completedLessons = 0, completedModules = 0;
+      for (var i = 0; i < modules.length; i++) {
+        var m = modules[i];
+        var p = this.getModuleProgress(m.id, m.lessons.length);
+        totalLessons += p.total;
+        completedLessons += p.completed;
+        if (p.completed === p.total) completedModules++;
+      }
+      return {
+        modules: completedModules, totalModules: modules.length,
+        lessons: completedLessons, totalLessons: totalLessons,
+        pct: totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
+      };
+    }
+  };
+
+  // --- Entitlement ---
+  function hasCourseAccess() {
+    if (auth && auth.demo) return true;
+    // Future: check Firestore entitlement, API call, etc.
+    // For now, authenticated = access (placeholder for entitlement layer)
+    return !!auth;
+  }
+
+  // --- Language ---
+  var lang = 'en';
+  function t(obj) {
+    if (typeof obj === 'string') return obj;
+    return obj[lang] || obj.en || '';
+  }
+
+  // --- DOM refs ---
+  var dashboardView = document.getElementById('dashboardView');
+  var moduleView = document.getElementById('moduleView');
+  var noAccessView = document.getElementById('noAccessView');
+  var moduleGrid = document.getElementById('moduleGrid');
+  var userEmailEl = document.getElementById('userEmail');
+  var logoutBtn = document.getElementById('logoutBtn');
+
+  // --- State ---
+  var MODULES = window.DMF_ACADEMY ? window.DMF_ACADEMY.MODULES : [];
+  var currentModuleId = null;
+  var currentLessonIdx = 0;
+  var hlsInstance = null;
+
+  // --- HLS Player ---
+  function loadHls(callback) {
+    if (window.Hls) { callback(); return; }
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js';
+    s.onload = callback;
+    s.onerror = function () { console.warn('HLS.js failed to load'); callback(); };
+    document.head.appendChild(s);
+  }
+
+  function playStream(url) {
+    var video = document.getElementById('videoEl');
+    var placeholder = document.getElementById('playerPlaceholder');
+    if (!video) return;
+
+    if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+
+    placeholder.style.display = 'none';
+    video.style.display = 'block';
+
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url;
+      video.play().catch(function () {});
+      return;
+    }
+
+    loadHls(function () {
+      if (window.Hls && Hls.isSupported()) {
+        hlsInstance = new Hls();
+        hlsInstance.loadSource(url);
+        hlsInstance.attachMedia(video);
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, function () {
+          video.play().catch(function () {});
+        });
+        hlsInstance.on(Hls.Events.ERROR, function (_, data) {
+          if (data.fatal) {
+            placeholder.style.display = 'flex';
+            placeholder.querySelector('span').textContent = 'Video stream unavailable';
+            video.style.display = 'none';
+          }
+        });
+      } else {
+        placeholder.style.display = 'flex';
+        placeholder.querySelector('span').textContent = 'Your browser does not support HLS playback';
+        video.style.display = 'none';
+      }
+    });
+  }
+
+  // --- Module state ---
+  function getModuleState(mod) {
+    var p = ProgressStore.getModuleProgress(mod.id, mod.lessons.length);
+    if (p.completed === p.total && p.total > 0) return 'COMPLETED';
+    if (p.completed > 0) return 'IN PROGRESS';
+    var idx = MODULES.indexOf(mod);
+    if (idx === 0) return 'AVAILABLE';
+    var prev = MODULES[idx - 1];
+    var pp = ProgressStore.getModuleProgress(prev.id, prev.lessons.length);
+    if (pp.completed === pp.total && pp.total > 0) return 'AVAILABLE';
+    if (auth && auth.demo) return 'AVAILABLE';
+    return 'LOCKED';
+  }
+
+  function stateClass(state) {
+    switch (state) {
+      case 'COMPLETED': return 'state-completed';
+      case 'IN PROGRESS': return 'state-in-progress';
+      case 'AVAILABLE': return 'state-available';
+      case 'AWAITING REVIEW': return 'state-review';
+      default: return 'state-locked';
+    }
+  }
+
+  // --- Render dashboard ---
+  function renderDashboard() {
+    var overall = ProgressStore.getOverallProgress(MODULES);
+    document.getElementById('statModules').textContent =
+      (overall.modules < 10 ? '0' : '') + overall.modules + '/0' + overall.totalModules;
+    document.getElementById('statLessons').textContent =
+      (overall.lessons < 10 ? '0' : '') + overall.lessons + '/' + overall.totalLessons;
+    document.getElementById('statPct').textContent = overall.pct + '%';
+    document.getElementById('progressFill').style.width = overall.pct + '%';
+
+    var html = '';
+    for (var i = 0; i < MODULES.length; i++) {
+      var m = MODULES[i];
+      var state = getModuleState(m);
+      var p = ProgressStore.getModuleProgress(m.id, m.lessons.length);
+      var locked = state === 'LOCKED';
+      html += '<div class="mod-card' + (locked ? ' mod-card-locked' : '') + '" data-mod="' + m.id + '">' +
+        '<div class="mod-card-head"><span class="mod-card-num">' + m.id + '</span><span class="mod-card-code">' + m.code + '</span></div>' +
+        '<div class="mod-card-title">' + escHtml(t(m.title)) + '</div>' +
+        '<div class="mod-card-desc">' + escHtml(t(m.desc)) + '</div>' +
+        '<div class="mod-card-footer"><span class="mod-card-dur">' + m.duration + '</span><span class="mod-card-state ' + stateClass(state) + '">' + state + '</span></div>' +
+        '<div class="mod-card-progress"><div class="mod-card-progress-fill" style="width:' + p.pct + '%"></div></div></div>';
+    }
+    moduleGrid.innerHTML = html;
+
+    var cards = moduleGrid.querySelectorAll('.mod-card:not(.mod-card-locked)');
+    for (var j = 0; j < cards.length; j++) {
+      cards[j].addEventListener('click', (function (id) {
+        return function () { navigateTo('/academy/module/' + id); };
+      })(cards[j].getAttribute('data-mod')));
+    }
+  }
+
+  // --- Render module view ---
+  function renderModuleView(modId) {
+    var mod = null;
+    var modIdx = -1;
+    for (var i = 0; i < MODULES.length; i++) {
+      if (MODULES[i].id === modId) { mod = MODULES[i]; modIdx = i; break; }
+    }
+    if (!mod) { navigateTo('/academy'); return; }
+
+    currentModuleId = modId;
+    currentLessonIdx = 0;
+
+    document.getElementById('mvBreadcrumb').innerHTML =
+      '<a href="/">DMF</a><span>/</span><a href="/academy">Academy</a><span>/</span>Module ' + mod.id;
+    document.getElementById('mvNum').textContent = mod.id;
+    document.getElementById('mvCode').textContent = mod.code;
+    document.getElementById('mvTitle').textContent = t(mod.title);
+    document.getElementById('mvDesc').textContent = t(mod.desc);
+    document.getElementById('practiceDesc').textContent = t(mod.practice);
+
+    renderLessons(mod);
+
+    // Player placeholder
+    document.getElementById('videoEl').style.display = 'none';
+    document.getElementById('playerPlaceholder').style.display = 'flex';
+    document.getElementById('playerPlaceholder').querySelector('span').textContent = 'Select a lesson to begin';
+
+    // Nav
+    var navHtml = '';
+    if (modIdx > 0) {
+      navHtml += '<button class="mv-nav-btn" data-nav="prev">← Module ' + MODULES[modIdx - 1].id + '</button>';
+    }
+    navHtml += '<button class="mv-nav-btn" data-nav="dash">Dashboard</button>';
+    if (modIdx < MODULES.length - 1) {
+      navHtml += '<button class="mv-nav-btn mv-nav-btn-next" data-nav="next">Module ' + MODULES[modIdx + 1].id + ' →</button>';
+    }
+    document.getElementById('moduleNav').innerHTML = navHtml;
+
+    var navBtns = document.getElementById('moduleNav').querySelectorAll('button');
+    for (var j = 0; j < navBtns.length; j++) {
+      navBtns[j].addEventListener('click', function () {
+        var action = this.getAttribute('data-nav');
+        if (action === 'prev') navigateTo('/academy/module/' + MODULES[modIdx - 1].id);
+        else if (action === 'next') navigateTo('/academy/module/' + MODULES[modIdx + 1].id);
+        else navigateTo('/academy');
+      });
+    }
+
+    // Practice submit
+    document.getElementById('practiceSubmitBtn').onclick = function () {
+      alert('Work submission will be available when the review system is configured. For now, send your work via the DMF community channel.');
+    };
+
+    dashboardView.style.display = 'none';
+    moduleView.style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function renderLessons(mod) {
+    var container = document.getElementById('lessonsContainer');
+    var html = '';
+    for (var i = 0; i < mod.lessons.length; i++) {
+      var l = mod.lessons[i];
+      var done = ProgressStore.isLessonComplete(mod.id, l.id);
+      html += '<div class="lesson-item' + (done ? ' is-completed' : '') + '" data-lesson="' + i + '">' +
+        '<span class="lesson-num">' + l.id + '</span>' +
+        '<span class="lesson-title">' + escHtml(t(l.title)) + '</span>' +
+        '<span class="lesson-dur">' + l.duration + '</span>' +
+        '<span class="lesson-check' + (done ? ' is-done' : '') + '" data-check="' + i + '">' + (done ? '✓' : '') + '</span>' +
+        '</div>';
+    }
+    container.innerHTML = html;
+
+    var items = container.querySelectorAll('.lesson-item');
+    for (var j = 0; j < items.length; j++) {
+      (function (idx) {
+        items[idx].addEventListener('click', function (e) {
+          if (e.target.classList.contains('lesson-check')) return;
+          selectLesson(mod, idx);
+        });
+      })(j);
+    }
+
+    var checks = container.querySelectorAll('.lesson-check');
+    for (var k = 0; k < checks.length; k++) {
+      (function (idx) {
+        checks[idx].addEventListener('click', function (e) {
+          e.stopPropagation();
+          var l = mod.lessons[idx];
+          ProgressStore.toggleLesson(mod.id, l.id);
+          renderLessons(mod);
+        });
+      })(k);
+    }
+  }
+
+  function selectLesson(mod, idx) {
+    currentLessonIdx = idx;
+    var lesson = mod.lessons[idx];
+    var streamUrl = window.DMF_ACADEMY ? window.DMF_ACADEMY.getStreamUrl(lesson.stream) : lesson.stream;
+    playStream(streamUrl);
+
+    var items = document.querySelectorAll('.lesson-item');
+    for (var i = 0; i < items.length; i++) {
+      items[i].classList.toggle('is-active', i === idx);
+    }
+  }
+
+  // --- Routing ---
+  function navigateTo(path) {
+    history.pushState(null, '', path);
+    route();
+  }
+
+  function route() {
+    var path = window.location.pathname;
+
+    dashboardView.style.display = 'none';
+    moduleView.style.display = 'none';
+    noAccessView.style.display = 'none';
+
+    if (!hasCourseAccess()) {
+      noAccessView.style.display = 'block';
+      return;
+    }
+
+    var moduleMatch = path.match(/^\/academy\/module\/(\d{2})$/);
+    if (moduleMatch) {
+      renderModuleView(moduleMatch[1]);
+    } else {
+      renderDashboard();
+      dashboardView.style.display = 'block';
+      window.scrollTo(0, 0);
+    }
+  }
+
+  window.addEventListener('popstate', route);
+
+  // --- Logout ---
+  logoutBtn.addEventListener('click', function () {
+    try { sessionStorage.removeItem('dmf_auth'); } catch (e) { /* ignore */ }
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+      firebase.auth().signOut().then(function () {
+        window.location.href = '/login';
+      });
+    } else {
+      window.location.href = '/login';
+    }
+  });
+
+  // --- Escape HTML ---
+  function escHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  // --- Init ---
+  function init() {
+    if (auth && auth.email) {
+      userEmailEl.textContent = auth.email;
+    }
+    route();
+  }
+
+  if (auth) init();
+})();
+</script>
+
+</body>
+</html>

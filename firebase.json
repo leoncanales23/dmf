@@ -19,6 +19,18 @@
         }
       },
       {
+        "source": "/login",
+        "destination": "/login.html"
+      },
+      {
+        "source": "/academy",
+        "destination": "/academy.html"
+      },
+      {
+        "source": "/academy/**",
+        "destination": "/academy.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
