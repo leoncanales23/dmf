@@ -562,11 +562,27 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     }
   }
 
+  function showPlaceholder(msg) {
+    var video = document.getElementById('videoEl');
+    var placeholder = document.getElementById('playerPlaceholder');
+    if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+    if (video) { video.style.display = 'none'; video.removeAttribute('src'); video.load(); }
+    if (placeholder) {
+      placeholder.style.display = 'flex';
+      placeholder.querySelector('span').textContent = msg;
+    }
+  }
+
   function selectLesson(mod, idx) {
     currentLessonIdx = idx;
     var lesson = mod.lessons[idx];
-    var streamUrl = window.DMF_ACADEMY ? window.DMF_ACADEMY.getStreamUrl(lesson.stream) : lesson.stream;
-    playStream(streamUrl);
+    var streamUrl = window.DMF_ACADEMY ? window.DMF_ACADEMY.getStreamUrl(lesson.streamUid) : null;
+
+    if (!streamUrl) {
+      showPlaceholder('Próximamente');
+    } else {
+      playStream(streamUrl);
+    }
 
     var items = document.querySelectorAll('.lesson-item');
     for (var i = 0; i < items.length; i++) {
