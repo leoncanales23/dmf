@@ -1,5 +1,6 @@
 // DMF Academy — Module & Lesson Configuration
 // Stream base URL: set DMF_STREAM_BASE in .env or defaults to localhost test server
+// Cloudflare Stream pattern: {STREAM_BASE}/{VIDEO_UID}/manifest/video.m3u8
 (function (root) {
   'use strict';
 
@@ -15,10 +16,10 @@
       },
       duration: '~75 min',
       lessons: [
-        { id: 'L01', title: { en: 'From Loop to Song', es: 'Del loop a la canción' }, stream: '/mod-01/lesson-01/master.m3u8', duration: '18 min' },
-        { id: 'L02', title: { en: 'Intro & Break', es: 'Intro y break' }, stream: '/mod-01/lesson-02/master.m3u8', duration: '15 min' },
-        { id: 'L03', title: { en: 'Build-up & Drop', es: 'Build-up y drop' }, stream: '/mod-01/lesson-03/master.m3u8', duration: '20 min' },
-        { id: 'L04', title: { en: 'Energy & Outro', es: 'Energía y outro' }, stream: '/mod-01/lesson-04/master.m3u8', duration: '22 min' }
+        { id: 'L01', title: { en: 'Kick / Snare / Hi Hat', es: 'Kick / Snare / Hi Hat' }, streamUid: '87da20f0d21e697054a3e84c0e6c78c7', duration: '18 min' },
+        { id: 'L02', title: { en: 'Intro & Break', es: 'Intro y break' }, duration: '15 min' },
+        { id: 'L03', title: { en: 'Build-up & Drop', es: 'Build-up y drop' }, duration: '20 min' },
+        { id: 'L04', title: { en: 'Energy & Outro', es: 'Energía y outro' }, duration: '22 min' }
       ],
       practice: {
         en: 'Take one of your loops and build a full arrangement: intro (16 bars), break, build-up, drop and outro. Export and submit for review.',
@@ -34,10 +35,10 @@
       },
       duration: '~90 min',
       lessons: [
-        { id: 'L01', title: { en: 'Gain Staging & Balance', es: 'Gain staging y balance' }, stream: '/mod-02/lesson-01/master.m3u8', duration: '22 min' },
-        { id: 'L02', title: { en: 'Kick/Bass Relationship', es: 'Relación kick/bass' }, stream: '/mod-02/lesson-02/master.m3u8', duration: '25 min' },
-        { id: 'L03', title: { en: 'EQ & Dynamics', es: 'EQ y dinámica' }, stream: '/mod-02/lesson-03/master.m3u8', duration: '23 min' },
-        { id: 'L04', title: { en: 'Space & Frequencies', es: 'Espacio y frecuencias' }, stream: '/mod-02/lesson-04/master.m3u8', duration: '20 min' }
+        { id: 'L01', title: { en: 'Gain Staging & Balance', es: 'Gain staging y balance' }, duration: '22 min' },
+        { id: 'L02', title: { en: 'Kick/Bass Relationship', es: 'Relación kick/bass' }, duration: '25 min' },
+        { id: 'L03', title: { en: 'EQ & Dynamics', es: 'EQ y dinámica' }, duration: '23 min' },
+        { id: 'L04', title: { en: 'Space & Frequencies', es: 'Espacio y frecuencias' }, duration: '20 min' }
       ],
       practice: {
         en: 'Mix your Module 01 arrangement from scratch using the techniques covered. Submit the mixdown.',
@@ -53,10 +54,10 @@
       },
       duration: '~80 min',
       lessons: [
-        { id: 'L01', title: { en: 'The Right Sound', es: 'El sonido correcto' }, stream: '/mod-03/lesson-01/master.m3u8', duration: '20 min' },
-        { id: 'L02', title: { en: 'Percussion & Textures', es: 'Percusión y texturas' }, stream: '/mod-03/lesson-02/master.m3u8', duration: '20 min' },
-        { id: 'L03', title: { en: 'Synths & FX', es: 'Synths y FX' }, stream: '/mod-03/lesson-03/master.m3u8', duration: '20 min' },
-        { id: 'L04', title: { en: 'Layering & Context', es: 'Layering y contexto' }, stream: '/mod-03/lesson-04/master.m3u8', duration: '20 min' }
+        { id: 'L01', title: { en: 'The Right Sound', es: 'El sonido correcto' }, duration: '20 min' },
+        { id: 'L02', title: { en: 'Percussion & Textures', es: 'Percusión y texturas' }, duration: '20 min' },
+        { id: 'L03', title: { en: 'Synths & FX', es: 'Synths y FX' }, duration: '20 min' },
+        { id: 'L04', title: { en: 'Layering & Context', es: 'Layering y contexto' }, duration: '20 min' }
       ],
       practice: {
         en: 'Rebuild the percussion and texture layer of your track using curated selections. Submit before/after comparison.',
@@ -72,10 +73,10 @@
       },
       duration: '~70 min',
       lessons: [
-        { id: 'L01', title: { en: 'Bass Fundamentals', es: 'Fundamentos de bajos' }, stream: '/mod-04/lesson-01/master.m3u8', duration: '18 min' },
-        { id: 'L02', title: { en: 'Synthesis & Design', es: 'Síntesis y diseño' }, stream: '/mod-04/lesson-02/master.m3u8', duration: '18 min' },
-        { id: 'L03', title: { en: 'Groove & Movement', es: 'Groove y movimiento' }, stream: '/mod-04/lesson-03/master.m3u8', duration: '18 min' },
-        { id: 'L04', title: { en: 'Low End Control', es: 'Control del low end' }, stream: '/mod-04/lesson-04/master.m3u8', duration: '16 min' }
+        { id: 'L01', title: { en: 'Bass Fundamentals', es: 'Fundamentos de bajos' }, duration: '18 min' },
+        { id: 'L02', title: { en: 'Synthesis & Design', es: 'Síntesis y diseño' }, duration: '18 min' },
+        { id: 'L03', title: { en: 'Groove & Movement', es: 'Groove y movimiento' }, duration: '18 min' },
+        { id: 'L04', title: { en: 'Low End Control', es: 'Control del low end' }, duration: '16 min' }
       ],
       practice: {
         en: 'Create a bass line from scratch that locks with your kick. Submit the solo bass and the full mix.',
@@ -91,10 +92,10 @@
       },
       duration: '~60 min',
       lessons: [
-        { id: 'L01', title: { en: 'Session Setup', es: 'Setup de sesión' }, stream: '/mod-05/lesson-01/master.m3u8', duration: '15 min' },
-        { id: 'L02', title: { en: 'Templates & Routing', es: 'Templates y routing' }, stream: '/mod-05/lesson-02/master.m3u8', duration: '15 min' },
-        { id: 'L03', title: { en: 'Decision Making', es: 'Toma de decisiones' }, stream: '/mod-05/lesson-03/master.m3u8', duration: '15 min' },
-        { id: 'L04', title: { en: 'Time Management', es: 'Gestión del tiempo' }, stream: '/mod-05/lesson-04/master.m3u8', duration: '15 min' }
+        { id: 'L01', title: { en: 'Session Setup', es: 'Setup de sesión' }, duration: '15 min' },
+        { id: 'L02', title: { en: 'Templates & Routing', es: 'Templates y routing' }, duration: '15 min' },
+        { id: 'L03', title: { en: 'Decision Making', es: 'Toma de decisiones' }, duration: '15 min' },
+        { id: 'L04', title: { en: 'Time Management', es: 'Gestión del tiempo' }, duration: '15 min' }
       ],
       practice: {
         en: 'Create your production template and produce a 4-bar idea in under 30 minutes. Document your process.',
@@ -110,10 +111,10 @@
       },
       duration: '~60 min',
       lessons: [
-        { id: 'L01', title: { en: 'Finishing Tracks', es: 'Terminar tracks' }, stream: '/mod-06/lesson-01/master.m3u8', duration: '15 min' },
-        { id: 'L02', title: { en: 'Beating Perfectionism', es: 'Combatir el perfeccionismo' }, stream: '/mod-06/lesson-02/master.m3u8', duration: '15 min' },
-        { id: 'L03', title: { en: 'Creative Blocks', es: 'Bloqueos creativos' }, stream: '/mod-06/lesson-03/master.m3u8', duration: '15 min' },
-        { id: 'L04', title: { en: 'Long-term Growth', es: 'Crecimiento a largo plazo' }, stream: '/mod-06/lesson-04/master.m3u8', duration: '15 min' }
+        { id: 'L01', title: { en: 'Finishing Tracks', es: 'Terminar tracks' }, duration: '15 min' },
+        { id: 'L02', title: { en: 'Beating Perfectionism', es: 'Combatir el perfeccionismo' }, duration: '15 min' },
+        { id: 'L03', title: { en: 'Creative Blocks', es: 'Bloqueos creativos' }, duration: '15 min' },
+        { id: 'L04', title: { en: 'Long-term Growth', es: 'Crecimiento a largo plazo' }, duration: '15 min' }
       ],
       practice: {
         en: 'Write a reflection on your biggest production block. Then finish one abandoned project and submit it.',
@@ -129,10 +130,10 @@
       },
       duration: '~75 min',
       lessons: [
-        { id: 'L01', title: { en: 'Label Ecosystem', es: 'Ecosistema de sellos' }, stream: '/mod-07/lesson-01/master.m3u8', duration: '20 min' },
-        { id: 'L02', title: { en: 'Presenting Your Music', es: 'Presentar tu música' }, stream: '/mod-07/lesson-02/master.m3u8', duration: '20 min' },
-        { id: 'L03', title: { en: 'Release Strategy', es: 'Estrategia de lanzamiento' }, stream: '/mod-07/lesson-03/master.m3u8', duration: '18 min' },
-        { id: 'L04', title: { en: 'Career Development', es: 'Desarrollo de carrera' }, stream: '/mod-07/lesson-04/master.m3u8', duration: '17 min' }
+        { id: 'L01', title: { en: 'Label Ecosystem', es: 'Ecosistema de sellos' }, duration: '20 min' },
+        { id: 'L02', title: { en: 'Presenting Your Music', es: 'Presentar tu música' }, duration: '20 min' },
+        { id: 'L03', title: { en: 'Release Strategy', es: 'Estrategia de lanzamiento' }, duration: '18 min' },
+        { id: 'L04', title: { en: 'Career Development', es: 'Desarrollo de carrera' }, duration: '17 min' }
       ],
       practice: {
         en: 'Research 5 labels that fit your style. Write a demo submission email for one of them. Submit for review.',
@@ -148,10 +149,10 @@
       },
       duration: '~90 min',
       lessons: [
-        { id: 'L01', title: { en: 'Mastering Basics', es: 'Fundamentos de mastering' }, stream: '/mod-08/lesson-01/master.m3u8', duration: '22 min' },
-        { id: 'L02', title: { en: 'Loudness & Standards', es: 'Loudness y estándares' }, stream: '/mod-08/lesson-02/master.m3u8', duration: '22 min' },
-        { id: 'L03', title: { en: 'Pre-release Checklist', es: 'Checklist pre-lanzamiento' }, stream: '/mod-08/lesson-03/master.m3u8', duration: '23 min' },
-        { id: 'L04', title: { en: 'Final Export & Delivery', es: 'Export final y entrega' }, stream: '/mod-08/lesson-04/master.m3u8', duration: '23 min' }
+        { id: 'L01', title: { en: 'Mastering Basics', es: 'Fundamentos de mastering' }, duration: '22 min' },
+        { id: 'L02', title: { en: 'Loudness & Standards', es: 'Loudness y estándares' }, duration: '22 min' },
+        { id: 'L03', title: { en: 'Pre-release Checklist', es: 'Checklist pre-lanzamiento' }, duration: '23 min' },
+        { id: 'L04', title: { en: 'Final Export & Delivery', es: 'Export final y entrega' }, duration: '23 min' }
       ],
       practice: {
         en: 'Master your finished track and prepare the final delivery package: WAV, metadata, artwork specs. Submit for final review.',
@@ -160,8 +161,10 @@
     }
   ];
 
-  function getStreamUrl(path) {
-    return STREAM_BASE + path;
+  function getStreamUrl(uid) {
+    if (!uid) return null;
+    var base = STREAM_BASE.replace(/\/+$/, '');
+    return base + '/' + uid + '/manifest/video.m3u8';
   }
 
   root.DMF_ACADEMY = {

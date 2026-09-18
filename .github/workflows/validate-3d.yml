@@ -152,6 +152,48 @@ jobs:
           grep -q 'DMF_STREAM_BASE\|__DMF_STREAM_BASE__' public/academy-config.js
           echo "Stream URL configuration found — OK"
 
+      - name: Validate Cloudflare Stream UID mapping
+        run: |
+          node -e "
+            const fs = require('fs');
+            const src = fs.readFileSync('public/academy-config.js', 'utf8');
+
+            // At least one real streamUid must exist
+            const uids = src.match(/streamUid:\s*'[a-f0-9]{32}'/g) || [];
+            if (uids.length === 0) { console.error('FAIL: No streamUid mapped in academy-config.js'); process.exit(1); }
+            console.log('Stream UIDs found: ' + uids.length + ' — OK');
+
+            // Manifest pattern must be present in getStreamUrl
+            if (src.indexOf('/manifest/video.m3u8') === -1) {
+              console.error('FAIL: /manifest/video.m3u8 pattern not found in getStreamUrl');
+              process.exit(1);
+            }
+            console.log('Cloudflare manifest pattern present — OK');
+
+            // No Cloudflare API tokens in frontend
+            if (/cloudflare[-_]?(api|stream)[-_]?token/i.test(src)) {
+              console.error('FAIL: Possible Cloudflare API token reference in academy-config.js');
+              process.exit(1);
+            }
+
+            // No hardcoded customer-*.cloudflarestream.com
+            if (/customer-[a-z0-9]+\.cloudflarestream\.com/i.test(src)) {
+              console.error('FAIL: Hardcoded Cloudflare Stream domain in academy-config.js');
+              process.exit(1);
+            }
+            console.log('No Cloudflare secrets or hardcoded domains — OK');
+          "
+
+      - name: Validate no Cloudflare secrets in frontend
+        run: |
+          for f in public/academy.html public/academy-config.js public/login.html; do
+            if grep -qiE 'cloudflare[-_]?(api|stream)[-_]?token|customer-[a-z0-9]+\.cloudflarestream\.com' "$f"; then
+              echo "FAIL: Cloudflare secret or hardcoded domain found in $f"
+              exit 1
+            fi
+          done
+          echo "No Cloudflare secrets in frontend files — OK"
+
   validate-print:
     runs-on: ubuntu-latest
     steps:

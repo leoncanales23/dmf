@@ -74,18 +74,57 @@ Module states: `AVAILABLE`, `IN PROGRESS`, `COMPLETED`, `LOCKED`, `AWAITING REVI
 Sequential unlock: a module becomes AVAILABLE when the previous is COMPLETED.
 In demo mode, all modules are AVAILABLE.
 
-## Video / HLS Streaming
+## Video / HLS Streaming — Cloudflare Stream
 
-Stream URLs are configured via `DMF_STREAM_BASE` environment variable.
+Videos are hosted on **Cloudflare Stream**. Each lesson maps to a video by its
+Cloudflare **Video UID** (`streamUid` in `academy-config.js`), not by file path.
+
 No video files are stored in the repository — all streams are external.
 
-Path pattern: `{STREAM_BASE}/mod-{id}/lesson-{n}/master.m3u8`
+### URL Pattern
 
-Player uses:
+```
+{DMF_STREAM_BASE}/{VIDEO_UID}/manifest/video.m3u8
+```
+
+- `DMF_STREAM_BASE` is injected at build time (e.g. `https://customer-XXXX.cloudflarestream.com`)
+- The domain MUST NOT be hardcoded in source — it comes from environment variables only
+- Video UIDs are public identifiers (not secrets) and safe to commit
+
+### Lesson Mapping
+
+Lessons with a `streamUid` property produce a playable stream URL.
+Lessons without `streamUid` show a "Próximamente" placeholder — no network
+request is made, `loadSource()` / `video.src` is never called.
+
+### Current Video Map
+
+| Module | Lesson | UID | Title |
+|--------|--------|-----|-------|
+| 01 | L01 | `87da20f0d21e697054a3e84c0e6c78c7` | Kick / Snare / Hi Hat |
+
+Remaining lessons will be mapped as videos are uploaded to Cloudflare Stream.
+
+### Player
+
 - **HLS.js** (loaded on demand from CDN) for non-Safari browsers
 - **Native HLS** for Safari (via `canPlayType('application/vnd.apple.mpegurl')`)
 
-Test locally: `DMF_STREAM_BASE=http://localhost:8080`
+### Security
+
+- No Signed URLs in this phase — public delivery domain only
+- `CLOUDFLARE_STREAM_API_TOKEN` never appears in frontend code
+- `customer-*.cloudflarestream.com` domain never hardcoded in source
+- CI validates: at least one UID mapped, manifest pattern present, no secrets
+
+### Local Testing
+
+```
+DMF_STREAM_BASE=http://localhost:8080
+```
+
+For local testing without Cloudflare, set `DMF_STREAM_BASE` to a local server
+that serves HLS at `/{uid}/manifest/video.m3u8`.
 
 ## Environment Variables
 
