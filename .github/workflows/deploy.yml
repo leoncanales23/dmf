@@ -24,6 +24,11 @@ jobs:
         run: npm install -g firebase-tools
 
       - name: Build public directory
+        env:
+          DMF_STREAM_BASE: ${{ secrets.DMF_STREAM_BASE }}
+          DMF_FIREBASE_API_KEY: ${{ secrets.DMF_FIREBASE_API_KEY }}
+          DMF_FIREBASE_AUTH_DOMAIN: ${{ secrets.DMF_FIREBASE_AUTH_DOMAIN }}
+          DMF_FIREBASE_PROJECT_ID: ${{ secrets.DMF_FIREBASE_PROJECT_ID }}
         run: |
           mkdir -p public/assets/images public/assets/logos public/assets/docs public/assets/models
           node scripts/check-3d.cjs
@@ -36,6 +41,10 @@ jobs:
           node scripts/inject-training-state.cjs
           node scripts/inject-academy-link.cjs
           node scripts/inject-academy-env.cjs
+          test -n "$DMF_STREAM_BASE" || { echo "FAIL: DMF_STREAM_BASE secret not set"; exit 1; }
+          test -n "$DMF_FIREBASE_API_KEY" || { echo "FAIL: DMF_FIREBASE_API_KEY secret not set"; exit 1; }
+          grep -q '__DMF_STREAM_BASE__' public/academy-env.js || { echo "FAIL: academy-env.js missing STREAM_BASE"; exit 1; }
+          grep -q '__DMF_FIREBASE_CONFIG__' public/academy-env.js || { echo "FAIL: academy-env.js missing FIREBASE_CONFIG"; exit 1; }
           cp -r assets/images/* public/assets/images/ 2>/dev/null || true
           cp -r assets/logos/* public/assets/logos/ 2>/dev/null || true
           cp -r assets/docs/* public/assets/docs/ 2>/dev/null || true
