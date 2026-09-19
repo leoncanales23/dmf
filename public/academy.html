@@ -515,8 +515,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
   function getAuthorizedStreamUrl(videoUid) {
     var publicUrl = window.DMF_ACADEMY ? window.DMF_ACADEMY.getStreamUrl(videoUid) : null;
+    var signerUrl = String(window.__DMF_STREAM_SIGNER_URL__ || '').replace(/\/+$/, '');
 
-    if (!videoUid || !publicUrl || DEMO_MODE || !__dmfFirebaseReady) {
+    if (!videoUid || !publicUrl || !signerUrl || DEMO_MODE || !__dmfFirebaseReady) {
       return Promise.resolve(publicUrl);
     }
 
@@ -525,14 +526,15 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
     return user.getIdToken()
       .then(function (idToken) {
-        return fetch('/api/dmf/stream-token', {
+        return fetch(signerUrl + '/stream-token', {
           method: 'POST',
           headers: {
             'Authorization': 'Bearer ' + idToken,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ videoUid: videoUid }),
-          cache: 'no-store'
+          cache: 'no-store',
+          mode: 'cors'
         });
       })
       .then(function (response) {
