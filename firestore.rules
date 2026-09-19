@@ -3,11 +3,43 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function owns(userId) {
+      return request.auth != null
+             && request.auth.uid == userId;
+    }
+
+    function hasActiveEnrollment(userId) {
+      return owns(userId)
+             && exists(/databases/$(database)/documents/enrollments/$(userId))
+             && get(/databases/$(database)/documents/enrollments/$(userId)).data.status == 'active';
+    }
+
     match /enrollments/{userId} {
-      allow read: if request.auth != null
-                  && request.auth.uid == userId;
+      allow read: if owns(userId);
 
       allow create, update, delete: if false;
+    }
+
+    match /progress/{userId} {
+      allow read: if hasActiveEnrollment(userId);
+
+      allow create, update: if hasActiveEnrollment(userId)
+                            && request.resource.data.keys().hasOnly([
+                              'version',
+                              'lessons',
+                              'updatedAt'
+                            ])
+                            && request.resource.data.version == 3
+                            && request.resource.data.lessons is map
+                            && request.resource.data.lessons.keys().hasOnly([
+                              '01',
+                              '02',
+                              '03',
+                              '04'
+                            ])
+                            && request.resource.data.updatedAt == request.time;
+
+      allow delete: if false;
     }
 
     match /{document=**} {
