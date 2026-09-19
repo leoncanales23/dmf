@@ -21,7 +21,7 @@
           title: { en: 'Ableton Intro · Part 1', es: 'Intro Ableton · Parte 1' },
           streamKey: 'intro-ableton-p1',
           sourceFile: 'INTRO ABLETON/1. Intro ableton p1.mp4',
-          streamUid: null,
+          streamUid: '9bb8ec71e5f2cf3054979e77b65c1bba',
           duration: ''
         },
         {
@@ -29,7 +29,7 @@
           title: { en: 'Ableton Intro · Part 2', es: 'Intro Ableton · Parte 2' },
           streamKey: 'intro-ableton-p2',
           sourceFile: 'INTRO ABLETON/2. intro abeton pt2.mp4',
-          streamUid: null,
+          streamUid: '50498c021ed78bf0913f4cac9fca9abf',
           duration: ''
         }
       ],
@@ -60,7 +60,7 @@
           title: { en: 'Structure', es: 'Estructura' },
           streamKey: 'clase1-estructura',
           sourceFile: 'CLASE 1/2.2 Estructura.mp4',
-          streamUid: null,
+          streamUid: '27ee0d56d12a968546d5b80da955fdbc',
           duration: ''
         },
         {
@@ -68,7 +68,7 @@
           title: { en: 'Bass Line', es: 'Bass Line' },
           streamKey: 'clase1-bass-line',
           sourceFile: 'CLASE 1/2.3 Bass line.mp4',
-          streamUid: null,
+          streamUid: '4581cdfceeb66d354e3955f8ed1dcd2f',
           duration: ''
         },
         {
@@ -76,7 +76,7 @@
           title: { en: 'Loopcloud Intro', es: 'Loopcloud Intro' },
           streamKey: 'clase1-loopcloud-intro',
           sourceFile: 'CLASE 1/2.4 Loopcloud Intro.mp4',
-          streamUid: null,
+          streamUid: '180062ebab5a977e26de4c795c7cd8bb',
           duration: ''
         }
       ],
@@ -98,32 +98,32 @@
           id: 'L01',
           title: { en: 'Top Loops', es: 'Top Loops' },
           streamKey: 'clase2-top-loops',
-          sourceFile: 'CLASE 2/3.1 Top Loops.mp4',
-          streamUid: null,
+          sourceFile: 'CLASE  2/3.1 Top Loops.mp4',
+          streamUid: 'c6dc2d298f6d8e27d97e4d6d0a50328d',
           duration: ''
         },
         {
           id: 'L02',
           title: { en: 'Synths & Categories', es: 'Synths y Categorías' },
           streamKey: 'clase2-synths-categorias',
-          sourceFile: 'CLASE 2/3.2 Synths y Categorias .mp4',
-          streamUid: null,
+          sourceFile: 'CLASE  2/3.2 Synths y Categorias .mp4',
+          streamUid: 'befcbb6d84febc96d250621c8cfa5e0f',
           duration: ''
         },
         {
           id: 'L03',
           title: { en: 'Percussion', es: 'Percusión' },
           streamKey: 'clase2-percusion',
-          sourceFile: 'CLASE 2/3.3 Percusion.mp4',
-          streamUid: null,
+          sourceFile: 'CLASE  2/3.3 Percusion.mp4',
+          streamUid: '4ffdfd64e37d8b403a43b6edd512deb2',
           duration: ''
         },
         {
           id: 'L04',
           title: { en: 'Shakers & Open Hi-Hat', es: 'Shakers y Hi-Hat Open' },
           streamKey: 'clase2-shakers-open-hihat',
-          sourceFile: 'CLASE 2/3.4 Shakers and Hi hat open.mp4',
-          streamUid: null,
+          sourceFile: 'CLASE  2/3.4 Shakers and Hi hat open.mp4',
+          streamUid: '86cbcecd235e9c28a79004a1d6996ccd',
           duration: ''
         }
       ],
@@ -146,7 +146,7 @@
           title: { en: 'Edit & Mix', es: 'Edit & Mix' },
           streamKey: 'clase3-edit-mix',
           sourceFile: 'CLASE 3/3.5 Edit and mix.mp4',
-          streamUid: null,
+          streamUid: '88d5de963525591ca88cf6f0c58ac4ca',
           duration: ''
         },
         {
@@ -154,7 +154,7 @@
           title: { en: 'Vocals', es: 'Vocales' },
           streamKey: 'clase3-vocales',
           sourceFile: 'CLASE 3/3.6 Vocales.mp4',
-          streamUid: null,
+          streamUid: 'dc376fe4c26dec1815663f1a2b4792d6',
           duration: ''
         },
         {
@@ -162,7 +162,7 @@
           title: { en: 'Compression & Dynamic Range', es: 'Compresión y rango dinámico' },
           streamKey: 'clase3-compresion-rango-dinamico',
           sourceFile: 'CLASE 3/3.7 Cmpression y rango dinamico.mp4',
-          streamUid: null,
+          streamUid: '2d7916aade419637676f917cbcc14dce',
           duration: ''
         }
       ],
