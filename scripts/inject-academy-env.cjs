@@ -7,7 +7,7 @@ const path = require('path');
 const OUT_PATH = path.join(__dirname, '..', 'public', 'academy-env.js');
 
 const STREAM_BASE = process.env.DMF_STREAM_BASE || '';
-const STREAM_SIGNER_URL = process.env.DMF_STREAM_SIGNER_URL || '';
+const STREAM_SIGNER_URL = process.env.DMF_STREAM_SIGNER_URL || 'https://dmf-stream-signer.vibraalto-cl.workers.dev';
 const DEMO = process.env.DMF_ACADEMY_DEMO === 'true';
 
 const FIREBASE_API_KEY = process.env.DMF_FIREBASE_API_KEY || '';

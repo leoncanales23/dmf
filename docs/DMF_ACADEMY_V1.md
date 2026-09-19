@@ -218,7 +218,7 @@ npx wrangler secret put DMF_FIREBASE_API_KEY
 
 Never put either value in `wrangler.toml`, source code, shell history, or the frontend.
 
-The Worker URL returned by Wrangler becomes `DMF_STREAM_SIGNER_URL` for the Academy build.
+Production now defaults to `https://dmf-stream-signer.vibraalto-cl.workers.dev`. `DMF_STREAM_SIGNER_URL` can still override that value for staging or future Worker migration.
 
 ## Security
 
