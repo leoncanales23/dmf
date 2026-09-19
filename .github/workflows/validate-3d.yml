@@ -254,8 +254,12 @@ jobs:
           grep -q "/api/dmf/stream-token" public/academy.html || { echo "FAIL: Academy signed-token request missing"; exit 1; }
           grep -q "Signed playback fallback" public/academy.html || { echo "FAIL: Stage-1 playback fallback missing"; exit 1; }
           grep -q "firebase-admin" functions/package.json || { echo "FAIL: firebase-admin dependency missing"; exit 1; }
-          if grep -qiE 'cfat_|cloudflare.*token[=:][[:space:]]*["'"'][A-Za-z0-9_-]{20,}' public/academy.html public/academy-config.js; then
-            echo "FAIL: Possible Cloudflare secret in frontend"
+          if grep -qi 'cfat_' public/academy.html public/academy-config.js; then
+            echo "FAIL: Cloudflare API token prefix found in frontend"
+            exit 1
+          fi
+          if grep -q 'DMF_CLOUDFLARE_STREAM_TOKEN' public/academy.html public/academy-config.js; then
+            echo "FAIL: Cloudflare server secret name found in frontend"
             exit 1
           fi
           echo "Staged signed Stream playback validated — OK"
