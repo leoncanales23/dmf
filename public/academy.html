@@ -501,6 +501,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   var currentModuleId = null;
   var currentLessonIdx = 0;
   var hlsInstance = null;
+  var streamRequestSeq = 0;
 
   // --- HLS Player ---
   function loadHls(callback) {
@@ -510,6 +511,47 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     s.onload = callback;
     s.onerror = function () { console.warn('HLS.js failed to load'); callback(); };
     document.head.appendChild(s);
+  }
+
+  function getAuthorizedStreamUrl(videoUid) {
+    var publicUrl = window.DMF_ACADEMY ? window.DMF_ACADEMY.getStreamUrl(videoUid) : null;
+
+    if (!videoUid || !publicUrl || DEMO_MODE || !__dmfFirebaseReady) {
+      return Promise.resolve(publicUrl);
+    }
+
+    var user = firebase.auth().currentUser;
+    if (!user) return Promise.resolve(publicUrl);
+
+    return user.getIdToken()
+      .then(function (idToken) {
+        return fetch('/api/dmf/stream-token', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + idToken,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ videoUid: videoUid }),
+          cache: 'no-store'
+        });
+      })
+      .then(function (response) {
+        if (!response.ok) throw new Error('stream-token-' + response.status);
+        return response.json();
+      })
+      .then(function (payload) {
+        if (!payload || typeof payload.token !== 'string' || !payload.token) {
+          throw new Error('stream-token-missing');
+        }
+        return window.DMF_ACADEMY.getStreamUrl(payload.token);
+      })
+      .catch(function (error) {
+        // Stage 1 keeps public playback as a fail-open fallback. This fallback
+        // is removed only after signed-token playback is validated in production
+        // and requireSignedURLs is enabled for all videos.
+        console.warn('[DMF Stream] Signed playback fallback:', error.message);
+        return publicUrl;
+      });
   }
 
   function playStream(url) {
@@ -822,14 +864,23 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   function selectLesson(mod, idx) {
     currentLessonIdx = idx;
     var lesson = mod.lessons[idx];
-    var streamUrl = window.DMF_ACADEMY ? window.DMF_ACADEMY.getStreamUrl(lesson.streamUid) : null;
+    var requestSeq = ++streamRequestSeq;
 
-    if (!streamUrl) {
+    if (!lesson.streamUid) {
       showPlaceholder('Próximamente');
       document.getElementById('lessonActions').style.display = 'none';
     } else {
-      playStream(streamUrl);
+      showPlaceholder('Autorizando reproducción');
       updateLessonActions(mod, idx);
+
+      getAuthorizedStreamUrl(lesson.streamUid).then(function (streamUrl) {
+        if (requestSeq !== streamRequestSeq) return;
+        if (!streamUrl) {
+          showPlaceholder('Video no disponible');
+          return;
+        }
+        playStream(streamUrl);
+      });
     }
 
     var items = document.querySelectorAll('.lesson-item');
