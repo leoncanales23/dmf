@@ -131,13 +131,23 @@ request is made, `loadSource()` / `video.src` is never called.
 
 ### Current Video Map
 
-The known production mapping is:
+All 13 source videos are now mapped to Cloudflare Stream:
 
 | Source module | Lesson | UID | Title |
 |---------------|--------|-----|-------|
+| INTRO | L01 | `9bb8ec71e5f2cf3054979e77b65c1bba` | Intro Ableton · Parte 1 |
+| INTRO | L02 | `50498c021ed78bf0913f4cac9fca9abf` | Intro Ableton · Parte 2 |
 | CLASE 1 | L01 | `87da20f0d21e697054a3e84c0e6c78c7` | Kick / Snare / Hi Hat |
-
-The remaining 12 source videos are represented in `academy-config.js` with stable `streamKey` values and `streamUid: null` until Cloudflare returns their UIDs.
+| CLASE 1 | L02 | `27ee0d56d12a968546d5b80da955fdbc` | Estructura |
+| CLASE 1 | L03 | `4581cdfceeb66d354e3955f8ed1dcd2f` | Bass Line |
+| CLASE 1 | L04 | `180062ebab5a977e26de4c795c7cd8bb` | Loopcloud Intro |
+| CLASE 2 | L01 | `c6dc2d298f6d8e27d97e4d6d0a50328d` | Top Loops |
+| CLASE 2 | L02 | `befcbb6d84febc96d250621c8cfa5e0f` | Synths y Categorías |
+| CLASE 2 | L03 | `4ffdfd64e37d8b403a43b6edd512deb2` | Percusión |
+| CLASE 2 | L04 | `86cbcecd235e9c28a79004a1d6996ccd` | Shakers y Hi-Hat Open |
+| CLASE 3 | L01 | `88d5de963525591ca88cf6f0c58ac4ca` | Edit & Mix |
+| CLASE 3 | L02 | `dc376fe4c26dec1815663f1a2b4792d6` | Vocales |
+| CLASE 3 | L03 | `2d7916aade419637676f917cbcc14dce` | Compresión y rango dinámico |
 
 ### Ordered Cloudflare Upload
 
@@ -374,7 +384,7 @@ must be connected to payment webhooks (production gap).
 - [x] Cloudflare Stream hosting
 - [x] Demian 13-video source order represented in Academy
 - [x] Ordered Cloudflare upload + UID apply tooling
-- [ ] Upload and map the remaining 12 source videos
+- [x] Upload and map all 13 source videos
 - [x] Firestore security rules (deny client writes, user-scoped reads)
 - [x] Firebase init guard (graceful failure)
 - [x] Login error handling (non-enumerating)
