@@ -161,6 +161,14 @@ jobs:
           done
           echo "No secrets in frontend files — OK"
 
+      - name: Validate Academy progress sync
+        run: |
+          grep -q "collection('progress').doc" public/academy.html || { echo "FAIL: Firestore progress collection not wired"; exit 1; }
+          grep -q "dmf_progress_v3:" public/academy.html || { echo "FAIL: user-scoped local progress key missing"; exit 1; }
+          grep -q "serverTimestamp()" public/academy.html || { echo "FAIL: progress server timestamp missing"; exit 1; }
+          grep -q "firstIncomplete" public/academy.html || { echo "FAIL: resume-first-incomplete logic missing"; exit 1; }
+          echo "Academy progress sync validated — OK"
+
       - name: Validate firebase.json academy rewrites
         run: |
           node -e "
@@ -239,8 +247,12 @@ jobs:
           test -f firestore.rules || { echo "FAIL: firestore.rules not found"; exit 1; }
           grep -q 'match /enrollments/{userId}' firestore.rules || { echo "FAIL: enrollments rule missing"; exit 1; }
           grep -q 'request.auth.uid == userId' firestore.rules || { echo "FAIL: uid check missing in rules"; exit 1; }
-          grep -q 'allow create, update, delete: if false' firestore.rules || { echo "FAIL: client writes not denied"; exit 1; }
-          echo "Firestore rules validated — OK"
+          grep -q 'allow create, update, delete: if false' firestore.rules || { echo "FAIL: enrollment client writes not denied"; exit 1; }
+          grep -q 'match /progress/{userId}' firestore.rules || { echo "FAIL: progress rule missing"; exit 1; }
+          grep -q 'hasActiveEnrollment(userId)' firestore.rules || { echo "FAIL: progress must require active enrollment"; exit 1; }
+          grep -q "request.resource.data.version == 3" firestore.rules || { echo "FAIL: progress schema version guard missing"; exit 1; }
+          grep -q "request.resource.data.updatedAt == request.time" firestore.rules || { echo "FAIL: progress server timestamp guard missing"; exit 1; }
+          echo "Firestore rules validated — enrollment locked, progress user-scoped"
 
       - name: Validate firebase.academy.json exists and is correct
         run: |

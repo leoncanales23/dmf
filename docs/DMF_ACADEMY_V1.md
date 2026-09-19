@@ -304,6 +304,9 @@ service cloud.firestore {
 Key properties:
 - Authenticated user can only read their own enrollment document
 - No client can create, update, or delete enrollment documents
+- Active students can read/write only their own `progress/{uid}` document
+- Progress writes are schema-limited to version, lessons and server timestamp fields
+- Progress writes require an active enrollment
 - All other collections are deny-by-default
 - Enrollment grants are done by backend/admin only (not implemented yet)
 
@@ -355,18 +358,19 @@ deployed manually or via a separate workflow targeting `dmf-academy`.
 
 ## Progress Tracking
 
-`LocalProgressStore` in `academy.html`:
-- Stores lesson completion timestamps in `localStorage` under `dmf_progress_v2`
-- Uses a new key because the portal changed from the old conceptual 8×4 grid to Demian's real 4-module / 13-video order
-- Calculates per-module and overall progress
-- Removes the ambiguous tiny checkbox interaction
-- Uses one explicit **"Marcar completada y continuar"** action below the video
-- Automatically selects the next published lesson after completion
-- Auto-loads the first published lesson when a module opens
-- Wrapped in try/catch for private browsing compatibility
+`ProgressStore` in `academy.html` is now local-first and Firestore-backed:
+- Keeps an instant per-user browser cache under `dmf_progress_v3:{uid}`
+- Uses Firestore document `progress/{uid}` as the cross-device copy
+- Stores completion timestamps in the `lessons` map with schema version `3`
+- Merges local and remote completion timestamps on login, preserving the newest completion for each lesson
+- Debounces Firestore writes after a completion change
+- Falls back to the local copy if Firestore is temporarily unavailable
+- Automatically opens the first incomplete playable lesson when entering a module
+- Marks a lesson complete at video end or when the student presses **Continuar →**
 
-Designed for replacement: swap `ProgressStore` implementation with
-`FirestoreProgressStore` or `ApiProgressStore` matching the same interface.
+Progress is user-scoped. One browser account cannot read or write another student's progress document.
+
+The previous `dmf_progress_v2` cache is intentionally not auto-migrated because it was not user-scoped and could contain another account's state on a shared browser.
 
 ## Mercado Pago
 
@@ -393,7 +397,7 @@ must be connected to payment webhooks (production gap).
 - [x] Firebase config isolation (firebase.academy.json separate from firebase.json)
 - [ ] Firestore enrollment documents linked to Mercado Pago payments
 - [ ] Payment webhook → entitlement grant flow
-- [ ] Server-side progress persistence (Firestore or API)
+- [x] Server-side progress persistence (Firestore)
 - [ ] Signed playback URLs (Cloudflare Stream)
 - [ ] Work submission system for practice assignments
 - [ ] Review/feedback workflow for instructors

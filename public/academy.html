@@ -302,7 +302,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         auth = { email: user.email, uid: user.uid };
         checkEntitlement(user.uid, function (granted) {
           hasAccess = granted;
-          init();
+          if (!granted) {
+            init();
+            return;
+          }
+          ProgressStore.start(user.uid, function () {
+            init();
+          });
         });
       } else {
         window.location.href = '/login';
@@ -314,31 +320,127 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   }
 
   // --- Progress Store ---
+  // Local-first for instant UI, synchronized to Firestore for cross-device progress.
   var ProgressStore = {
-    _key: 'dmf_progress_v2',
+    _uid: null,
     _data: null,
+    _syncTimer: null,
+
+    _key: function () {
+      return 'dmf_progress_v3:' + (this._uid || 'demo');
+    },
+
     _load: function () {
       if (this._data) return this._data;
       try {
-        this._data = JSON.parse(localStorage.getItem(this._key)) || {};
+        this._data = JSON.parse(localStorage.getItem(this._key())) || {};
       } catch (e) {
         this._data = {};
       }
       return this._data;
     },
-    _save: function () {
-      try { localStorage.setItem(this._key, JSON.stringify(this._data)); } catch (e) { /* ignore */ }
+
+    _saveLocal: function () {
+      try { localStorage.setItem(this._key(), JSON.stringify(this._data || {})); } catch (e) { /* ignore */ }
     },
+
+    _merge: function (localData, remoteData) {
+      var merged = {};
+      var sources = [remoteData || {}, localData || {}];
+
+      for (var s = 0; s < sources.length; s++) {
+        var source = sources[s];
+        var moduleIds = Object.keys(source);
+        for (var mi = 0; mi < moduleIds.length; mi++) {
+          var modId = moduleIds[mi];
+          if (!/^(01|02|03|04)$/.test(modId)) continue;
+          var lessons = source[modId];
+          if (!lessons || typeof lessons !== 'object') continue;
+          if (!merged[modId]) merged[modId] = {};
+
+          var lessonIds = Object.keys(lessons);
+          for (var li = 0; li < lessonIds.length; li++) {
+            var lessonId = lessonIds[li];
+            if (!/^L\d{2}$/.test(lessonId)) continue;
+            var stamp = Number(lessons[lessonId]) || 0;
+            if (stamp > (Number(merged[modId][lessonId]) || 0)) {
+              merged[modId][lessonId] = stamp;
+            }
+          }
+        }
+      }
+      return merged;
+    },
+
+    start: function (uid, callback) {
+      var self = this;
+      this._uid = uid || null;
+      this._data = null;
+      var localData = this._load();
+
+      if (!uid || DEMO_MODE || !__dmfFirebaseReady) {
+        callback();
+        return;
+      }
+
+      firebase.firestore().collection('progress').doc(uid).get()
+        .then(function (doc) {
+          var remoteData = {};
+          if (doc.exists) {
+            var payload = doc.data() || {};
+            remoteData = payload.lessons || {};
+          }
+
+          var merged = self._merge(localData, remoteData);
+          self._data = merged;
+          self._saveLocal();
+
+          if (JSON.stringify(merged) !== JSON.stringify(remoteData)) {
+            self._scheduleSync(0);
+          }
+
+          callback();
+        })
+        .catch(function () {
+          // Offline or rules not deployed yet: keep local progress and continue.
+          callback();
+        });
+    },
+
+    _scheduleSync: function (delay) {
+      var self = this;
+      if (!this._uid || DEMO_MODE || !__dmfFirebaseReady || !hasAccess) return;
+      if (this._syncTimer) clearTimeout(this._syncTimer);
+      this._syncTimer = setTimeout(function () {
+        self._syncTimer = null;
+        self._syncNow();
+      }, typeof delay === 'number' ? delay : 500);
+    },
+
+    _syncNow: function () {
+      if (!this._uid || DEMO_MODE || !__dmfFirebaseReady || !hasAccess) return;
+      firebase.firestore().collection('progress').doc(this._uid).set({
+        version: 3,
+        lessons: this._data || {},
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(function () {
+        // Keep the local copy. A later progress change will retry the sync.
+      });
+    },
+
     isLessonComplete: function (modId, lessonId) {
       var d = this._load();
       return !!(d[modId] && d[modId][lessonId]);
     },
+
     markLessonComplete: function (modId, lessonId) {
       var d = this._load();
       if (!d[modId]) d[modId] = {};
       d[modId][lessonId] = Date.now();
-      this._save();
+      this._saveLocal();
+      this._scheduleSync();
     },
+
     toggleLesson: function (modId, lessonId) {
       var d = this._load();
       if (d[modId] && d[modId][lessonId]) {
@@ -348,13 +450,16 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         if (!d[modId]) d[modId] = {};
         d[modId][lessonId] = Date.now();
       }
-      this._save();
+      this._saveLocal();
+      this._scheduleSync();
     },
+
     getModuleProgress: function (modId, totalLessons) {
       var d = this._load();
       var done = d[modId] ? Object.keys(d[modId]).length : 0;
       return { completed: done, total: totalLessons, pct: totalLessons > 0 ? Math.round((done / totalLessons) * 100) : 0 };
     },
+
     getOverallProgress: function (modules) {
       var totalLessons = 0, completedLessons = 0, completedModules = 0;
       for (var i = 0; i < modules.length; i++) {
@@ -566,11 +671,18 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     // Load the first published lesson automatically. If nothing is published yet,
     // the module clearly communicates that content is still being prepared.
     var firstPlayable = -1;
+    var firstIncomplete = -1;
     for (var li = 0; li < mod.lessons.length; li++) {
-      if (mod.lessons[li].streamUid) { firstPlayable = li; break; }
+      if (!mod.lessons[li].streamUid) continue;
+      if (firstPlayable < 0) firstPlayable = li;
+      if (!ProgressStore.isLessonComplete(mod.id, mod.lessons[li].id)) {
+        firstIncomplete = li;
+        break;
+      }
     }
-    if (firstPlayable >= 0) {
-      selectLesson(mod, firstPlayable);
+    var resumeIdx = firstIncomplete >= 0 ? firstIncomplete : firstPlayable;
+    if (resumeIdx >= 0) {
+      selectLesson(mod, resumeIdx);
     } else {
       showPlaceholder('Contenido en preparación');
       document.getElementById('lessonActions').style.display = 'none';
@@ -795,7 +907,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     route();
   }
 
-  if (DEMO_MODE && auth && auth.demo) init();
+  if (DEMO_MODE && auth && auth.demo) {
+    ProgressStore.start(null, init);
+  }
 })();
 </script>
 
