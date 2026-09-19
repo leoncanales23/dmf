@@ -514,15 +514,19 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   }
 
   function getAuthorizedStreamUrl(videoUid) {
-    var publicUrl = window.DMF_ACADEMY ? window.DMF_ACADEMY.getStreamUrl(videoUid) : null;
-    var signerUrl = String(window.__DMF_STREAM_SIGNER_URL__ || '').replace(/\/+$/, '');
+    if (!videoUid) return Promise.resolve(null);
 
-    if (!videoUid || !publicUrl || !signerUrl || DEMO_MODE || !__dmfFirebaseReady) {
-      return Promise.resolve(publicUrl);
+    if (DEMO_MODE) {
+      return Promise.resolve(window.DMF_ACADEMY ? window.DMF_ACADEMY.getStreamUrl(videoUid) : null);
+    }
+
+    var signerUrl = String(window.__DMF_STREAM_SIGNER_URL__ || '').replace(/\/+$/, '');
+    if (!signerUrl || !__dmfFirebaseReady) {
+      return Promise.resolve(null);
     }
 
     var user = firebase.auth().currentUser;
-    if (!user) return Promise.resolve(publicUrl);
+    if (!user) return Promise.resolve(null);
 
     return user.getIdToken()
       .then(function (idToken) {
@@ -547,12 +551,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         }
         return window.DMF_ACADEMY.getStreamUrl(payload.token);
       })
-      .catch(function (error) {
-        // Stage 1 keeps public playback as a fail-open fallback. This fallback
-        // is removed only after signed-token playback is validated in production
-        // and requireSignedURLs is enabled for all videos.
-        console.warn('[DMF Stream] Signed playback fallback:', error.message);
-        return publicUrl;
+      .catch(function () {
+        return null;
       });
   }
 
