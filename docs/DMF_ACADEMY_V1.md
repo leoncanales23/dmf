@@ -178,46 +178,47 @@ git diff -- public/academy-config.js
 
 ### Signed Stream Playback — Stage 1
 
-The Academy now has a staged signed-playback path without breaking current students.
+The signer runs on a Cloudflare Worker so the Academy does not depend on billing-enabled Firebase Functions or Google Secret Manager.
 
 Flow:
 
 ```
 Firebase Auth user
-→ POST /api/dmf/stream-token with Firebase ID token
-→ dmfStreamToken verifies the dmf-academy ID token
-→ Firestore REST verifies the user's own enrollment under Security Rules
+→ POST <DMF_STREAM_SIGNER_URL>/stream-token with Firebase ID token
+→ Worker validates the token with Firebase Auth REST
+→ Firestore REST verifies enrollments/{uid} under the student's Security Rules
 → active enrollment required
 → Cloudflare Stream /token endpoint issues a 2-hour playback token
 → Academy uses the token in the HLS manifest URL
 ```
 
-The function only signs the 13 known DMF video UIDs. It cannot be used to mint tokens for arbitrary videos in the Cloudflare account.
+The Worker only signs the 13 known DMF video UIDs. It cannot mint tokens for arbitrary videos in the Cloudflare account.
 
 ### Stage 1 safety
 
-Cloudflare `requireSignedURLs` remains **false** during this phase. If the new signer is temporarily unavailable, the frontend falls back to the existing public UID URL so the Academy does not go dark during rollout.
+Cloudflare `requireSignedURLs` remains **false** during this phase. If `DMF_STREAM_SIGNER_URL` is not configured, or the Worker is temporarily unavailable, the frontend falls back to the current public UID URL so the Academy stays online during rollout.
 
-Do **not** enable `requireSignedURLs` yet. First deploy `dmfStreamToken`, verify that production playback succeeds through the signed token path, and only then move to Stage 2 where the public fallback is removed and all 13 videos are switched to `requireSignedURLs: true`.
+Do **not** enable `requireSignedURLs` yet. First deploy the Worker, configure its URL in the Academy runtime, verify signed playback in production, and only then move to Stage 2 where the public fallback is removed and all 13 videos are switched to `requireSignedURLs: true`.
 
-### Function secret and deployment
+### Worker deployment
 
-The Cloudflare API token is stored only as a Firebase Functions secret in the Hosting project:
-
-```bash
-firebase functions:secrets:set DMF_CLOUDFLARE_STREAM_TOKEN \
-  --project vibraaltoai-11f55
-```
-
-Then deploy only the signer:
+From the repository:
 
 ```bash
-firebase deploy \
-  --only functions:dmfStreamToken \
-  --project vibraaltoai-11f55
+cd workers/dmf-stream-signer
+npx wrangler deploy
 ```
 
-No Cloudflare API token is exposed to the browser.
+Then set the Worker secrets interactively:
+
+```bash
+npx wrangler secret put DMF_CLOUDFLARE_STREAM_API_TOKEN
+npx wrangler secret put DMF_FIREBASE_API_KEY
+```
+
+Never put either value in `wrangler.toml`, source code, shell history, or the frontend.
+
+The Worker URL returned by Wrangler becomes `DMF_STREAM_SIGNER_URL` for the Academy build.
 
 ## Security
 
@@ -240,6 +241,7 @@ that serves HLS at `/{uid}/manifest/video.m3u8`.
 | Variable                  | Default                    | Description                              |
 |---------------------------|----------------------------|------------------------------------------|
 | `DMF_STREAM_BASE`         | `http://localhost:8080`    | HLS stream server base URL               |
+| `DMF_STREAM_SIGNER_URL`   | (not set)                  | Cloudflare Worker signer base URL        |
 | `DMF_ACADEMY_DEMO`        | (not set)                  | Set `true` to enable demo login mode     |
 | `DMF_FIREBASE_API_KEY`    | (not set)                  | Firebase Web API key (dmf-academy)       |
 | `DMF_FIREBASE_AUTH_DOMAIN`| `dmf-academy.firebaseapp.com` | Firebase Auth domain (dmf-academy)    |
