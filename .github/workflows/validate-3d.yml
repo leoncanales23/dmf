@@ -16,6 +16,7 @@ on:
       - 'scripts/inject-academy-link.cjs'
       - 'scripts/inject-academy-env.cjs'
       - 'functions/**'
+      - 'workers/**'
       - 'assets/models/**'
       - 'index.html'
       - 'public/login.html'
@@ -266,7 +267,7 @@ jobs:
           fi
           echo "Cloudflare Worker signed Stream stage validated — OK"
 
-            - name: Validate Firestore rules exist and are secure
+      - name: Validate Firestore rules exist and are secure
         run: |
           test -f firestore.rules || { echo "FAIL: firestore.rules not found"; exit 1; }
           grep -q 'match /enrollments/{userId}' firestore.rules || { echo "FAIL: enrollments rule missing"; exit 1; }
