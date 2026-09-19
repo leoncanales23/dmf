@@ -242,6 +242,28 @@ jobs:
           done
           echo "No Cloudflare secrets in frontend files — OK"
 
+      - name: Validate staged signed Stream playback
+        run: |
+          grep -q 'exports.dmfStreamToken' functions/index.js || { echo "FAIL: dmfStreamToken function missing"; exit 1; }
+          grep -q "DMF_CLOUDFLARE_STREAM_TOKEN" functions/index.js || { echo "FAIL: Cloudflare Stream secret binding missing"; exit 1; }
+          grep -q "verifyIdToken" functions/index.js || { echo "FAIL: Firebase ID token verification missing"; exit 1; }
+          grep -q "documents/enrollments/" functions/index.js || { echo "FAIL: enrollment verification missing"; exit 1; }
+          grep -q "/stream/'" functions/index.js || { echo "FAIL: Cloudflare Stream token API path missing"; exit 1; }
+          grep -q "'/token'" functions/index.js || { echo "FAIL: Cloudflare token endpoint missing"; exit 1; }
+          grep -q "/api/dmf/stream-token" firebase.json || { echo "FAIL: Hosting stream-token rewrite missing"; exit 1; }
+          grep -q "/api/dmf/stream-token" public/academy.html || { echo "FAIL: Academy signed-token request missing"; exit 1; }
+          grep -q "Signed playback fallback" public/academy.html || { echo "FAIL: Stage-1 playback fallback missing"; exit 1; }
+          grep -q "firebase-admin" functions/package.json || { echo "FAIL: firebase-admin dependency missing"; exit 1; }
+          if grep -qi 'cfat_' public/academy.html public/academy-config.js; then
+            echo "FAIL: Cloudflare API token prefix found in frontend"
+            exit 1
+          fi
+          if grep -q 'DMF_CLOUDFLARE_STREAM_TOKEN' public/academy.html public/academy-config.js; then
+            echo "FAIL: Cloudflare server secret name found in frontend"
+            exit 1
+          fi
+          echo "Staged signed Stream playback validated — OK"
+
       - name: Validate Firestore rules exist and are secure
         run: |
           test -f firestore.rules || { echo "FAIL: firestore.rules not found"; exit 1; }

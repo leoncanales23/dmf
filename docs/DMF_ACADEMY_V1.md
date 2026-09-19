@@ -176,7 +176,50 @@ git diff -- public/academy-config.js
 - **HLS.js** (loaded on demand from CDN) for non-Safari browsers
 - **Native HLS** for Safari (via `canPlayType('application/vnd.apple.mpegurl')`)
 
-### Security
+### Signed Stream Playback — Stage 1
+
+The Academy now has a staged signed-playback path without breaking current students.
+
+Flow:
+
+```
+Firebase Auth user
+→ POST /api/dmf/stream-token with Firebase ID token
+→ dmfStreamToken verifies the dmf-academy ID token
+→ Firestore REST verifies the user's own enrollment under Security Rules
+→ active enrollment required
+→ Cloudflare Stream /token endpoint issues a 2-hour playback token
+→ Academy uses the token in the HLS manifest URL
+```
+
+The function only signs the 13 known DMF video UIDs. It cannot be used to mint tokens for arbitrary videos in the Cloudflare account.
+
+### Stage 1 safety
+
+Cloudflare `requireSignedURLs` remains **false** during this phase. If the new signer is temporarily unavailable, the frontend falls back to the existing public UID URL so the Academy does not go dark during rollout.
+
+Do **not** enable `requireSignedURLs` yet. First deploy `dmfStreamToken`, verify that production playback succeeds through the signed token path, and only then move to Stage 2 where the public fallback is removed and all 13 videos are switched to `requireSignedURLs: true`.
+
+### Function secret and deployment
+
+The Cloudflare API token is stored only as a Firebase Functions secret in the Hosting project:
+
+```bash
+firebase functions:secrets:set DMF_CLOUDFLARE_STREAM_TOKEN \
+  --project vibraaltoai-11f55
+```
+
+Then deploy only the signer:
+
+```bash
+firebase deploy \
+  --only functions:dmfStreamToken \
+  --project vibraaltoai-11f55
+```
+
+No Cloudflare API token is exposed to the browser.
+
+## Security
 
 - No Signed URLs in this phase — public delivery domain only
 - `CLOUDFLARE_STREAM_API_TOKEN` never appears in frontend code
@@ -398,7 +441,7 @@ must be connected to payment webhooks (production gap).
 - [ ] Firestore enrollment documents linked to Mercado Pago payments
 - [ ] Payment webhook → entitlement grant flow
 - [x] Server-side progress persistence (Firestore)
-- [ ] Signed playback URLs (Cloudflare Stream)
+- [~] Signed playback URLs (Cloudflare Stream) — Stage 1 token endpoint wired; protection flag remains OFF until production validation
 - [ ] Work submission system for practice assignments
 - [ ] Review/feedback workflow for instructors
 - [ ] Email notifications (enrollment confirmation, review ready)
