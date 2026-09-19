@@ -19,13 +19,6 @@
         }
       },
       {
-        "source": "/api/dmf/stream-token",
-        "function": {
-          "functionId": "dmfStreamToken",
-          "region": "us-central1"
-        }
-      },
-      {
         "source": "/login",
         "destination": "/login.html"
       },
