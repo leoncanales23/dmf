@@ -7,6 +7,7 @@ const path = require('path');
 const OUT_PATH = path.join(__dirname, '..', 'public', 'academy-env.js');
 
 const STREAM_BASE = process.env.DMF_STREAM_BASE || '';
+const STREAM_SIGNER_URL = process.env.DMF_STREAM_SIGNER_URL || '';
 const DEMO = process.env.DMF_ACADEMY_DEMO === 'true';
 
 const FIREBASE_API_KEY = process.env.DMF_FIREBASE_API_KEY || '';
@@ -18,6 +19,10 @@ lines.push('// DMF Academy — Runtime Environment (generated at build time)');
 
 if (STREAM_BASE) {
   lines.push('window.__DMF_STREAM_BASE__ = ' + JSON.stringify(STREAM_BASE) + ';');
+}
+
+if (STREAM_SIGNER_URL) {
+  lines.push('window.__DMF_STREAM_SIGNER_URL__ = ' + JSON.stringify(STREAM_SIGNER_URL) + ';');
 }
 
 if (DEMO) {
@@ -37,6 +42,7 @@ fs.writeFileSync(OUT_PATH, content, 'utf8');
 
 console.log('DMF Academy // Environment config written to public/academy-env.js');
 if (STREAM_BASE) console.log('  STREAM_BASE: ' + STREAM_BASE);
+if (STREAM_SIGNER_URL) console.log('  STREAM_SIGNER: configured');
 if (DEMO) console.log('  DEMO MODE: enabled');
 if (FIREBASE_API_KEY) console.log('  FIREBASE AUTH: configured');
 if (!STREAM_BASE && !DEMO && !FIREBASE_API_KEY) console.log('  (no env vars set — defaults will apply)');

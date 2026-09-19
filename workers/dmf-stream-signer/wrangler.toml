@@ -1,0 +1,8 @@
+name = "dmf-stream-signer"
+main = "src/index.js"
+compatibility_date = "2026-09-19"
+workers_dev = true
+
+[vars]
+DMF_CLOUDFLARE_ACCOUNT_ID = "27a73047e3d2a859af87db771d3569a2"
+DMF_FIREBASE_PROJECT_ID = "dmf-academy"
