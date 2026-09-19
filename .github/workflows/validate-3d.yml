@@ -189,10 +189,19 @@ jobs:
             const fs = require('fs');
             const src = fs.readFileSync('public/academy-config.js', 'utf8');
 
-            // At least one real streamUid must exist
+            // All 13 production lessons must have a real streamUid
             const uids = src.match(/streamUid:\s*'[a-f0-9]{32}'/g) || [];
-            if (uids.length === 0) { console.error('FAIL: No streamUid mapped in academy-config.js'); process.exit(1); }
-            console.log('Stream UIDs found: ' + uids.length + ' — OK');
+            const pending = src.match(/streamUid:\s*null/g) || [];
+            if (uids.length !== 13) {
+              console.error('FAIL: Expected 13 streamUid mappings, found ' + uids.length);
+              process.exit(1);
+            }
+            if (pending.length !== 0) {
+              console.error('FAIL: Pending null streamUid mappings remain: ' + pending.length);
+              process.exit(1);
+            }
+            console.log('Stream UIDs found: 13 — OK');
+            console.log('Pending Stream UIDs: 0 — OK');
 
             // Manifest pattern must be present in getStreamUrl
             if (src.indexOf('/manifest/video.m3u8') === -1) {
