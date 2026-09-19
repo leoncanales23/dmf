@@ -3,9 +3,32 @@
 const crypto = require('crypto');
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
+const { initializeApp } = require('firebase-admin/app');
+const { getAuth } = require('firebase-admin/auth');
 
 const VBC_SERVICE_KEY = defineSecret('VBC_SERVICE_KEY');
+const DMF_CLOUDFLARE_STREAM_TOKEN = defineSecret('DMF_CLOUDFLARE_STREAM_TOKEN');
 const VBC_COMPUTE_URL = process.env.VBC_COMPUTE_URL || 'https://vbc-compute-layer.fly.dev/compute/execute';
+const DMF_CLOUDFLARE_ACCOUNT_ID = '27a73047e3d2a859af87db771d3569a2';
+const DMF_ACADEMY_PROJECT_ID = 'dmf-academy';
+
+const academyAuthApp = initializeApp({ projectId: DMF_ACADEMY_PROJECT_ID }, 'dmfAcademyAuth');
+
+const DMF_STREAM_UIDS = new Set([
+  '9bb8ec71e5f2cf3054979e77b65c1bba',
+  '50498c021ed78bf0913f4cac9fca9abf',
+  '87da20f0d21e697054a3e84c0e6c78c7',
+  '27ee0d56d12a968546d5b80da955fdbc',
+  '4581cdfceeb66d354e3955f8ed1dcd2f',
+  '180062ebab5a977e26de4c795c7cd8bb',
+  'c6dc2d298f6d8e27d97e4d6d0a50328d',
+  'befcbb6d84febc96d250621c8cfa5e0f',
+  '4ffdfd64e37d8b403a43b6edd512deb2',
+  '86cbcecd235e9c28a79004a1d6996ccd',
+  '88d5de963525591ca88cf6f0c58ac4ca',
+  'dc376fe4c26dec1815663f1a2b4792d6',
+  '2d7916aade419637676f917cbcc14dce',
+]);
 
 const ALLOWED_ORIGINS = new Set([
   'https://dmf.vibraalto.cl',
@@ -303,5 +326,137 @@ exports.dmfTraining = onRequest({
   } catch (error) {
     console.error('[DMF uplink] request failed', error.message);
     return res.status(502).json({ ok: false, error: 'VBC uplink timeout' });
+  }
+});
+
+
+async function verifyAcademyUser(req) {
+  const authHeader = String(req.headers.authorization || '');
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  if (!match) {
+    const error = new Error('Missing bearer token');
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const idToken = match[1];
+  let decoded;
+  try {
+    decoded = await getAuth(academyAuthApp).verifyIdToken(idToken);
+  } catch (_) {
+    const error = new Error('Invalid bearer token');
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const enrollmentUrl =
+    'https://firestore.googleapis.com/v1/projects/' +
+    DMF_ACADEMY_PROJECT_ID +
+    '/databases/(default)/documents/enrollments/' +
+    encodeURIComponent(decoded.uid);
+
+  const enrollmentResponse = await fetch(enrollmentUrl, {
+    headers: {
+      Authorization: 'Bearer ' + idToken,
+    },
+    signal: AbortSignal.timeout(8000),
+  });
+
+  if (!enrollmentResponse.ok) {
+    const error = new Error('Enrollment unavailable');
+    error.statusCode = enrollmentResponse.status === 404 ? 403 : 502;
+    throw error;
+  }
+
+  const enrollment = await enrollmentResponse.json();
+  const status = enrollment &&
+    enrollment.fields &&
+    enrollment.fields.status &&
+    enrollment.fields.status.stringValue;
+
+  if (status !== 'active') {
+    const error = new Error('Enrollment inactive');
+    error.statusCode = 403;
+    throw error;
+  }
+
+  return decoded;
+}
+
+exports.dmfStreamToken = onRequest({
+  region: 'us-central1',
+  timeoutSeconds: 20,
+  memory: '256MiB',
+  maxInstances: 10,
+  secrets: [DMF_CLOUDFLARE_STREAM_TOKEN],
+  cors: false,
+}, async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.set('X-Content-Type-Options', 'nosniff');
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ ok: false, error: 'POST required' });
+  }
+
+  const origin = String(req.headers.origin || '');
+  const localOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  if (!origin || (!ALLOWED_ORIGINS.has(origin) && !localOrigin)) {
+    return res.status(403).json({ ok: false, error: 'Origin not allowed' });
+  }
+
+  const videoUid = cleanString(req.body && req.body.videoUid, 64);
+  if (!DMF_STREAM_UIDS.has(videoUid)) {
+    return res.status(400).json({ ok: false, error: 'Unknown lesson video' });
+  }
+
+  try {
+    const user = await verifyAcademyUser(req);
+    const streamApiToken = DMF_CLOUDFLARE_STREAM_TOKEN.value();
+    if (!streamApiToken) {
+      return res.status(503).json({ ok: false, error: 'Stream signer not configured' });
+    }
+
+    const exp = Math.floor(Date.now() / 1000) + (2 * 60 * 60);
+    const cfResponse = await fetch(
+      'https://api.cloudflare.com/client/v4/accounts/' +
+        DMF_CLOUDFLARE_ACCOUNT_ID +
+        '/stream/' +
+        videoUid +
+        '/token',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + streamApiToken,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ exp }),
+        signal: AbortSignal.timeout(10000),
+      }
+    );
+
+    const payload = await cfResponse.json().catch(() => ({}));
+    const token = payload && payload.result && payload.result.token;
+
+    if (!cfResponse.ok || typeof token !== 'string' || token.length < 32) {
+      console.error('[DMF stream] Cloudflare token request failed', cfResponse.status);
+      return res.status(502).json({ ok: false, error: 'Stream token unavailable' });
+    }
+
+    return res.json({
+      ok: true,
+      token,
+      expiresAt: exp,
+      uid: user.uid,
+    });
+  } catch (error) {
+    const status = Number(error.statusCode) || 502;
+    return res.status(status).json({
+      ok: false,
+      error: status === 401
+        ? 'Authentication required'
+        : status === 403
+          ? 'Active enrollment required'
+          : 'Stream authorization unavailable',
+    });
   }
 });
