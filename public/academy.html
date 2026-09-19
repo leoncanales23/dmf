@@ -91,9 +91,18 @@ a:hover{color:#ff7a45}
 .lesson-num{font-family:'Anton',sans-serif;font-size:13px;color:#665f58;min-width:28px}
 .lesson-title{flex:1;font-size:14px;font-weight:600;color:#f2ede6}
 .lesson-dur{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#665f58}
-.lesson-check{width:20px;height:20px;border:1px solid rgba(242,237,230,.15);display:flex;align-items:center;justify-content:center;font-size:11px;color:#4ecdc4;cursor:pointer;transition:border-color .2s}
-.lesson-check:hover{border-color:#4ecdc4}
-.lesson-check.is-done{background:rgba(78,205,196,.1);border-color:#4ecdc4}
+.lesson-item.is-unavailable{opacity:.46;cursor:not-allowed}
+.lesson-item.is-unavailable:hover{border-color:rgba(242,237,230,.06);background:transparent}
+.lesson-status{min-width:96px;text-align:right;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#ff5b1e}
+.lesson-status.is-done{color:#4ecdc4}
+.lesson-status.is-soon{color:#665f58}
+.lesson-actions{display:none;max-width:960px;margin:-18px 0 32px;padding:16px 18px;border:1px solid rgba(255,91,30,.24);background:rgba(255,91,30,.035);align-items:center;justify-content:space-between;gap:18px}
+.lesson-now{display:flex;flex-direction:column;gap:5px;min-width:0}
+.lesson-now-kicker{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#ff5b1e}
+.lesson-now-title{font-size:13px;font-weight:700;color:#f2ede6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lesson-complete-btn{flex:0 0 auto;padding:11px 18px;border:1px solid #ff5b1e;background:#ff5b1e;color:#0a0806;font-family:'Anton',sans-serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.lesson-complete-btn:hover{background:#ff7a45;border-color:#ff7a45}
+.lesson-complete-btn.is-done{background:transparent;color:#4ecdc4;border-color:rgba(78,205,196,.45)}
 
 /* PRACTICE BLOCK */
 .mv-practice{max-width:960px;padding:28px;border:1px solid rgba(255,91,30,.25);background:rgba(255,91,30,.03);margin-bottom:32px}
@@ -122,6 +131,8 @@ a:hover{color:#ff7a45}
   .dash-stats{gap:20px}
   .mod-grid{grid-template-columns:1fr}
   .mv-nav{flex-direction:column}
+  .lesson-actions{align-items:stretch;flex-direction:column}
+  .lesson-complete-btn{width:100%}
 }
 @media(max-width:480px){
   .portal-brand-sep,.portal-brand-label{display:none}
@@ -166,11 +177,11 @@ a:hover{color:#ff7a45}
       <div class="dash-title">Student Portal</div>
       <div class="dash-stats">
         <div class="dash-stat">
-          <div class="dash-stat-num" id="statModules">00/08</div>
+          <div class="dash-stat-num" id="statModules">00/04</div>
           <div class="dash-stat-label">Modules</div>
         </div>
         <div class="dash-stat">
-          <div class="dash-stat-num" id="statLessons">00/32</div>
+          <div class="dash-stat-num" id="statLessons">00/13</div>
           <div class="dash-stat-label">Lessons</div>
         </div>
         <div class="dash-stat">
@@ -203,8 +214,16 @@ a:hover{color:#ff7a45}
       <video id="videoEl" controls playsinline></video>
       <div class="mv-player-placeholder" id="playerPlaceholder">
         <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22"/><polygon points="19,14 19,34 36,24"/></svg>
-        <span>Select a lesson to begin</span>
+        <span>Selecciona una lección</span>
       </div>
+    </div>
+
+    <div class="lesson-actions" id="lessonActions">
+      <div class="lesson-now">
+        <span class="lesson-now-kicker">Ahora reproduciendo</span>
+        <span class="lesson-now-title" id="nowPlayingTitle"></span>
+      </div>
+      <button class="lesson-complete-btn" id="completeContinueBtn" type="button">Marcar completada y continuar</button>
     </div>
 
     <div class="mv-lessons" id="lessonList">
@@ -294,7 +313,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
   // --- Progress Store ---
   var ProgressStore = {
-    _key: 'dmf_progress',
+    _key: 'dmf_progress_v2',
     _data: null,
     _load: function () {
       if (this._data) return this._data;
@@ -426,16 +445,38 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   }
 
   // --- Module state ---
+  function hasPlayableLesson(mod) {
+    for (var i = 0; i < mod.lessons.length; i++) {
+      if (mod.lessons[i].streamUid) return true;
+    }
+    return false;
+  }
+
+  function isFullyPublished(mod) {
+    if (!mod.lessons.length) return false;
+    for (var i = 0; i < mod.lessons.length; i++) {
+      if (!mod.lessons[i].streamUid) return false;
+    }
+    return true;
+  }
+
   function getModuleState(mod) {
     var p = ProgressStore.getModuleProgress(mod.id, mod.lessons.length);
     if (p.completed === p.total && p.total > 0) return 'COMPLETED';
     if (p.completed > 0) return 'IN PROGRESS';
+    if (auth && auth.demo) return 'AVAILABLE';
+    if (!hasPlayableLesson(mod)) return 'LOCKED';
+
     var idx = MODULES.indexOf(mod);
     if (idx === 0) return 'AVAILABLE';
+
+    // During staged publishing, do not hide a real uploaded lesson just because
+    // an earlier module is still waiting for its remaining Cloudflare UIDs.
     var prev = MODULES[idx - 1];
+    if (!isFullyPublished(prev)) return 'AVAILABLE';
+
     var pp = ProgressStore.getModuleProgress(prev.id, prev.lessons.length);
     if (pp.completed === pp.total && pp.total > 0) return 'AVAILABLE';
-    if (auth && auth.demo) return 'AVAILABLE';
     return 'LOCKED';
   }
 
@@ -465,11 +506,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var state = getModuleState(m);
       var p = ProgressStore.getModuleProgress(m.id, m.lessons.length);
       var locked = state === 'LOCKED';
+      var published = 0;
+      for (var pi = 0; pi < m.lessons.length; pi++) if (m.lessons[pi].streamUid) published++;
       html += '<div class="mod-card' + (locked ? ' mod-card-locked' : '') + '" data-mod="' + m.id + '">' +
         '<div class="mod-card-head"><span class="mod-card-num">' + m.id + '</span><span class="mod-card-code">' + m.code + '</span></div>' +
         '<div class="mod-card-title">' + escHtml(t(m.title)) + '</div>' +
         '<div class="mod-card-desc">' + escHtml(t(m.desc)) + '</div>' +
-        '<div class="mod-card-footer"><span class="mod-card-dur">' + m.duration + '</span><span class="mod-card-state ' + stateClass(state) + '">' + state + '</span></div>' +
+        '<div class="mod-card-footer"><span class="mod-card-dur">' + published + '/' + m.lessons.length + ' videos</span><span class="mod-card-state ' + stateClass(state) + '">' + state + '</span></div>' +
         '<div class="mod-card-progress"><div class="mod-card-progress-fill" style="width:' + p.pct + '%"></div></div></div>';
     }
     moduleGrid.innerHTML = html;
@@ -504,10 +547,18 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
     renderLessons(mod);
 
-    // Player placeholder
-    document.getElementById('videoEl').style.display = 'none';
-    document.getElementById('playerPlaceholder').style.display = 'flex';
-    document.getElementById('playerPlaceholder').querySelector('span').textContent = 'Select a lesson to begin';
+    // Load the first published lesson automatically. If nothing is published yet,
+    // the module clearly communicates that content is still being prepared.
+    var firstPlayable = -1;
+    for (var li = 0; li < mod.lessons.length; li++) {
+      if (mod.lessons[li].streamUid) { firstPlayable = li; break; }
+    }
+    if (firstPlayable >= 0) {
+      selectLesson(mod, firstPlayable);
+    } else {
+      showPlaceholder('Contenido en preparación');
+      document.getElementById('lessonActions').style.display = 'none';
+    }
 
     // Nav
     var navHtml = '';
@@ -515,7 +566,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       navHtml += '<button class="mv-nav-btn" data-nav="prev">← Module ' + MODULES[modIdx - 1].id + '</button>';
     }
     navHtml += '<button class="mv-nav-btn" data-nav="dash">Dashboard</button>';
-    if (modIdx < MODULES.length - 1) {
+    if (modIdx < MODULES.length - 1 && getModuleState(MODULES[modIdx + 1]) !== 'LOCKED') {
       navHtml += '<button class="mv-nav-btn mv-nav-btn-next" data-nav="next">Module ' + MODULES[modIdx + 1].id + ' →</button>';
     }
     document.getElementById('moduleNav').innerHTML = navHtml;
@@ -546,11 +597,14 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     for (var i = 0; i < mod.lessons.length; i++) {
       var l = mod.lessons[i];
       var done = ProgressStore.isLessonComplete(mod.id, l.id);
-      html += '<div class="lesson-item' + (done ? ' is-completed' : '') + '" data-lesson="' + i + '">' +
+      var playable = !!l.streamUid;
+      var status = done ? '✓ Completada' : (playable ? '▶ Ver clase' : 'Próximamente');
+      var statusClass = done ? ' is-done' : (playable ? '' : ' is-soon');
+      html += '<div class="lesson-item' + (done ? ' is-completed' : '') + (playable ? '' : ' is-unavailable') + '" data-lesson="' + i + '">' +
         '<span class="lesson-num">' + l.id + '</span>' +
         '<span class="lesson-title">' + escHtml(t(l.title)) + '</span>' +
-        '<span class="lesson-dur">' + l.duration + '</span>' +
-        '<span class="lesson-check' + (done ? ' is-done' : '') + '" data-check="' + i + '">' + (done ? '✓' : '') + '</span>' +
+        '<span class="lesson-dur">' + (l.duration || '') + '</span>' +
+        '<span class="lesson-status' + statusClass + '">' + status + '</span>' +
         '</div>';
     }
     container.innerHTML = html;
@@ -558,24 +612,62 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var items = container.querySelectorAll('.lesson-item');
     for (var j = 0; j < items.length; j++) {
       (function (idx) {
-        items[idx].addEventListener('click', function (e) {
-          if (e.target.classList.contains('lesson-check')) return;
+        if (!mod.lessons[idx].streamUid) return;
+        items[idx].addEventListener('click', function () {
           selectLesson(mod, idx);
         });
       })(j);
     }
+  }
 
-    var checks = container.querySelectorAll('.lesson-check');
-    for (var k = 0; k < checks.length; k++) {
-      (function (idx) {
-        checks[idx].addEventListener('click', function (e) {
-          e.stopPropagation();
-          var l = mod.lessons[idx];
-          ProgressStore.toggleLesson(mod.id, l.id);
-          renderLessons(mod);
-        });
-      })(k);
+  function findNextPlayable(mod, idx) {
+    for (var i = idx + 1; i < mod.lessons.length; i++) {
+      if (mod.lessons[i].streamUid) return { mod: mod, idx: i };
     }
+    var modIdx = MODULES.indexOf(mod);
+    for (var mi = modIdx + 1; mi < MODULES.length; mi++) {
+      for (var li = 0; li < MODULES[mi].lessons.length; li++) {
+        if (MODULES[mi].lessons[li].streamUid) return { mod: MODULES[mi], idx: li };
+      }
+    }
+    return null;
+  }
+
+  function updateLessonActions(mod, idx) {
+    var lesson = mod.lessons[idx];
+    var actions = document.getElementById('lessonActions');
+    var title = document.getElementById('nowPlayingTitle');
+    var btn = document.getElementById('completeContinueBtn');
+    if (!lesson || !lesson.streamUid) {
+      actions.style.display = 'none';
+      return;
+    }
+
+    var done = ProgressStore.isLessonComplete(mod.id, lesson.id);
+    title.textContent = t(lesson.title);
+    btn.textContent = done ? 'Siguiente lección' : 'Marcar completada y continuar';
+    btn.classList.toggle('is-done', done);
+    actions.style.display = 'flex';
+
+    btn.onclick = function () {
+      if (!ProgressStore.isLessonComplete(mod.id, lesson.id)) {
+        ProgressStore.markLessonComplete(mod.id, lesson.id);
+      }
+      renderLessons(mod);
+
+      var next = findNextPlayable(mod, idx);
+      if (!next) {
+        btn.textContent = 'Completada ✓';
+        btn.classList.add('is-done');
+        return;
+      }
+
+      if (next.mod.id === mod.id) {
+        selectLesson(mod, next.idx);
+      } else {
+        navigateTo('/academy/module/' + next.mod.id);
+      }
+    };
   }
 
   function showPlaceholder(msg) {
@@ -596,8 +688,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
     if (!streamUrl) {
       showPlaceholder('Próximamente');
+      document.getElementById('lessonActions').style.display = 'none';
     } else {
       playStream(streamUrl);
+      updateLessonActions(mod, idx);
     }
 
     var items = document.querySelectorAll('.lesson-item');

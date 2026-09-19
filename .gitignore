@@ -4,3 +4,4 @@ node_modules/
 .env
 public/assets/models/
 public/academy-env.js
+.dmf-stream-map.local.json

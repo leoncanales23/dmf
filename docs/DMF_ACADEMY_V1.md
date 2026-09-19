@@ -77,23 +77,34 @@ setting `window.__DMF_STREAM_BASE__`, `window.__DMF_ACADEMY_DEMO__`, and
 
 ## Modules
 
-8 modules, each with 4 lessons:
+The portal now follows the actual source-video order delivered by Demian. The recorded library currently contains **13 videos grouped into 4 source modules**:
 
-| #  | Code    | Title (EN)                     | Duration |
-|----|---------|--------------------------------|----------|
-| 01 | IDEA    | Track Structure & Development  | ~75 min  |
-| 02 | MIX     | Mixing & Balance               | ~90 min  |
-| 03 | SOUND   | Sound Selection                | ~80 min  |
-| 04 | BASS    | Bass Creation                  | ~70 min  |
-| 05 | FLOW    | Workflow & Efficiency          | ~60 min  |
-| 06 | MINDSET | Producer Mindset               | ~60 min  |
-| 07 | MARKET  | Music Market                   | ~75 min  |
-| 08 | RELEASE | Mastering & Final Prep         | ~90 min  |
+| #  | Code    | Source block | Lessons |
+|----|---------|--------------|---------|
+| 01 | INTRO   | Intro Ableton | 2 |
+| 02 | CLASE 1 | Kick / structure / bass / Loopcloud | 4 |
+| 03 | CLASE 2 | Top loops / synths / percussion / shakers | 4 |
+| 04 | CLASE 3 | Edit & mix / vocals / compression | 3 |
 
-Module states: `AVAILABLE`, `IN PROGRESS`, `COMPLETED`, `LOCKED`, `AWAITING REVIEW`
+Exact source order:
 
-Sequential unlock: a module becomes AVAILABLE when the previous is COMPLETED.
-In demo mode, all modules are AVAILABLE.
+1. `INTRO ABLETON/1. Intro ableton p1.mp4`
+2. `INTRO ABLETON/2. intro abeton pt2.mp4`
+3. `CLASE 1/2.1 Kickk snare Hi Hat.mp4`
+4. `CLASE 1/2.2 Estructura.mp4`
+5. `CLASE 1/2.3 Bass line.mp4`
+6. `CLASE 1/2.4 Loopcloud Intro.mp4`
+7. `CLASE 2/3.1 Top Loops.mp4`
+8. `CLASE 2/3.2 Synths y Categorias .mp4`
+9. `CLASE 2/3.3 Percusion.mp4`
+10. `CLASE 2/3.4 Shakers and Hi hat open.mp4`
+11. `CLASE 3/3.5 Edit and mix.mp4`
+12. `CLASE 3/3.6 Vocales.mp4`
+13. `CLASE 3/3.7 Cmpression y rango dinamico.mp4`
+
+Module states remain `AVAILABLE`, `IN PROGRESS`, `COMPLETED`, and `LOCKED`.
+
+During staged publishing, an uploaded lesson remains accessible even if an earlier source module is still missing Stream UIDs. Once the preceding module is fully published, normal sequential completion gating applies. Demo mode keeps modules available.
 
 ## Video / HLS Streaming — Cloudflare Stream
 
@@ -120,11 +131,35 @@ request is made, `loadSource()` / `video.src` is never called.
 
 ### Current Video Map
 
-| Module | Lesson | UID | Title |
-|--------|--------|-----|-------|
-| 01 | L01 | `87da20f0d21e697054a3e84c0e6c78c7` | Kick / Snare / Hi Hat |
+The known production mapping is:
 
-Remaining lessons will be mapped as videos are uploaded to Cloudflare Stream.
+| Source module | Lesson | UID | Title |
+|---------------|--------|-----|-------|
+| CLASE 1 | L01 | `87da20f0d21e697054a3e84c0e6c78c7` | Kick / Snare / Hi Hat |
+
+The remaining 12 source videos are represented in `academy-config.js` with stable `streamKey` values and `streamUid: null` until Cloudflare returns their UIDs.
+
+### Ordered Cloudflare Upload
+
+Use the repository helper from the machine that contains `~/dmf-media/source`:
+
+```bash
+export CLOUDFLARE_ACCOUNT_ID="<account-id>"
+export CLOUDFLARE_STREAM_API_TOKEN="<token>"
+
+bash scripts/upload-dmf-stream.sh
+node scripts/apply-stream-map.cjs .dmf-stream-map.local.json
+
+git diff -- public/academy-config.js
+```
+
+`upload-dmf-stream.sh`:
+- uploads in Demian's exact source order
+- reuses the existing Kick / Snare / Hi Hat UID instead of re-uploading it
+- never writes or echoes the Cloudflare API token
+- writes only the local `.dmf-stream-map.local.json` file, which is gitignored
+
+`apply-stream-map.cjs` validates all 13 UIDs and updates `academy-config.js`. A complete map must end with 13 configured lessons and 0 pending lessons.
 
 ### Player
 
@@ -311,9 +346,13 @@ deployed manually or via a separate workflow targeting `dmf-academy`.
 ## Progress Tracking
 
 `LocalProgressStore` in `academy.html`:
-- Stores lesson completion timestamps in `localStorage` under `dmf_progress`
+- Stores lesson completion timestamps in `localStorage` under `dmf_progress_v2`
+- Uses a new key because the portal changed from the old conceptual 8×4 grid to Demian's real 4-module / 13-video order
 - Calculates per-module and overall progress
-- Toggle-based: click checkmark to mark/unmark lessons
+- Removes the ambiguous tiny checkbox interaction
+- Uses one explicit **"Marcar completada y continuar"** action below the video
+- Automatically selects the next published lesson after completion
+- Auto-loads the first published lesson when a module opens
 - Wrapped in try/catch for private browsing compatibility
 
 Designed for replacement: swap `ProgressStore` implementation with
@@ -332,7 +371,10 @@ must be connected to payment webhooks (production gap).
 - [x] Module lock enforced on direct URL access
 - [x] Build-time runtime config (inject-academy-env.cjs)
 - [x] CI hardened for MP4/TS/M3U8 (excluding public/uploads/)
-- [x] Cloudflare Stream hosting (per-lesson UID mapping)
+- [x] Cloudflare Stream hosting
+- [x] Demian 13-video source order represented in Academy
+- [x] Ordered Cloudflare upload + UID apply tooling
+- [ ] Upload and map the remaining 12 source videos
 - [x] Firestore security rules (deny client writes, user-scoped reads)
 - [x] Firebase init guard (graceful failure)
 - [x] Login error handling (non-enumerating)
@@ -369,7 +411,7 @@ must be connected to payment webhooks (production gap).
 
 `validate-academy` job in `.github/workflows/validate-3d.yml`:
 1. Academy files exist (`login.html`, `academy.html`, `academy-config.js`)
-2. 8 modules configured in `academy-config.js`
+2. 4 source modules / 13 lessons configured in Demian's exact source order
 3. No media files (`.mp4`, `.ts`, `.m3u8`) in repository (excluding `public/uploads/`)
 4. No secrets in frontend files
 5. Firebase rewrites correct (academy routes before catch-all)
