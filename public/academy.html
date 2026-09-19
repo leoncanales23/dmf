@@ -47,8 +47,11 @@ a:hover{color:#ff7a45}
 
 /* MODULE GRID */
 .mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
-.mod-card{border:1px solid rgba(242,237,230,.08);padding:24px;cursor:pointer;transition:border-color .3s,background .3s;position:relative;overflow:hidden}
-.mod-card:hover{border-color:rgba(255,91,30,.4);background:rgba(255,91,30,.03)}
+.mod-card{border:1px solid rgba(242,237,230,.08);padding:24px;cursor:pointer;transition:border-color .3s,background .3s,transform .2s;position:relative;overflow:hidden}
+.mod-card:hover{border-color:rgba(255,91,30,.4);background:rgba(255,91,30,.03);transform:translateY(-1px)}
+.mod-card::after{content:'→';position:absolute;right:18px;top:18px;font-size:18px;color:#3f3934;transition:color .2s,transform .2s}
+.mod-card:hover::after{color:#ff5b1e;transform:translateX(2px)}
+.mod-card-locked::after{content:'·';color:#3a3632}
 .mod-card-locked{opacity:.4;cursor:not-allowed;pointer-events:none}
 .mod-card-head{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
 .mod-card-num{font-family:'Anton',sans-serif;font-size:14px;color:#ff5b1e}
@@ -57,12 +60,11 @@ a:hover{color:#ff7a45}
 .mod-card-desc{font-size:13px;line-height:1.6;color:#8a8178;margin-bottom:14px}
 .mod-card-footer{display:flex;align-items:center;justify-content:space-between}
 .mod-card-dur{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#665f58}
-.mod-card-state{font-size:9px;letter-spacing:.16em;text-transform:uppercase;padding:4px 10px}
-.state-available{color:#ff5b1e;border:1px solid rgba(255,91,30,.3)}
-.state-in-progress{color:#ffb599;background:rgba(255,91,30,.1);border:1px solid rgba(255,91,30,.3)}
-.state-completed{color:#4ecdc4;border:1px solid rgba(78,205,196,.3)}
-.state-locked{color:#665f58;border:1px solid rgba(242,237,230,.08)}
-.state-review{color:#ffd93d;border:1px solid rgba(255,217,61,.3)}
+.mod-card-state{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#8a8178}
+.state-available,.state-in-progress{color:#ff5b1e}
+.state-completed{color:#4ecdc4}
+.state-locked{color:#665f58}
+.state-review{color:#ffd93d}
 .mod-card-progress{width:100%;height:2px;background:rgba(242,237,230,.06);margin-top:14px}
 .mod-card-progress-fill{height:100%;background:#ff5b1e;transition:width .4s}
 
@@ -93,7 +95,7 @@ a:hover{color:#ff7a45}
 .lesson-dur{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#665f58}
 .lesson-item.is-unavailable{opacity:.46;cursor:not-allowed}
 .lesson-item.is-unavailable:hover{border-color:rgba(242,237,230,.06);background:transparent}
-.lesson-status{min-width:96px;text-align:right;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#ff5b1e}
+.lesson-status{min-width:28px;text-align:right;font-size:14px;color:#ff5b1e}
 .lesson-status.is-done{color:#4ecdc4}
 .lesson-status.is-soon{color:#665f58}
 .lesson-actions{display:none;max-width:960px;margin:-18px 0 32px;padding:16px 18px;border:1px solid rgba(255,91,30,.24);background:rgba(255,91,30,.035);align-items:center;justify-content:space-between;gap:18px}
@@ -258,7 +260,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   }
 }
 </script>
-<script src="/academy-config.js"></script>
+<script src="/academy-config.js?v=dmf-13"></script>
 <script>
 (function () {
   'use strict';
@@ -423,7 +425,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
     loadHls(function () {
       if (window.Hls && Hls.isSupported()) {
-        hlsInstance = new Hls();
+        hlsInstance = new Hls({
+          abrEwmaDefaultEstimate: 5000000,
+          capLevelToPlayerSize: true
+        });
         hlsInstance.loadSource(url);
         hlsInstance.attachMedia(video);
         hlsInstance.on(Hls.Events.MANIFEST_PARSED, function () {
@@ -508,20 +513,31 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var locked = state === 'LOCKED';
       var published = 0;
       for (var pi = 0; pi < m.lessons.length; pi++) if (m.lessons[pi].streamUid) published++;
-      html += '<div class="mod-card' + (locked ? ' mod-card-locked' : '') + '" data-mod="' + m.id + '">' +
+      var actionLabel = locked ? 'Bloqueado' :
+        (state === 'COMPLETED' ? 'Revisar ✓' :
+        (state === 'IN PROGRESS' ? 'Continuar →' : 'Entrar →'));
+      html += '<div class="mod-card' + (locked ? ' mod-card-locked' : '') + '" data-mod="' + m.id + '" role="button" tabindex="' + (locked ? '-1' : '0') + '" aria-label="' + escHtml(actionLabel + ' ' + t(m.title)) + '">' +
         '<div class="mod-card-head"><span class="mod-card-num">' + m.id + '</span><span class="mod-card-code">' + m.code + '</span></div>' +
         '<div class="mod-card-title">' + escHtml(t(m.title)) + '</div>' +
         '<div class="mod-card-desc">' + escHtml(t(m.desc)) + '</div>' +
-        '<div class="mod-card-footer"><span class="mod-card-dur">' + published + '/' + m.lessons.length + ' videos</span><span class="mod-card-state ' + stateClass(state) + '">' + state + '</span></div>' +
+        '<div class="mod-card-footer"><span class="mod-card-dur">' + p.completed + '/' + p.total + ' clases</span><span class="mod-card-state ' + stateClass(state) + '">' + actionLabel + '</span></div>' +
         '<div class="mod-card-progress"><div class="mod-card-progress-fill" style="width:' + p.pct + '%"></div></div></div>';
     }
     moduleGrid.innerHTML = html;
 
     var cards = moduleGrid.querySelectorAll('.mod-card:not(.mod-card-locked)');
     for (var j = 0; j < cards.length; j++) {
-      cards[j].addEventListener('click', (function (id) {
-        return function () { navigateTo('/academy/module/' + id); };
-      })(cards[j].getAttribute('data-mod')));
+      (function (card) {
+        var id = card.getAttribute('data-mod');
+        function openModule() { navigateTo('/academy/module/' + id); }
+        card.addEventListener('click', openModule);
+        card.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openModule();
+          }
+        });
+      })(cards[j]);
     }
   }
 
@@ -598,7 +614,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var l = mod.lessons[i];
       var done = ProgressStore.isLessonComplete(mod.id, l.id);
       var playable = !!l.streamUid;
-      var status = done ? '✓ Completada' : (playable ? '▶ Ver clase' : 'Próximamente');
+      var status = done ? '✓' : (playable ? '▶' : '·');
       var statusClass = done ? ' is-done' : (playable ? '' : ' is-soon');
       html += '<div class="lesson-item' + (done ? ' is-completed' : '') + (playable ? '' : ' is-unavailable') + '" data-lesson="' + i + '">' +
         '<span class="lesson-num">' + l.id + '</span>' +
@@ -645,7 +661,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
     var done = ProgressStore.isLessonComplete(mod.id, lesson.id);
     title.textContent = t(lesson.title);
-    btn.textContent = done ? 'Siguiente lección' : 'Marcar completada y continuar';
+    btn.textContent = done ? 'Siguiente →' : 'Continuar →';
     btn.classList.toggle('is-done', done);
     actions.style.display = 'flex';
 
@@ -668,13 +684,23 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         navigateTo('/academy/module/' + next.mod.id);
       }
     };
+
+    var video = document.getElementById('videoEl');
+    video.onended = function () {
+      if (!ProgressStore.isLessonComplete(mod.id, lesson.id)) {
+        ProgressStore.markLessonComplete(mod.id, lesson.id);
+        renderLessons(mod);
+      }
+      btn.textContent = findNextPlayable(mod, idx) ? 'Siguiente →' : 'Completada ✓';
+      btn.classList.add('is-done');
+    };
   }
 
   function showPlaceholder(msg) {
     var video = document.getElementById('videoEl');
     var placeholder = document.getElementById('playerPlaceholder');
     if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
-    if (video) { video.style.display = 'none'; video.removeAttribute('src'); video.load(); }
+    if (video) { video.onended = null; video.style.display = 'none'; video.removeAttribute('src'); video.load(); }
     if (placeholder) {
       placeholder.style.display = 'flex';
       placeholder.querySelector('span').textContent = msg;
