@@ -47,7 +47,7 @@ function json(origin, status, body) {
 async function verifyFirebaseUser(idToken, env) {
   const response = await fetch(
     'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' +
-      encodeURIComponent(env.DMF_FIREBASE_API_KEY),
+      encodeURIComponent(env.DMF_FIREBASE_WEB_API_KEY || env.DMF_FIREBASE_API_KEY),
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
