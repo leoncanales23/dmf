@@ -83,6 +83,31 @@ a:hover{color:#ff7a45}
 .mv-player-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#665f58;font-size:12px;letter-spacing:.14em;text-transform:uppercase;gap:12px}
 .mv-player-placeholder svg{width:48px;height:48px;fill:none;stroke:#665f58;stroke-width:1.5}
 
+/* QUALITY UX */
+.dmf-quality-badge{position:absolute;bottom:52px;right:12px;display:none;align-items:center;gap:6px;padding:5px 10px;background:rgba(10,8,6,.82);border:1px solid rgba(242,237,230,.1);border-radius:4px;font-size:11px;letter-spacing:.08em;color:#d8d0c6;cursor:pointer;z-index:4;user-select:none;transition:border-color .2s}
+.dmf-quality-badge:hover{border-color:rgba(255,91,30,.4)}
+.dmf-quality-badge svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.5}
+.dmf-quality-badge .dmf-q-label{text-transform:uppercase;font-weight:600;font-size:10px}
+.dmf-quality-badge .dmf-q-res{font-variant-numeric:tabular-nums}
+.dmf-quality-menu{position:absolute;bottom:84px;right:12px;display:none;min-width:180px;background:rgba(10,8,6,.94);border:1px solid rgba(242,237,230,.12);border-radius:4px;z-index:5;padding:8px 0;backdrop-filter:blur(8px)}
+.dmf-quality-menu.is-open{display:block}
+.dmf-qm-title{padding:6px 14px;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#665f58}
+.dmf-qm-item{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:13px;color:#d8d0c6;cursor:pointer;transition:background .15s}
+.dmf-qm-item:hover{background:rgba(255,91,30,.08)}
+.dmf-qm-item.is-active{color:#ff5b1e}
+.dmf-qm-item .dmf-qm-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid #665f58;flex-shrink:0}
+.dmf-qm-item.is-active .dmf-qm-dot{background:#ff5b1e;border-color:#ff5b1e}
+.dmf-qm-item .dmf-qm-tag{margin-left:auto;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#665f58}
+.dmf-qm-hint{padding:8px 14px 4px;font-size:10px;color:#665f58;line-height:1.5;border-top:1px solid rgba(242,237,230,.06);margin-top:4px}
+.dmf-quality-toast{position:absolute;top:12px;left:50%;transform:translateX(-50%) translateY(-60px);display:flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(10,8,6,.88);border:1px solid rgba(242,237,230,.1);border-radius:4px;font-size:12px;color:#d8d0c6;z-index:6;opacity:0;transition:transform .35s ease,opacity .35s ease;pointer-events:none;white-space:nowrap;backdrop-filter:blur(6px)}
+.dmf-quality-toast.is-visible{transform:translateX(-50%) translateY(0);opacity:1}
+.dmf-quality-toast .dmf-qt-icon{font-size:14px;flex-shrink:0}
+.dmf-buffering-overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,8,6,.6);z-index:3}
+.dmf-buffering-overlay.is-visible{display:flex}
+.dmf-buffering-spinner{width:36px;height:36px;border:2.5px solid rgba(242,237,230,.15);border-top-color:#ff5b1e;border-radius:50%;animation:dmfSpin .8s linear infinite}
+@keyframes dmfSpin{to{transform:rotate(360deg)}}
+.dmf-buffering-text{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#d8d0c6;text-align:center;line-height:1.5}
+
 /* LESSON LIST */
 .mv-lessons{max-width:960px;margin-bottom:40px}
 .mv-lessons-title{font-family:'Anton',sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;color:#f2ede6}
@@ -218,6 +243,20 @@ a:hover{color:#ff7a45}
         <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22"/><polygon points="19,14 19,34 36,24"/></svg>
         <span>Selecciona una lección</span>
       </div>
+      <div class="dmf-buffering-overlay" id="dmfBuffering">
+        <div class="dmf-buffering-spinner"></div>
+        <div class="dmf-buffering-text">Cargando video&hellip;<br>Optimizando calidad para tu conexi&oacute;n</div>
+      </div>
+      <div class="dmf-quality-toast" id="dmfQualityToast">
+        <span class="dmf-qt-icon"></span>
+        <span class="dmf-qt-msg"></span>
+      </div>
+      <div class="dmf-quality-badge" id="dmfQualityBadge">
+        <span class="dmf-q-label">AUTO</span>
+        <span class="dmf-q-res"></span>
+        <svg viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z"/><path d="M19.14 12.94a7.07 7.07 0 0 0 .06-.94 7.07 7.07 0 0 0-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.04 7.04 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58a7.07 7.07 0 0 0-.06.94c0 .32.02.64.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.49.37 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.03-1.58z"/></svg>
+      </div>
+      <div class="dmf-quality-menu" id="dmfQualityMenu"></div>
     </div>
 
     <div class="lesson-actions" id="lessonActions">
@@ -569,6 +608,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
       video.play().catch(function () {});
+      QualityUX.hideBuffering();
       return;
     }
 
@@ -578,6 +618,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
           abrEwmaDefaultEstimate: 5000000,
           capLevelToPlayerSize: true
         });
+        QualityUX.attachHls(hlsInstance);
         hlsInstance.loadSource(url);
         hlsInstance.attachMedia(video);
         hlsInstance.on(Hls.Events.MANIFEST_PARSED, function () {
@@ -585,6 +626,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         });
         hlsInstance.on(Hls.Events.ERROR, function (_, data) {
           if (data.fatal) {
+            QualityUX.reset();
             placeholder.style.display = 'flex';
             placeholder.querySelector('span').textContent = 'Video stream unavailable';
             video.style.display = 'none';
@@ -597,6 +639,194 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       }
     });
   }
+
+  // --- Adaptive Quality UX ---
+  var QualityUX = (function () {
+    var badge = document.getElementById('dmfQualityBadge');
+    var menu = document.getElementById('dmfQualityMenu');
+    var toast = document.getElementById('dmfQualityToast');
+    var bufOverlay = document.getElementById('dmfBuffering');
+    var toastTimer = null;
+    var bufTimer = null;
+    var isAuto = true;
+    var lastResLabel = '';
+    var menuOpen = false;
+
+    function resLabel(height) {
+      if (height >= 1080) return '1080p';
+      if (height >= 720) return '720p';
+      if (height >= 480) return '480p';
+      if (height >= 360) return '360p';
+      if (height >= 240) return '240p';
+      return height + 'p';
+    }
+
+    function updateBadge(label) {
+      if (!badge) return;
+      badge.querySelector('.dmf-q-label').textContent = isAuto ? 'AUTO' : '';
+      badge.querySelector('.dmf-q-res').textContent = label;
+      badge.style.display = 'flex';
+    }
+
+    function showToast(icon, msg, duration) {
+      if (!toast) return;
+      toast.querySelector('.dmf-qt-icon').textContent = icon;
+      toast.querySelector('.dmf-qt-msg').textContent = msg;
+      toast.classList.add('is-visible');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () {
+        toast.classList.remove('is-visible');
+      }, duration || 4000);
+    }
+
+    function buildMenu(hls) {
+      if (!menu || !hls) return;
+      var levels = hls.levels || [];
+      var current = hls.currentLevel;
+      var html = '<div class="dmf-qm-title">Calidad</div>';
+      html += '<div class="dmf-qm-item' + (isAuto ? ' is-active' : '') + '" data-level="-1">'
+            + '<span class="dmf-qm-dot"></span>Auto'
+            + (isAuto && lastResLabel ? ' · ' + lastResLabel : '')
+            + '<span class="dmf-qm-tag">recomendado</span></div>';
+
+      var sorted = [];
+      for (var i = 0; i < levels.length; i++) {
+        sorted.push({ idx: i, height: levels[i].height || 0 });
+      }
+      sorted.sort(function (a, b) { return b.height - a.height; });
+
+      for (var s = 0; s < sorted.length; s++) {
+        var lvl = sorted[s];
+        var label = resLabel(lvl.height);
+        var tag = lvl.height >= 720 ? 'HD' : '';
+        var active = !isAuto && current === lvl.idx;
+        html += '<div class="dmf-qm-item' + (active ? ' is-active' : '') + '" data-level="' + lvl.idx + '">'
+              + '<span class="dmf-qm-dot"></span>' + label
+              + (tag ? '<span class="dmf-qm-tag">' + tag + '</span>' : '') + '</div>';
+      }
+      html += '<div class="dmf-qm-hint">La calidad Auto se adapta a tu conexión.</div>';
+      menu.innerHTML = html;
+    }
+
+    function toggleMenu() {
+      if (!menu || !hlsInstance) return;
+      menuOpen = !menuOpen;
+      if (menuOpen) {
+        buildMenu(hlsInstance);
+        menu.classList.add('is-open');
+      } else {
+        menu.classList.remove('is-open');
+      }
+    }
+
+    function closeMenu() {
+      menuOpen = false;
+      if (menu) menu.classList.remove('is-open');
+    }
+
+    function selectLevel(levelIdx) {
+      if (!hlsInstance) return;
+      if (levelIdx === -1) {
+        isAuto = true;
+        hlsInstance.currentLevel = -1;
+      } else {
+        isAuto = false;
+        hlsInstance.currentLevel = levelIdx;
+      }
+      closeMenu();
+      if (isAuto) {
+        updateBadge(lastResLabel);
+      } else {
+        var h = (hlsInstance.levels[levelIdx] || {}).height || 0;
+        var label = resLabel(h);
+        lastResLabel = label;
+        updateBadge(label);
+      }
+    }
+
+    if (badge) {
+      badge.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleMenu();
+      });
+    }
+    if (menu) {
+      menu.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var item = e.target.closest('.dmf-qm-item');
+        if (item && item.dataset.level !== undefined) {
+          selectLevel(parseInt(item.dataset.level, 10));
+        }
+      });
+    }
+    document.addEventListener('click', function () { closeMenu(); });
+
+    function attachHls(hls) {
+      isAuto = true;
+      lastResLabel = '';
+      closeMenu();
+
+      hls.on(Hls.Events.LEVEL_SWITCHED, function (_, data) {
+        var level = hls.levels[data.level];
+        if (!level) return;
+        var label = resLabel(level.height);
+        var prev = lastResLabel;
+        lastResLabel = label;
+        updateBadge(isAuto ? label : lastResLabel);
+
+        if (!isAuto || !prev) return;
+        var prevH = parseInt(prev, 10) || 0;
+        var curH = level.height || 0;
+        if (curH < prevH && prevH - curH >= 200) {
+          showToast('⚠', 'Conexión inestable · Reproduciendo en ' + label, 5000);
+        } else if (curH > prevH && curH >= 720 && curH - prevH >= 200) {
+          showToast('✓', 'Conexión estabilizada · ' + label, 3500);
+        }
+      });
+
+      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        if (hls.levels && hls.levels.length > 0) {
+          buildMenu(hls);
+        }
+      });
+    }
+
+    function showBuffering() {
+      if (bufOverlay) bufOverlay.classList.add('is-visible');
+    }
+    function hideBuffering() {
+      clearTimeout(bufTimer);
+      bufTimer = null;
+      if (bufOverlay) bufOverlay.classList.remove('is-visible');
+    }
+
+    function attachVideo(video) {
+      video.addEventListener('waiting', function () {
+        if (!bufTimer) {
+          bufTimer = setTimeout(showBuffering, 1500);
+        }
+      });
+      video.addEventListener('playing', hideBuffering);
+      video.addEventListener('seeked', hideBuffering);
+      video.addEventListener('ended', hideBuffering);
+      video.addEventListener('error', hideBuffering);
+    }
+
+    function reset() {
+      closeMenu();
+      hideBuffering();
+      if (badge) badge.style.display = 'none';
+      if (toast) toast.classList.remove('is-visible');
+      clearTimeout(toastTimer);
+      isAuto = true;
+      lastResLabel = '';
+    }
+
+    var videoEl = document.getElementById('videoEl');
+    if (videoEl) attachVideo(videoEl);
+
+    return { attachHls: attachHls, reset: reset, hideBuffering: hideBuffering };
+  })();
 
   // --- Module state ---
   function hasPlayableLesson(mod) {
@@ -855,6 +1085,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   function showPlaceholder(msg) {
     var video = document.getElementById('videoEl');
     var placeholder = document.getElementById('playerPlaceholder');
+    QualityUX.reset();
     if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
     if (video) { video.onended = null; video.style.display = 'none'; video.removeAttribute('src'); video.load(); }
     if (placeholder) {
