@@ -99,9 +99,11 @@ a:hover{color:#ff7a45}
 .dmf-qm-item.is-active .dmf-qm-dot{background:#ff5b1e;border-color:#ff5b1e}
 .dmf-qm-item .dmf-qm-tag{margin-left:auto;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#665f58}
 .dmf-qm-hint{padding:8px 14px 4px;font-size:10px;color:#665f58;line-height:1.5;border-top:1px solid rgba(242,237,230,.06);margin-top:4px}
-.dmf-quality-toast{position:absolute;top:12px;left:50%;transform:translateX(-50%) translateY(-60px);display:flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(10,8,6,.88);border:1px solid rgba(242,237,230,.1);border-radius:4px;font-size:12px;color:#d8d0c6;z-index:6;opacity:0;transition:transform .35s ease,opacity .35s ease;pointer-events:none;white-space:nowrap;backdrop-filter:blur(6px)}
+.dmf-quality-toast{position:absolute;top:12px;left:50%;transform:translateX(-50%) translateY(-60px);display:flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(10,8,6,.88);border:1px solid rgba(242,237,230,.1);border-radius:4px;font-size:12px;color:#d8d0c6;z-index:6;opacity:0;transition:transform .35s ease,opacity .35s ease;pointer-events:none;backdrop-filter:blur(6px);flex-wrap:wrap;max-width:420px}
 .dmf-quality-toast.is-visible{transform:translateX(-50%) translateY(0);opacity:1}
 .dmf-quality-toast .dmf-qt-icon{font-size:14px;flex-shrink:0}
+.dmf-quality-toast .dmf-qt-msg{white-space:nowrap}
+.dmf-quality-toast .dmf-qt-sub{display:none;width:100%;font-size:11px;color:#8a8178;padding-left:22px}
 .dmf-buffering-overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,8,6,.6);z-index:3;pointer-events:none}
 .dmf-buffering-overlay.is-visible{display:flex}
 .dmf-buffering-spinner{width:36px;height:36px;border:2.5px solid rgba(242,237,230,.15);border-top-color:#ff5b1e;border-radius:50%;animation:dmfSpin .8s linear infinite}
@@ -250,6 +252,7 @@ a:hover{color:#ff7a45}
       <div class="dmf-quality-toast" id="dmfQualityToast">
         <span class="dmf-qt-icon"></span>
         <span class="dmf-qt-msg"></span>
+        <span class="dmf-qt-sub"></span>
       </div>
       <div class="dmf-quality-badge" id="dmfQualityBadge">
         <span class="dmf-q-label">AUTO</span>
@@ -595,6 +598,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       });
   }
 
+  function prefersNativeHls() {
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) return true;
+    if (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) return true;
+    if (/^((?!chrome|android|crios|fxios|edg).)*safari/i.test(navigator.userAgent)) return true;
+    return false;
+  }
+
   function playStream(url) {
     var video = document.getElementById('videoEl');
     var placeholder = document.getElementById('playerPlaceholder');
@@ -605,10 +615,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     placeholder.style.display = 'none';
     video.style.display = 'block';
 
-    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    if (prefersNativeHls() && video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
       video.play().catch(function () {});
-      QualityUX.hideBuffering();
+      QualityUX.showNativeBadge();
       return;
     }
 
@@ -632,6 +642,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
             video.style.display = 'none';
           }
         });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = url;
+        video.play().catch(function () {});
+        QualityUX.showNativeBadge();
       } else {
         placeholder.style.display = 'flex';
         placeholder.querySelector('span').textContent = 'Your browser does not support HLS playback';
@@ -650,6 +664,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var bufTimer = null;
     var isAuto = true;
     var lastResLabel = '';
+    var isFirstSwitch = true;
     var menuOpen = false;
 
     function resLabel(height) {
@@ -668,10 +683,15 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       badge.style.display = 'flex';
     }
 
-    function showToast(icon, msg, duration) {
+    function showToast(icon, msg, duration, subtitle) {
       if (!toast) return;
       toast.querySelector('.dmf-qt-icon').textContent = icon;
       toast.querySelector('.dmf-qt-msg').textContent = msg;
+      var sub = toast.querySelector('.dmf-qt-sub');
+      if (sub) {
+        sub.textContent = subtitle || '';
+        sub.style.display = subtitle ? 'block' : 'none';
+      }
       toast.classList.add('is-visible');
       clearTimeout(toastTimer);
       toastTimer = setTimeout(function () {
@@ -764,7 +784,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     function attachHls(hls) {
       isAuto = true;
       lastResLabel = '';
+      isFirstSwitch = true;
       closeMenu();
+      updateBadge('Detectando…');
 
       hls.on(Hls.Events.LEVEL_SWITCHED, function (_, data) {
         var level = hls.levels[data.level];
@@ -774,13 +796,24 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         lastResLabel = label;
         updateBadge(isAuto ? label : lastResLabel);
 
-        if (!isAuto || !prev) return;
+        if (!isAuto) return;
+
+        if (isFirstSwitch) {
+          isFirstSwitch = false;
+          if (level.height <= 480) {
+            showToast('⚠', 'Conexión limitada · Reproduciendo en ' + label, 6000,
+              'La calidad aumentará automáticamente cuando tu conexión se estabilice.');
+          }
+          return;
+        }
+
+        if (!prev) return;
         var prevH = parseInt(prev, 10) || 0;
         var curH = level.height || 0;
         if (curH < prevH && prevH - curH >= 200) {
           showToast('⚠', 'Conexión inestable · Reproduciendo en ' + label, 5000);
         } else if (curH > prevH && curH >= 720 && curH - prevH >= 200) {
-          showToast('✓', 'Conexión estabilizada · ' + label, 3500);
+          showToast('✓', 'Conexión estabilizada · ' + label + ' HD', 3500);
         }
       });
 
@@ -812,20 +845,31 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       video.addEventListener('error', hideBuffering);
     }
 
+    function showNativeBadge() {
+      hideBuffering();
+      if (!badge) return;
+      badge.querySelector('.dmf-q-label').textContent = 'AUTO';
+      badge.querySelector('.dmf-q-res').textContent = '';
+      badge.style.display = 'flex';
+    }
+
     function reset() {
       closeMenu();
       hideBuffering();
       if (badge) badge.style.display = 'none';
       if (toast) toast.classList.remove('is-visible');
+      var sub = toast ? toast.querySelector('.dmf-qt-sub') : null;
+      if (sub) sub.style.display = 'none';
       clearTimeout(toastTimer);
       isAuto = true;
       lastResLabel = '';
+      isFirstSwitch = true;
     }
 
     var videoEl = document.getElementById('videoEl');
     if (videoEl) attachVideo(videoEl);
 
-    return { attachHls: attachHls, reset: reset, hideBuffering: hideBuffering };
+    return { attachHls: attachHls, reset: reset, hideBuffering: hideBuffering, showNativeBadge: showNativeBadge };
   })();
 
   // --- Module state ---
