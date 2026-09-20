@@ -699,7 +699,54 @@ jobs:
           grep -q "payments" firestore.rules || { echo "FAIL: payments rule missing"; exit 1; }
           echo "16. Payment collection rules — OK"
 
-          echo "All 16 Mercado Pago payments checks passed"
+          # 17. PEM header uses PKCS#8 format (not RSA)
+          node -e "
+            const src = require('fs').readFileSync('workers/dmf-payments/src/index.js', 'utf8');
+            if (src.includes('RSA PRIVATE KEY')) {
+              console.error('FAIL: Worker uses RSA PRIVATE KEY header instead of PRIVATE KEY (PKCS#8)');
+              process.exit(1);
+            }
+            if (!src.includes('BEGIN PRIVATE KEY')) {
+              console.error('FAIL: PKCS#8 PEM parsing missing');
+              process.exit(1);
+            }
+            console.log('17. Correct PKCS#8 PEM header — OK');
+          "
+
+          # 18. Webhook uses signed dataId (not body)
+          grep -q "signatureResult.dataId" workers/dmf-payments/src/index.js || { echo "FAIL: Webhook must use signed dataId from signature verification"; exit 1; }
+          echo "18. Webhook uses signed dataId — OK"
+
+          # 19. Webhook timestamp replay protection
+          grep -q "tsAge" workers/dmf-payments/src/index.js || { echo "FAIL: Webhook timestamp age check missing"; exit 1; }
+          echo "19. Webhook replay protection — OK"
+
+          # 20. Amount/currency verification before enrollment
+          grep -q "expectedAmount" workers/dmf-payments/src/index.js || { echo "FAIL: Amount verification missing before enrollment"; exit 1; }
+          grep -q "expectedCurrency" workers/dmf-payments/src/index.js || { echo "FAIL: Currency verification missing before enrollment"; exit 1; }
+          echo "20. Amount/currency verification — OK"
+
+          # 21. check-status requires Firebase authentication
+          node -e "
+            const src = require('fs').readFileSync('workers/dmf-payments/src/index.js', 'utf8');
+            const fn = src.substring(src.indexOf('handleCheckStatus'));
+            if (!fn.includes('verifyFirebaseUser')) {
+              console.error('FAIL: /check-status must verify Firebase ID token');
+              process.exit(1);
+            }
+            if (!fn.includes('user.uid')) {
+              console.error('FAIL: /check-status must verify session ownership');
+              process.exit(1);
+            }
+            console.log('21. Authenticated check-status with uid verification — OK');
+          "
+
+          # 22. Payment result page sends auth token
+          grep -q "Authorization" public/payment-result.html || { echo "FAIL: payment-result.html must send Authorization header"; exit 1; }
+          grep -q "getIdToken" public/payment-result.html || { echo "FAIL: payment-result.html must get Firebase ID token"; exit 1; }
+          echo "22. Authenticated payment result polling — OK"
+
+          echo "All 22 Mercado Pago payments checks passed"
 
   validate-print:
     runs-on: ubuntu-latest

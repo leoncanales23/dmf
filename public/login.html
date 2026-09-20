@@ -107,6 +107,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   'use strict';
 
   var DEMO_MODE = !!(window.__DMF_ACADEMY_DEMO__);
+  var PAYMENTS_URL = window.__DMF_PAYMENTS_URL__ || 'https://dmf-payments.vibraalto-cl.workers.dev';
   var isSignUp = false;
 
   var demoBadge = document.getElementById('demoBadge');
@@ -162,15 +163,15 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   } catch (ex) { /* ignore */ }
   updateMode();
 
-  function getRedirect() {
+  function consumePurchaseIntent() {
     try {
       var intent = sessionStorage.getItem('dmf_purchase_intent');
       if (intent) {
         sessionStorage.removeItem('dmf_purchase_intent');
-        return '/academy?purchase=' + encodeURIComponent(intent);
+        return intent;
       }
     } catch (ex) { /* ignore */ }
-    return '/academy';
+    return null;
   }
 
   form.addEventListener('submit', function (e) {
@@ -203,7 +204,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     if (DEMO_MODE) {
       setTimeout(function () {
         try { sessionStorage.setItem('dmf_auth', JSON.stringify({ email: email, demo: true, ts: Date.now() })); } catch (ex) { /* ignore */ }
-        window.location.href = getRedirect();
+        consumePurchaseIntent();
+        window.location.href = '/academy';
       }, 600);
       return;
     }
@@ -224,7 +226,34 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
     authPromise
       .then(function () {
-        window.location.href = getRedirect();
+        var intent = consumePurchaseIntent();
+        if (intent) {
+          btn.textContent = 'REDIRECTING TO PAYMENT...';
+          firebase.auth().currentUser.getIdToken()
+            .then(function (idToken) {
+              return fetch(PAYMENTS_URL + '/create-preference', {
+                method: 'POST',
+                headers: {
+                  'Authorization': 'Bearer ' + idToken,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ productId: intent })
+              });
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.ok && data.init_point) {
+                window.location.href = data.init_point;
+              } else {
+                window.location.href = '/academy';
+              }
+            })
+            .catch(function () {
+              window.location.href = '/academy';
+            });
+          return;
+        }
+        window.location.href = '/academy';
       })
       .catch(function (err) {
         btn.disabled = false;
