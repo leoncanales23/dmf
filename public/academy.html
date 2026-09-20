@@ -102,7 +102,7 @@ a:hover{color:#ff7a45}
 .dmf-quality-toast{position:absolute;top:12px;left:50%;transform:translateX(-50%) translateY(-60px);display:flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(10,8,6,.88);border:1px solid rgba(242,237,230,.1);border-radius:4px;font-size:12px;color:#d8d0c6;z-index:6;opacity:0;transition:transform .35s ease,opacity .35s ease;pointer-events:none;white-space:nowrap;backdrop-filter:blur(6px)}
 .dmf-quality-toast.is-visible{transform:translateX(-50%) translateY(0);opacity:1}
 .dmf-quality-toast .dmf-qt-icon{font-size:14px;flex-shrink:0}
-.dmf-buffering-overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,8,6,.6);z-index:3}
+.dmf-buffering-overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,8,6,.6);z-index:3;pointer-events:none}
 .dmf-buffering-overlay.is-visible{display:flex}
 .dmf-buffering-spinner{width:36px;height:36px;border:2.5px solid rgba(242,237,230,.15);border-top-color:#ff5b1e;border-radius:50%;animation:dmfSpin .8s linear infinite}
 @keyframes dmfSpin{to{transform:rotate(360deg)}}
