@@ -121,13 +121,18 @@ async function firestoreGet(projectId, collection, docId, accessToken) {
 }
 
 async function firestoreSet(projectId, collection, docId, fields, accessToken) {
-  const url =
+  const basePath =
     'https://firestore.googleapis.com/v1/projects/' +
     encodeURIComponent(projectId) +
     '/databases/(default)/documents/' + collection + '/' +
     encodeURIComponent(docId);
 
-  const res = await fetch(url, {
+  const mask = new URLSearchParams();
+  for (const key of Object.keys(fields)) {
+    mask.append('updateMask.fieldPaths', key);
+  }
+
+  const res = await fetch(basePath + '?' + mask.toString(), {
     method: 'PATCH',
     headers: {
       Authorization: 'Bearer ' + accessToken,
@@ -206,6 +211,8 @@ async function handleCreatePreference(request, origin, env) {
     email: { stringValue: user.email || '' },
     productId: { stringValue: productId },
     status: { stringValue: 'pending' },
+    expectedAmount: { doubleValue: product.price },
+    expectedCurrency: { stringValue: product.currency },
     createdAt: { timestampValue: new Date().toISOString() }
   }, saToken);
 
@@ -249,8 +256,6 @@ async function handleCreatePreference(request, origin, env) {
 
   await firestoreSet(env.DMF_FIREBASE_PROJECT_ID, 'checkoutSessions', purchaseId, {
     preferenceId: { stringValue: mpData.id || '' },
-    expectedAmount: { doubleValue: product.price },
-    expectedCurrency: { stringValue: product.currency },
     updatedAt: { timestampValue: new Date().toISOString() }
   }, saToken).catch(() => {});
 
@@ -351,10 +356,13 @@ async function handleWebhook(request, env) {
 
   const expectedAmount = session.fields.expectedAmount && session.fields.expectedAmount.doubleValue;
   const expectedCurrency = session.fields.expectedCurrency && session.fields.expectedCurrency.stringValue;
-  if (expectedAmount != null && payment.transaction_amount !== expectedAmount) {
+  if (expectedAmount == null || !expectedCurrency) {
+    return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'session-integrity-error' });
+  }
+  if (payment.transaction_amount !== expectedAmount) {
     return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'amount-mismatch' });
   }
-  if (expectedCurrency && payment.currency_id !== expectedCurrency) {
+  if (payment.currency_id !== expectedCurrency) {
     return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'currency-mismatch' });
   }
 
@@ -411,7 +419,7 @@ async function handleCheckStatus(request, origin, env) {
   }
 
   const f = session.fields;
-  if (f.uid && f.uid.stringValue !== user.uid) {
+  if (!f.uid || f.uid.stringValue !== user.uid) {
     return json(origin, 403, { ok: false, error: 'Access denied' });
   }
 
