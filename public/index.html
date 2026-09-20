@@ -485,6 +485,238 @@ ul{list-style:none}
   .dmf-signal-scan,.dmf-signal-scan2,.dmf-signal-loader::after{animation:none}
 }
 </style>
+<!-- DMF_CODEX_HEAD -->
+<style>
+/* DMF CODEX // initiation protocol */
+.dmf-initiation-protocol{position:relative;overflow:hidden;margin:0 0 clamp(52px,7vw,86px);border:1px solid rgba(255,91,30,.22);background:radial-gradient(circle at 82% 15%,rgba(255,91,30,.11),transparent 28%),radial-gradient(circle at 12% 88%,rgba(75,92,150,.07),transparent 26%),linear-gradient(145deg,rgba(14,11,9,.98),rgba(7,6,5,.98));box-shadow:0 30px 90px rgba(0,0,0,.28),inset 0 0 0 1px rgba(242,237,230,.025)}
+.dmf-initiation-protocol::before{content:'';position:absolute;z-index:0;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.014) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(90deg,rgba(0,0,0,.9),rgba(0,0,0,.22))}
+.dmf-initiation-protocol::after{content:'';position:absolute;z-index:1;left:-28%;right:-28%;top:0;height:1px;background:linear-gradient(90deg,transparent,#ff5b1e 48%,transparent);box-shadow:0 0 20px rgba(255,91,30,.45);animation:dmfCodexSweep 8s ease-in-out infinite;opacity:.65}
+@keyframes dmfCodexSweep{0%,100%{transform:translateY(12px)}50%{transform:translateY(440px)}}
+.dmf-codex-shell{position:relative;z-index:2;display:grid;grid-template-columns:minmax(260px,.72fr) minmax(420px,1.28fr)}
+.dmf-codex-copy{padding:clamp(30px,4vw,54px);border-right:1px solid rgba(242,237,230,.07)}
+.dmf-codex-kicker{display:flex;align-items:center;gap:12px;font-size:9px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:#ff5b1e}
+.dmf-codex-kicker::before{content:'';width:28px;height:1px;background:#ff5b1e;box-shadow:0 0 9px rgba(255,91,30,.5)}
+.dmf-codex-title{font-family:'Anton',sans-serif;font-size:clamp(34px,4.4vw,62px);font-weight:400;line-height:.94;letter-spacing:.01em;text-transform:uppercase;margin-top:16px;color:#f2ede6}
+.dmf-codex-lede{margin-top:18px;max-width:470px;font-size:14px;line-height:1.72;color:#a99f95}
+.dmf-codex-origin{margin-top:24px;padding-top:18px;border-top:1px solid rgba(242,237,230,.08);display:grid;gap:8px;font-size:8px;letter-spacing:.19em;text-transform:uppercase;color:#615950}
+.dmf-codex-origin strong{color:#b8afa5;font-weight:600}
+.dmf-codex-console{padding:clamp(30px,4vw,54px)}
+.dmf-codex-console-head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:24px}
+.dmf-codex-console-head strong{font-family:'Anton',sans-serif;font-size:17px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:#f2ede6}
+.dmf-codex-status{display:flex;align-items:center;gap:8px;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#6f665f}
+.dmf-codex-status::before{content:'';width:6px;height:6px;border-radius:50%;background:#ff5b1e;box-shadow:0 0 12px rgba(255,91,30,.65);animation:dmfCodexPulse 1.8s ease-in-out infinite}
+@keyframes dmfCodexPulse{0%,100%{opacity:.35}50%{opacity:1}}
+.dmf-codex-steps{display:grid;gap:20px}
+.dmf-codex-step{display:grid;grid-template-columns:74px 1fr;gap:16px;align-items:start}
+.dmf-codex-step-label{padding-top:9px;font-size:8px;font-weight:700;letter-spacing:.19em;text-transform:uppercase;color:#6c635a}
+.dmf-codex-options{display:flex;flex-wrap:wrap;gap:8px}
+.dmf-codex-option{appearance:none;border:1px solid rgba(242,237,230,.13);background:rgba(255,255,255,.018);color:#958b82;padding:10px 12px;font:600 9px/1 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:border-color .2s,background .2s,color .2s,box-shadow .2s,transform .2s}
+.dmf-codex-option:hover{border-color:rgba(255,91,30,.48);color:#e4dcd3;transform:translateY(-1px)}
+.dmf-codex-option.is-selected{border-color:#ff5b1e;background:rgba(255,91,30,.09);color:#ff9a72;box-shadow:0 0 18px rgba(255,91,30,.08)}
+.dmf-codex-result{display:none;margin-top:26px;padding:20px;border:1px solid rgba(255,91,30,.3);background:rgba(255,91,30,.035)}
+.dmf-codex-result.is-ready{display:block;animation:dmfCodexReveal .45s ease-out both}
+@keyframes dmfCodexReveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.dmf-codex-result-tag{font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:#ff5b1e}
+.dmf-codex-result-main{font-family:'Anton',sans-serif;font-size:clamp(20px,2.5vw,32px);font-weight:400;letter-spacing:.03em;text-transform:uppercase;color:#f2ede6;margin-top:8px}
+.dmf-codex-result-route{margin-top:10px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#9a9188}
+.dmf-codex-result-note{margin-top:12px;font-size:13px;line-height:1.6;color:#837a72}
+.dmf-codex-reset{margin-top:14px;border:0;background:none;padding:0;color:#ff7040;font:600 8px/1 'Archivo',sans-serif;letter-spacing:.17em;text-transform:uppercase;cursor:pointer}
+.dmf-codex-beacon{position:fixed;z-index:46;right:14px;top:50%;transform:translate3d(14px,-50%,0);opacity:0;pointer-events:none;writing-mode:vertical-rl;padding:12px 8px;border:1px solid rgba(255,91,30,.22);background:rgba(7,6,5,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:7px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#8e8177;transition:opacity .35s,transform .35s}
+.dmf-codex-beacon.is-visible{opacity:1;transform:translate3d(0,-50%,0)}
+.dmf-codex-beacon span{color:#ff5b1e}
+.signal-node.is-recommended::before{background:#ff5b1e!important;border-color:#ff5b1e!important;box-shadow:0 0 20px rgba(255,91,30,.55)!important}
+.signal-node.is-recommended{padding-left:14px;background:linear-gradient(90deg,rgba(255,91,30,.045),transparent 52%)}
+.signal-node.is-recommended::after{content:attr(data-codex);display:inline-block;margin-top:9px;padding:5px 7px;border:1px solid rgba(255,91,30,.28);font-size:7px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:#d77e5d}
+@media(max-width:860px){.dmf-codex-shell{grid-template-columns:1fr}.dmf-codex-copy{border-right:0;border-bottom:1px solid rgba(242,237,230,.07)}.dmf-codex-beacon{display:none}}
+@media(max-width:560px){.dmf-codex-step{grid-template-columns:1fr;gap:8px}.dmf-codex-copy,.dmf-codex-console{padding:28px 20px}.dmf-codex-console-head{align-items:flex-start;flex-direction:column}.dmf-codex-option{padding:10px 9px}}
+@media(prefers-reduced-motion:reduce){.dmf-initiation-protocol::after,.dmf-codex-status::before{animation:none}}
+</style>
+<!-- DMF_ORACLE_HEAD -->
+<style>
+/* DMF ORACLE // guidance engine */
+.dmf-oracle{position:relative;overflow:hidden;margin:0 0 clamp(52px,7vw,86px);border:1px solid rgba(108,130,255,.22);background:radial-gradient(circle at 16% 30%,rgba(64,86,190,.12),transparent 30%),radial-gradient(circle at 82% 62%,rgba(255,91,30,.10),transparent 30%),linear-gradient(145deg,#070708,#0b0908 56%,#080706);box-shadow:0 38px 110px rgba(0,0,0,.34),inset 0 0 0 1px rgba(242,237,230,.025)}
+.dmf-oracle::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.055) 1px,transparent 0);background-size:28px 28px;mask-image:linear-gradient(90deg,rgba(0,0,0,.85),rgba(0,0,0,.12));opacity:.36}
+.dmf-oracle::after{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(108,130,255,.9),#ff5b1e,transparent);box-shadow:0 0 24px rgba(108,130,255,.42);animation:oracleSweep 9s ease-in-out infinite;opacity:.7}
+@keyframes oracleSweep{0%,100%{transform:translateY(12px)}50%{transform:translateY(520px)}}
+.dmf-oracle-shell{position:relative;z-index:2;display:grid;grid-template-columns:minmax(280px,.78fr) minmax(440px,1.22fr)}
+.dmf-oracle-myth{padding:clamp(32px,4.5vw,60px);border-right:1px solid rgba(242,237,230,.07);display:flex;flex-direction:column;justify-content:center}
+.dmf-oracle-kicker{font-size:9px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:#8498ff}
+.dmf-oracle-title{font-family:'Anton',sans-serif;font-size:clamp(42px,5.7vw,82px);line-height:.9;font-weight:400;text-transform:uppercase;color:#f2ede6;margin-top:16px;max-width:7ch}
+.dmf-oracle-lede{margin-top:20px;max-width:470px;color:#a89f97;font-size:14px;line-height:1.72}
+.dmf-oracle-source{display:grid;gap:8px;margin-top:28px;padding-top:20px;border-top:1px solid rgba(242,237,230,.08);font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#635c56}
+.dmf-oracle-source strong{color:#b9b0a8;font-weight:600}
+.dmf-oracle-sigil{position:relative;width:118px;height:118px;margin-top:30px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(108,130,255,.24);background:radial-gradient(circle,rgba(255,91,30,.09),transparent 57%)}
+.dmf-oracle-sigil::before,.dmf-oracle-sigil::after{content:'';position:absolute;border-radius:50%;border:1px solid rgba(255,91,30,.22)}
+.dmf-oracle-sigil::before{inset:12px;animation:oracleSpin 16s linear infinite}
+.dmf-oracle-sigil::after{inset:27px;border-style:dashed;animation:oracleSpin 11s linear infinite reverse}
+.dmf-oracle-sigil span{font-family:'Anton',sans-serif;font-size:23px;letter-spacing:.08em;color:#ff7a45;text-shadow:0 0 22px rgba(255,91,30,.34)}
+@keyframes oracleSpin{to{transform:rotate(360deg)}}
+.dmf-oracle-console{padding:clamp(32px,4.5vw,60px)}
+.dmf-oracle-head{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:26px}
+.dmf-oracle-head strong{font-family:'Anton',sans-serif;font-size:19px;font-weight:400;letter-spacing:.07em;text-transform:uppercase;color:#f2ede6}
+.dmf-oracle-status{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#7486df;display:flex;align-items:center;gap:7px}
+.dmf-oracle-status::before{content:'';width:6px;height:6px;border-radius:50%;background:#8498ff;box-shadow:0 0 12px rgba(132,152,255,.75);animation:oraclePulse 1.8s ease-in-out infinite}
+@keyframes oraclePulse{0%,100%{opacity:.35}50%{opacity:1}}
+.dmf-oracle-profile{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:rgba(242,237,230,.08);border:1px solid rgba(242,237,230,.08);margin-bottom:24px}
+.dmf-oracle-profile div{background:#090807;padding:13px 12px}
+.dmf-oracle-profile span{display:block;font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:#5f5852;margin-bottom:5px}
+.dmf-oracle-profile strong{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#cfc5bc;font-weight:600}
+.dmf-oracle-prompt{font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#ff6e3a;margin-bottom:12px}
+.dmf-oracle-options{display:flex;flex-wrap:wrap;gap:8px}
+.dmf-oracle-option{appearance:none;border:1px solid rgba(242,237,230,.12);background:rgba(255,255,255,.018);color:#8f857d;padding:10px 12px;font:600 9px/1 'Archivo',sans-serif;letter-spacing:.11em;text-transform:uppercase;cursor:pointer;transition:.2s ease}
+.dmf-oracle-option:hover{border-color:rgba(132,152,255,.55);color:#e5dfda;transform:translateY(-1px)}
+.dmf-oracle-option.is-selected{border-color:#8498ff;background:rgba(132,152,255,.08);color:#b9c4ff;box-shadow:0 0 18px rgba(132,152,255,.08)}
+.dmf-oracle-output{margin-top:24px;padding:20px;border:1px solid rgba(255,91,30,.25);background:linear-gradient(135deg,rgba(255,91,30,.035),rgba(108,130,255,.025));display:none}
+.dmf-oracle-output.is-ready{display:block;animation:oracleReveal .4s ease-out both}
+@keyframes oracleReveal{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.dmf-oracle-transmission{font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:#8498ff}
+.dmf-oracle-module{font-family:'Anton',sans-serif;font-size:clamp(25px,3.2vw,40px);font-weight:400;text-transform:uppercase;color:#f2ede6;margin-top:7px}
+.dmf-oracle-directive{margin-top:12px;color:#afa69e;font-size:13px;line-height:1.65}
+.dmf-oracle-artifact{margin-top:14px;padding-top:13px;border-top:1px solid rgba(242,237,230,.08);font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:#7f756e;line-height:1.65}
+.dmf-oracle-artifact strong{color:#ff8b60}
+.dmf-oracle-lock{padding:22px;border:1px solid rgba(242,237,230,.09);background:rgba(255,255,255,.015)}
+.dmf-oracle-lock strong{font-family:'Anton',sans-serif;font-size:21px;font-weight:400;text-transform:uppercase;color:#f2ede6}
+.dmf-oracle-lock p{margin-top:9px;color:#7e756e;font-size:13px;line-height:1.6}
+.dmf-oracle-lock button{margin-top:15px;border:1px solid #ff5b1e;background:rgba(255,91,30,.05);color:#ff7a45;padding:11px 14px;font:600 9px/1 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.dmf-oracle-seal{position:fixed;left:14px;bottom:16px;z-index:45;display:none;align-items:center;gap:9px;padding:9px 12px;border:1px solid rgba(132,152,255,.22);background:rgba(7,7,8,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:7px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#777b99;pointer-events:none}
+.dmf-oracle-seal.is-visible{display:flex}
+.dmf-oracle-seal i{width:6px;height:6px;border-radius:50%;background:#8498ff;box-shadow:0 0 10px rgba(132,152,255,.7)}
+.signal-node.is-oracle-active{padding-left:16px;background:linear-gradient(90deg,rgba(108,130,255,.075),rgba(255,91,30,.025),transparent 58%)}
+.signal-node.is-oracle-active::before{background:#8498ff!important;border-color:#8498ff!important;box-shadow:0 0 21px rgba(132,152,255,.65)!important}
+.signal-node.is-oracle-active::after{content:attr(data-oracle);display:inline-block;margin-top:9px;padding:5px 7px;border:1px solid rgba(132,152,255,.3);font-size:7px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:#9cabff}
+@media(max-width:860px){.dmf-oracle-shell{grid-template-columns:1fr}.dmf-oracle-myth{border-right:0;border-bottom:1px solid rgba(242,237,230,.07)}.dmf-oracle-sigil{width:96px;height:96px}.dmf-oracle-seal{display:none!important}}
+@media(max-width:560px){.dmf-oracle-myth,.dmf-oracle-console{padding:28px 20px}.dmf-oracle-profile{grid-template-columns:1fr}.dmf-oracle-head{align-items:flex-start;flex-direction:column}.dmf-oracle-option{padding:10px 9px}}
+@media(prefers-reduced-motion:reduce){.dmf-oracle::after,.dmf-oracle-sigil::before,.dmf-oracle-sigil::after,.dmf-oracle-status::before{animation:none}}
+</style>
+<!-- DMF_TRANSMISSION_HEAD -->
+<style>
+/* DMF TRANSMISSION 10 // natural-language training interface */
+.dmf-transmission{position:relative;overflow:hidden;margin:0 0 clamp(52px,7vw,86px);border:1px solid rgba(81,224,193,.20);background:radial-gradient(circle at 78% 18%,rgba(81,224,193,.09),transparent 26%),radial-gradient(circle at 14% 78%,rgba(132,152,255,.10),transparent 30%),linear-gradient(145deg,#060808,#0a0908 56%,#070605);box-shadow:0 42px 120px rgba(0,0,0,.36),inset 0 0 0 1px rgba(242,237,230,.02)}
+.dmf-transmission::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);background-size:30px 30px;mask-image:radial-gradient(circle at 70% 30%,black,transparent 74%);opacity:.38}
+.dmf-transmission::after{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,#51e0c1 32%,#8498ff 68%,transparent);box-shadow:0 0 20px rgba(81,224,193,.36);animation:dmfTransmitSweep 8.5s ease-in-out infinite;opacity:.62}
+@keyframes dmfTransmitSweep{0%,100%{transform:translateY(10px)}50%{transform:translateY(620px)}}
+.dmf-transmission-shell{position:relative;z-index:2;display:grid;grid-template-columns:minmax(280px,.72fr) minmax(460px,1.28fr)}
+.dmf-transmission-copy{padding:clamp(32px,4.6vw,62px);border-right:1px solid rgba(242,237,230,.07);display:flex;flex-direction:column;justify-content:center}
+.dmf-transmission-kicker{font-size:9px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:#51e0c1}
+.dmf-transmission-title{font-family:'Anton',sans-serif;font-size:clamp(42px,5.6vw,82px);font-weight:400;line-height:.9;text-transform:uppercase;color:#f2ede6;margin-top:16px;max-width:8ch}
+.dmf-transmission-lede{margin-top:20px;max-width:480px;color:#aaa19a;font-size:14px;line-height:1.72}
+.dmf-transmission-chain{margin-top:26px;padding-top:18px;border-top:1px solid rgba(242,237,230,.08);font-size:8px;letter-spacing:.17em;text-transform:uppercase;color:#625c56;line-height:2}
+.dmf-transmission-chain strong{color:#b9b1aa;font-weight:600}
+.dmf-transmission-listener{margin-top:28px;display:flex;align-items:center;gap:12px;color:#6d7775;font-size:8px;letter-spacing:.18em;text-transform:uppercase}
+.dmf-transmission-listener i{position:relative;width:42px;height:42px;border-radius:50%;border:1px solid rgba(81,224,193,.25);display:block}
+.dmf-transmission-listener i::before,.dmf-transmission-listener i::after{content:'';position:absolute;border-radius:50%;border:1px solid rgba(81,224,193,.22);inset:8px;animation:dmfListen 2.8s ease-in-out infinite}
+.dmf-transmission-listener i::after{inset:15px;animation-delay:.5s}
+@keyframes dmfListen{0%,100%{opacity:.25;transform:scale(.92)}50%{opacity:1;transform:scale(1.08)}}
+.dmf-transmission-console{padding:clamp(32px,4.6vw,62px)}
+.dmf-transmission-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+.dmf-transmission-head strong{font-family:'Anton',sans-serif;font-size:19px;font-weight:400;letter-spacing:.07em;text-transform:uppercase;color:#f2ede6}
+.dmf-transmission-status{display:flex;align-items:center;gap:7px;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#70a89d}
+.dmf-transmission-status::before{content:'';width:6px;height:6px;border-radius:50%;background:#51e0c1;box-shadow:0 0 12px rgba(81,224,193,.72);animation:dmfTransmitPulse 1.8s ease-in-out infinite}
+@keyframes dmfTransmitPulse{0%,100%{opacity:.35}50%{opacity:1}}
+.dmf-transmission-context{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.dmf-transmission-context span{padding:6px 8px;border:1px solid rgba(242,237,230,.08);font-size:7px;letter-spacing:.15em;text-transform:uppercase;color:#69625d;background:rgba(255,255,255,.012)}
+.dmf-transmission-context span b{color:#a9a099;font-weight:600}
+.dmf-transmission-input-wrap{position:relative;border:1px solid rgba(242,237,230,.13);background:rgba(255,255,255,.018);transition:border-color .2s,box-shadow .2s}
+.dmf-transmission-input-wrap:focus-within{border-color:rgba(81,224,193,.52);box-shadow:0 0 28px rgba(81,224,193,.055)}
+.dmf-transmission-input{display:block;width:100%;min-height:126px;resize:vertical;border:0;outline:0;background:transparent;color:#e9e2dc;padding:18px 18px 48px;font:500 14px/1.65 'Archivo',sans-serif}
+.dmf-transmission-input::placeholder{color:#5f5a55}
+.dmf-transmission-counter{position:absolute;left:16px;bottom:13px;font-size:7px;letter-spacing:.15em;text-transform:uppercase;color:#504b47}
+.dmf-transmission-send{position:absolute;right:10px;bottom:9px;border:1px solid rgba(81,224,193,.42);background:rgba(81,224,193,.07);color:#77ead2;padding:9px 12px;font:700 8px/1 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:.2s ease}
+.dmf-transmission-send:hover{background:#51e0c1;color:#06100e;transform:translateY(-1px)}
+.dmf-transmission-send:disabled{opacity:.38;cursor:wait;transform:none}
+.dmf-transmission-examples{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.dmf-transmission-example{border:0;background:none;color:#697672;padding:3px 0;font:600 8px/1.4 'Archivo',sans-serif;letter-spacing:.08em;cursor:pointer;text-align:left}
+.dmf-transmission-example:hover{color:#8edccb}
+.dmf-transmission-example::before{content:'↳ ';color:#51e0c1}
+.dmf-transmission-readout{display:none;margin-top:22px;border:1px solid rgba(81,224,193,.22);background:linear-gradient(135deg,rgba(81,224,193,.035),rgba(132,152,255,.025));padding:20px}
+.dmf-transmission-readout.is-ready{display:block;animation:dmfTransmitReveal .42s ease-out both}
+@keyframes dmfTransmitReveal{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.dmf-transmission-readout-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+.dmf-transmission-tag{font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:#51e0c1}
+.dmf-transmission-confidence{font-size:7px;letter-spacing:.16em;text-transform:uppercase;color:#6b7471}
+.dmf-transmission-module{font-family:'Anton',sans-serif;font-size:clamp(24px,3vw,38px);font-weight:400;text-transform:uppercase;color:#f2ede6;margin-top:7px}
+.dmf-transmission-metrics{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.dmf-transmission-metrics span{padding:6px 8px;border:1px solid rgba(242,237,230,.08);font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:#77706a}
+.dmf-transmission-diagnosis{margin-top:14px;font-size:13px;line-height:1.68;color:#aaa29b}
+.dmf-transmission-directive{margin-top:14px;padding:14px 15px;border-left:2px solid #51e0c1;background:rgba(81,224,193,.025);font-size:13px;line-height:1.68;color:#c2bab3}
+.dmf-transmission-artifact{margin-top:13px;padding-top:12px;border-top:1px solid rgba(242,237,230,.08);font-size:9px;line-height:1.6;letter-spacing:.1em;text-transform:uppercase;color:#77706a}
+.dmf-transmission-artifact strong{color:#ff8b60}
+.dmf-transmission-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}
+.dmf-transmission-actions button{border:1px solid rgba(242,237,230,.12);background:rgba(255,255,255,.015);color:#9d958e;padding:9px 11px;font:700 8px/1 'Archivo',sans-serif;letter-spacing:.13em;text-transform:uppercase;cursor:pointer}
+.dmf-transmission-actions button:first-child{border-color:rgba(81,224,193,.35);color:#76d8c4}
+.dmf-transmission-history{margin-top:20px;padding-top:16px;border-top:1px solid rgba(242,237,230,.07)}
+.dmf-transmission-history-head{font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:#514c48;margin-bottom:8px}
+.dmf-transmission-history-list{display:grid;gap:5px}
+.dmf-transmission-history-item{display:flex;justify-content:space-between;gap:12px;padding:8px 9px;background:rgba(255,255,255,.012);font-size:8px;color:#6f6963;cursor:pointer}
+.dmf-transmission-history-item:hover{color:#9f9891}
+.dmf-transmission-history-item span:last-child{color:#536d67;white-space:nowrap}
+.signal-node.is-transmission-active{padding-left:18px;background:linear-gradient(90deg,rgba(81,224,193,.09),rgba(132,152,255,.035),transparent 62%)}
+.signal-node.is-transmission-active::before{background:#51e0c1!important;border-color:#51e0c1!important;box-shadow:0 0 24px rgba(81,224,193,.65)!important}
+.signal-node.is-transmission-active::after{content:attr(data-transmission);display:inline-block;margin-top:9px;padding:5px 7px;border:1px solid rgba(81,224,193,.3);font-size:7px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:#76d8c4}
+@media(max-width:860px){.dmf-transmission-shell{grid-template-columns:1fr}.dmf-transmission-copy{border-right:0;border-bottom:1px solid rgba(242,237,230,.07)}}
+@media(max-width:560px){.dmf-transmission-copy,.dmf-transmission-console{padding:28px 20px}.dmf-transmission-head,.dmf-transmission-readout-top{align-items:flex-start;flex-direction:column}.dmf-transmission-send{position:static;margin:0 14px 14px}.dmf-transmission-counter{display:none}.dmf-transmission-input{padding-bottom:16px}}
+@media(prefers-reduced-motion:reduce){.dmf-transmission::after,.dmf-transmission-listener i::before,.dmf-transmission-listener i::after,.dmf-transmission-status::before{animation:none}}
+</style>
+<!-- DMF_COMPUTE_UPLINK_HEAD -->
+<style>
+.dmf-compute-uplink{display:inline-flex;align-items:center;gap:7px;padding:6px 8px;border:1px solid rgba(81,224,193,.18);background:rgba(81,224,193,.025);font-size:7px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#6fa99d;white-space:nowrap}
+.dmf-compute-uplink::before{content:'';width:5px;height:5px;border-radius:50%;background:#51e0c1;box-shadow:0 0 10px rgba(81,224,193,.65);animation:dmfComputeLinkPulse 1.8s ease-in-out infinite}
+@keyframes dmfComputeLinkPulse{0%,100%{opacity:.35}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.dmf-compute-uplink::before{animation:none}}
+</style>
+<!-- DMF_TRAINING_STATE_HEAD -->
+<style>
+/* DMF MEMORY CORE 11 // persistent student training state */
+.dmf-training-memory{position:relative;overflow:hidden;margin:0 0 clamp(52px,7vw,86px);border:1px solid rgba(255,91,30,.20);background:radial-gradient(circle at 12% 12%,rgba(255,91,30,.10),transparent 27%),radial-gradient(circle at 84% 72%,rgba(81,224,193,.06),transparent 30%),linear-gradient(145deg,#080705,#0a0908 56%,#060808);box-shadow:0 42px 120px rgba(0,0,0,.34),inset 0 0 0 1px rgba(242,237,230,.02)}
+.dmf-training-memory::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.012) 1px,transparent 1px);background-size:34px 34px;mask-image:radial-gradient(circle at 40% 35%,black,transparent 78%);opacity:.32}
+.dmf-memory-shell{position:relative;z-index:2;display:grid;grid-template-columns:minmax(270px,.68fr) minmax(480px,1.32fr)}
+.dmf-memory-copy{padding:clamp(32px,4.6vw,62px);border-right:1px solid rgba(242,237,230,.07);display:flex;flex-direction:column;justify-content:center}
+.dmf-memory-kicker{font-size:9px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:#ff6a32}
+.dmf-memory-title{font-family:'Anton',sans-serif;font-size:clamp(42px,5.2vw,78px);font-weight:400;line-height:.9;text-transform:uppercase;color:#f2ede6;margin:16px 0 0;max-width:9ch}
+.dmf-memory-lede{margin-top:20px;max-width:470px;color:#aaa19a;font-size:14px;line-height:1.72}
+.dmf-memory-gate{margin-top:26px;padding-top:17px;border-top:1px solid rgba(242,237,230,.08);font-size:8px;letter-spacing:.16em;line-height:1.8;text-transform:uppercase;color:#716a64}
+.dmf-memory-gate strong{color:#ff8051;font-weight:700}
+.dmf-memory-console{padding:clamp(30px,4.4vw,58px)}
+.dmf-memory-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}
+.dmf-memory-head strong{font-family:'Anton',sans-serif;font-size:20px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:#f2ede6}
+.dmf-memory-online{display:inline-flex;align-items:center;gap:7px;font-size:7px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:#7aaea4}
+.dmf-memory-online::before{content:'';width:6px;height:6px;border-radius:50%;background:#51e0c1;box-shadow:0 0 11px rgba(81,224,193,.65);animation:dmfMemoryPulse 2s ease-in-out infinite}
+@keyframes dmfMemoryPulse{0%,100%{opacity:.35}50%{opacity:1}}
+.dmf-memory-stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid rgba(242,237,230,.08);margin-bottom:15px}
+.dmf-memory-stat{padding:13px 12px;border-right:1px solid rgba(242,237,230,.07);min-width:0}
+.dmf-memory-stat:last-child{border-right:0}
+.dmf-memory-stat span{display:block;font-size:7px;letter-spacing:.16em;text-transform:uppercase;color:#5e5853;margin-bottom:6px}
+.dmf-memory-stat b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#bbb3ac;font-size:10px;font-weight:600}
+.dmf-memory-task{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.dmf-memory-card{border:1px solid rgba(242,237,230,.08);background:rgba(255,255,255,.014);padding:15px}
+.dmf-memory-card label{display:block;font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:#635d57;margin-bottom:8px}
+.dmf-memory-card p{margin:0;color:#aaa29b;font-size:12px;line-height:1.65}
+.dmf-memory-card.is-evidence{border-color:rgba(255,91,30,.20)}
+.dmf-memory-card.is-evidence label{color:#d06c47}
+.dmf-memory-path{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-top:15px}
+.dmf-memory-node{position:relative;min-height:54px;border:1px solid rgba(242,237,230,.07);background:rgba(255,255,255,.01);padding:9px 7px;transition:.2s ease}
+.dmf-memory-node span{display:block;font-size:7px;letter-spacing:.12em;color:#534e49}
+.dmf-memory-node b{display:block;margin-top:7px;font-size:7px;line-height:1.25;color:#77706a;font-weight:600;text-transform:uppercase}
+.dmf-memory-node[data-state="active"]{border-color:rgba(81,224,193,.45);background:rgba(81,224,193,.055);box-shadow:inset 0 0 22px rgba(81,224,193,.035)}
+.dmf-memory-node[data-state="active"] span,.dmf-memory-node[data-state="active"] b{color:#77d8c4}
+.dmf-memory-node[data-state="review"]{border-color:rgba(255,91,30,.52);background:rgba(255,91,30,.055)}
+.dmf-memory-node[data-state="review"] span,.dmf-memory-node[data-state="review"] b{color:#ff8b60}
+.dmf-memory-node[data-state="seen"]{border-color:rgba(242,237,230,.12)}
+.dmf-memory-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.dmf-memory-actions button{border:1px solid rgba(242,237,230,.12);background:rgba(255,255,255,.015);color:#978f88;padding:10px 12px;font:700 8px/1 'Archivo',sans-serif;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;transition:.2s ease}
+.dmf-memory-actions button[data-action="evidence"]{border-color:rgba(255,91,30,.38);color:#ff8b60}
+.dmf-memory-actions button:hover{transform:translateY(-1px);border-color:rgba(242,237,230,.28);color:#ddd5ce}
+.dmf-memory-actions button:disabled{cursor:default;opacity:.55;transform:none}
+.dmf-memory-timeline{margin-top:18px;padding-top:15px;border-top:1px solid rgba(242,237,230,.07)}
+.dmf-memory-timeline-head{font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:#534e49;margin-bottom:8px}
+.dmf-memory-event{display:grid;grid-template-columns:54px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(242,237,230,.045);font-size:8px;color:#706963}
+.dmf-memory-event:last-child{border-bottom:0}
+.dmf-memory-event b{font-weight:600;color:#9c948d}
+.dmf-memory-event em{font-style:normal;color:#57756e;font-size:7px;letter-spacing:.1em;text-transform:uppercase}
+@media(max-width:900px){.dmf-memory-shell{grid-template-columns:1fr}.dmf-memory-copy{border-right:0;border-bottom:1px solid rgba(242,237,230,.07)}}
+@media(max-width:650px){.dmf-memory-copy,.dmf-memory-console{padding:28px 20px}.dmf-memory-stats{grid-template-columns:1fr 1fr}.dmf-memory-stat:nth-child(2){border-right:0}.dmf-memory-stat:nth-child(-n+2){border-bottom:1px solid rgba(242,237,230,.07)}.dmf-memory-task{grid-template-columns:1fr}.dmf-memory-path{grid-template-columns:repeat(4,1fr)}}
+@media(prefers-reduced-motion:reduce){.dmf-memory-online::before{animation:none}}
+</style>
 </head>
 <body>
 
@@ -579,6 +811,7 @@ ul{list-style:none}
     <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
+    <!-- DMF_ACADEMY_LINK --><a href="/login" class="nav-link" style="color:#ff5b1e;font-weight:700">Student Access</a>
   </div>
 </nav>
 
@@ -2438,6 +2671,617 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountDMFSignal, {once:true});
   else mountDMFSignal();
+})();
+</script>
+<!-- DMF_CODEX_BODY -->
+<script>
+(function(){
+  var STORAGE_KEY = 'dmf_codex_profile_v1';
+  var state = { mission:null, system:null, discipline:null };
+  var vectors = {
+    finish:[0,4,7],
+    mix:[1,2,3,7],
+    workflow:[0,4,5],
+    labels:[0,6,7]
+  };
+
+  function lang(){
+    var btn=document.querySelector('.lang-btn');
+    return btn && btn.textContent.trim().toUpperCase()==='EN' ? 'es' : 'en';
+  }
+
+  function copy(){
+    var es=lang()==='es';
+    return es ? {
+      kicker:'DMF // CÓDEX 08', title:'PROTOCOLO DE INICIACIÓN',
+      lede:'Una fórmula forjada durante dos décadas entre estudio y cabina, ahora transmitida como protocolo de entrenamiento. Calibra tu señal antes de entrar a la ruta de ocho etapas.',
+      origin1:'ORIGEN',origin1v:'20+ AÑOS DE ESTUDIO Y CABINA',origin2:'TRANSMISIÓN',origin2v:'MÉTODO DMF / 8 ETAPAS',origin3:'INTERFAZ',origin3v:'ENTRENAMIENTO HUMANO + SISTEMA DIGITAL',
+      head:'CALIBRA TU SEÑAL',online:'CÓDEX EN LÍNEA',mission:'MISIÓN',system:'SISTEMA',discipline:'DISCIPLINA',
+      missions:[['finish','Terminar tracks'],['mix','Mejorar mezcla'],['workflow','Dominar workflow'],['labels','Llegar a sellos']],
+      systems:[['ableton','Ableton'],['logic','Logic'],['fl','FL Studio'],['other','Otro DAW']],
+      times:[['2h','2 h / semana'],['4h','4 h / semana'],['6h','6+ h / semana']],
+      ready:'PERFIL TERRESTRE CALIBRADO',route:'ÉNFASIS RECOMENDADO',reset:'RECALIBRAR',beacon:'CÓDEX // SEÑAL DE ENTRENAMIENTO ',recommended:'ÉNFASIS RECOMENDADO',
+      notes:{finish:'Tu enemigo es abandonar antes de cerrar. El sistema enfatiza estructura, flujo y preparación final.',mix:'Tu señal necesita definición. El sistema enfatiza balance, selección sonora, low-end y preparación final.',workflow:'La velocidad nace de decisiones repetibles. El sistema enfatiza estructura, eficiencia y mentalidad de productor.',labels:'Primero termina. Después presenta. El sistema enfatiza estructura, mercado y preparación para lanzamiento.'}
+    } : {
+      kicker:'DMF // CODEX 08', title:'INITIATION PROTOCOL',
+      lede:'A formula forged through two decades in studios and booths, now transmitted as a training protocol. Calibrate your signal before entering the eight-stage path.',
+      origin1:'ORIGIN',origin1v:'20+ YEARS OF STUDIO + BOOTH',origin2:'TRANSMISSION',origin2v:'DMF METHOD / 8 STAGES',origin3:'INTERFACE',origin3v:'HUMAN TRAINING + DIGITAL SYSTEM',
+      head:'CALIBRATE YOUR SIGNAL',online:'CODEX ONLINE',mission:'MISSION',system:'SYSTEM',discipline:'DISCIPLINE',
+      missions:[['finish','Finish tracks'],['mix','Improve my mix'],['workflow','Master workflow'],['labels','Reach labels']],
+      systems:[['ableton','Ableton'],['logic','Logic'],['fl','FL Studio'],['other','Other DAW']],
+      times:[['2h','2 h / week'],['4h','4 h / week'],['6h','6+ h / week']],
+      ready:'EARTHSIDE PROFILE CALIBRATED',route:'RECOMMENDED EMPHASIS',reset:'RECALIBRATE',beacon:'CODEX // TRAINING SIGNAL ',recommended:'RECOMMENDED EMPHASIS',
+      notes:{finish:'Your enemy is abandonment before closure. The system emphasizes structure, flow and final preparation.',mix:'Your signal needs definition. The system emphasizes balance, sound selection, low-end and final preparation.',workflow:'Speed comes from repeatable decisions. The system emphasizes structure, efficiency and producer mindset.',labels:'Finish first. Present second. The system emphasizes structure, market and release readiness.'}
+    };
+  }
+
+  function optionButtons(items,key){
+    return items.map(function(item){
+      return '<button type="button" class="dmf-codex-option'+(state[key]===item[0]?' is-selected':'')+'" data-codex-key="'+key+'" data-codex-value="'+item[0]+'">'+item[1]+'</button>';
+    }).join('');
+  }
+
+  function loadState(){
+    try{
+      var saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+      if(saved && typeof saved==='object') state={mission:saved.mission||null,system:saved.system||null,discipline:saved.discipline||null};
+    }catch(e){}
+  }
+
+  function saveState(){
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}
+  }
+
+  function selectedLabel(items,value){
+    var found=items.find(function(i){return i[0]===value;});
+    return found ? found[1] : value;
+  }
+
+  function applyRecommendation(){
+    var c=copy();
+    var nodes=document.querySelectorAll('#modulesGrid .signal-node');
+    nodes.forEach(function(n){n.classList.remove('is-recommended');n.removeAttribute('data-codex');});
+    if(!state.mission || !vectors[state.mission]) return;
+    vectors[state.mission].forEach(function(idx){
+      if(nodes[idx]){nodes[idx].classList.add('is-recommended');nodes[idx].setAttribute('data-codex',c.recommended);}
+    });
+  }
+
+  function renderResult(root){
+    var c=copy();
+    var result=root.querySelector('.dmf-codex-result');
+    if(!(state.mission&&state.system&&state.discipline)){result.classList.remove('is-ready');applyRecommendation();return;}
+    var route=(vectors[state.mission]||[]).map(function(i){return String(i+1).padStart(2,'0');}).join(' → ');
+    result.innerHTML='<div class="dmf-codex-result-tag">'+c.ready+'</div><div class="dmf-codex-result-main">'+selectedLabel(c.missions,state.mission)+' / '+selectedLabel(c.systems,state.system)+'</div><div class="dmf-codex-result-route">'+c.route+' // '+route+'</div><div class="dmf-codex-result-note">'+c.notes[state.mission]+'</div><button type="button" class="dmf-codex-reset">'+c.reset+'</button>';
+    result.classList.add('is-ready');
+    var reset=result.querySelector('.dmf-codex-reset');
+    reset.addEventListener('click',function(){state={mission:null,system:null,discipline:null};saveState();render(root);});
+    applyRecommendation();
+  }
+
+  function render(root){
+    var c=copy();
+    root.innerHTML='<div class="dmf-codex-shell"><div class="dmf-codex-copy"><div class="dmf-codex-kicker">'+c.kicker+'</div><h3 class="dmf-codex-title">'+c.title+'</h3><p class="dmf-codex-lede">'+c.lede+'</p><div class="dmf-codex-origin"><div>'+c.origin1+' // <strong>'+c.origin1v+'</strong></div><div>'+c.origin2+' // <strong>'+c.origin2v+'</strong></div><div>'+c.origin3+' // <strong>'+c.origin3v+'</strong></div></div></div><div class="dmf-codex-console"><div class="dmf-codex-console-head"><strong>'+c.head+'</strong><span class="dmf-codex-status">'+c.online+'</span></div><div class="dmf-codex-steps"><div class="dmf-codex-step"><div class="dmf-codex-step-label">01 / '+c.mission+'</div><div class="dmf-codex-options">'+optionButtons(c.missions,'mission')+'</div></div><div class="dmf-codex-step"><div class="dmf-codex-step-label">02 / '+c.system+'</div><div class="dmf-codex-options">'+optionButtons(c.systems,'system')+'</div></div><div class="dmf-codex-step"><div class="dmf-codex-step-label">03 / '+c.discipline+'</div><div class="dmf-codex-options">'+optionButtons(c.times,'discipline')+'</div></div></div><div class="dmf-codex-result"></div></div></div>';
+    root.querySelectorAll('.dmf-codex-option').forEach(function(btn){
+      btn.addEventListener('click',function(){state[btn.getAttribute('data-codex-key')]=btn.getAttribute('data-codex-value');saveState();render(root);});
+    });
+    renderResult(root);
+  }
+
+  function mount(){
+    var academy=document.getElementById('academy');
+    if(!academy || document.querySelector('.dmf-initiation-protocol')) return;
+    loadState();
+    var root=document.createElement('div');
+    root.className='dmf-initiation-protocol';
+    root.setAttribute('aria-label','DMF Codex initiation protocol');
+    var badge=academy.querySelector('.acad-badge');
+    if(badge) badge.insertAdjacentElement('afterend',root); else academy.prepend(root);
+
+    var beacon=document.createElement('div');
+    beacon.className='dmf-codex-beacon';
+    beacon.innerHTML='<span>●</span> CODEX // TRAINING SIGNAL ONLINE';
+    document.body.appendChild(beacon);
+
+    render(root);
+
+    if('IntersectionObserver' in window){
+      var io=new IntersectionObserver(function(entries){beacon.classList.toggle('is-visible',entries[0].isIntersecting);},{threshold:.08});
+      io.observe(academy);
+    }
+
+    var langBtn=document.querySelector('.lang-btn');
+    if(langBtn && 'MutationObserver' in window){
+      new MutationObserver(function(){
+        setTimeout(function(){render(root);var c=copy();beacon.innerHTML='<span>●</span> '+c.beacon+'ONLINE';applyRecommendation();},0);
+      }).observe(langBtn,{childList:true,subtree:true,characterData:true});
+    }
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mount,{once:true}); else mount();
+})();
+</script>
+<!-- DMF_ORACLE_BODY -->
+<script>
+(function(){
+  var PROFILE_KEY='dmf_codex_profile_v1';
+  var ORACLE_KEY='dmf_oracle_state_v1';
+  var oracleState={blocker:null};
+  var moduleNamesEn=['Track structure & development','Mixing & balance','Sound Selection','Bass creation','Workflow & efficiency','Producer Mindset','Music Market','Mastering & final prep'];
+  var moduleNamesEs=['Estructura y desarrollo de un track','Mixing y balance','Sound Selection','Creación de bajos','Workflow y eficiencia','Producer Mindset','Music Market','Mastering y preparación final'];
+
+  var blockerMap={
+    structure:0,mix:1,sound:2,bass:3,workflow:4,finish:5,labels:6,mastering:7
+  };
+
+  var missionDefault={finish:'structure',mix:'mix',workflow:'workflow',labels:'labels'};
+
+  var guidance={
+    en:{
+      structure:{directive:'Bring one unfinished track and expose its full arrangement. The first task is to identify what the song is asking for: intro, break, build, drop, outro and energy movement.',artifact:'One unfinished project with the arrangement visible.'},
+      mix:{directive:'Do not start with more plugins. Bring the session and a current bounce. The first transmission is balance: what is too loud, too masked or occupying the wrong space?',artifact:'Project file + latest stereo bounce.'},
+      sound:{directive:'Choose one 16-bar section where the production feels weak. We will isolate kick, bass, percussion, synths and textures, then replace only what fails the role.',artifact:'One 16-bar section + the sounds you are unsure about.'},
+      bass:{directive:'The low end must become one system. Bring the kick and bass relationship exactly as it exists now; the training begins with groove, space and frequency ownership.',artifact:'Project with kick and bass separated and editable.'},
+      workflow:{directive:'Your first correction is not musical, it is procedural. Bring a project where you lose time and we will map the decisions that repeat, stall or create unnecessary branches.',artifact:'One project that feels slow or chaotic to finish.'},
+      finish:{directive:'The block is not lack of ideas. It is closure. Bring the project you have avoided finishing and identify the exact moment where decisions stop. That is the training target.',artifact:'The unfinished project you have postponed the longest.'},
+      labels:{directive:'Before contact strategy, the music must survive the final filter. Bring your strongest finished track and the labels you believe fit it. We will test positioning before outreach.',artifact:'One finished track + 3 target labels.'},
+      mastering:{directive:'Final preparation starts before the limiter. Bring the pre-master and project. We will inspect headroom, balance and whether the mix is actually ready to be finalized.',artifact:'Pre-master WAV + original project.'}
+    },
+    es:{
+      structure:{directive:'Trae un track sin terminar y muestra su arreglo completo. La primera tarea es detectar qué está pidiendo la canción: intro, break, build, drop, outro y movimiento de energía.',artifact:'Un proyecto sin terminar con el arreglo visible.'},
+      mix:{directive:'No partas agregando más plugins. Trae la sesión y el bounce actual. La primera transmisión es balance: qué está demasiado fuerte, enmascarado u ocupando el espacio equivocado.',artifact:'Proyecto + último bounce estéreo.'},
+      sound:{directive:'Elige una sección de 16 compases donde la producción se sienta débil. Vamos a aislar kick, bajo, percusión, synths y texturas, y reemplazar solo lo que no cumple su función.',artifact:'Una sección de 16 compases + los sonidos que te generan dudas.'},
+      bass:{directive:'El low-end debe convertirse en un solo sistema. Trae la relación kick/bajo tal como existe hoy; el entrenamiento comienza con groove, espacio y propiedad de frecuencias.',artifact:'Proyecto con kick y bajo separados y editables.'},
+      workflow:{directive:'La primera corrección no es musical, es procedural. Trae un proyecto donde pierdes tiempo y vamos a mapear las decisiones que se repiten, se traban o abren ramas innecesarias.',artifact:'Un proyecto que se sienta lento o caótico de terminar.'},
+      finish:{directive:'El bloqueo no es falta de ideas. Es cierre. Trae el proyecto que has evitado terminar e identifica el momento exacto donde dejas de decidir. Ese es el objetivo de entrenamiento.',artifact:'El proyecto sin terminar que llevas más tiempo postergando.'},
+      labels:{directive:'Antes de la estrategia de contacto, la música debe pasar el filtro final. Trae tu track terminado más fuerte y los sellos que crees que encajan. Probamos posicionamiento antes del outreach.',artifact:'Un track terminado + 3 sellos objetivo.'},
+      mastering:{directive:'La preparación final empieza antes del limiter. Trae el pre-master y el proyecto. Revisaremos headroom, balance y si la mezcla realmente está lista para finalizar.',artifact:'Pre-master WAV + proyecto original.'}
+    }
+  };
+
+  function lang(){
+    var btn=document.querySelector('.lang-btn');
+    return btn && btn.textContent.trim().toUpperCase()==='EN' ? 'es':'en';
+  }
+
+  function profile(){
+    try{return JSON.parse(localStorage.getItem(PROFILE_KEY)||'null');}catch(e){return null;}
+  }
+
+  function profileReady(p){return !!(p&&p.mission&&p.system&&p.discipline);}
+
+  function loadOracle(){
+    try{var s=JSON.parse(localStorage.getItem(ORACLE_KEY)||'null');if(s&&typeof s==='object')oracleState.blocker=s.blocker||null;}catch(e){}
+  }
+
+  function saveOracle(){try{localStorage.setItem(ORACLE_KEY,JSON.stringify(oracleState));}catch(e){}}
+
+  function labels(){
+    var es=lang()==='es';
+    return es ? {
+      kicker:'DMF // ORÁCULO 09',title:'LA FÓRMULA HABLA',
+      lede:'La leyenda es la interfaz. El entrenamiento es real. El Oráculo interpreta tu calibración y convierte dos décadas de decisiones de estudio en la siguiente directiva práctica.',
+      source:'FUENTE',sourceV:'DEMIAN MULLER',classL:'CLASE DE TRANSMISIÓN',classV:'MÉTODO ASCENDIDO / APLICACIÓN TERRESTRE',engine:'MOTOR',engineV:'CÓDEX + RUTA DMF + TU BLOQUEO ACTUAL',
+      head:'MOTOR DE GUÍA',online:'ORÁCULO EN LÍNEA',mission:'MISIÓN',system:'SISTEMA',discipline:'DISCIPLINA',
+      prompt:'ENTRADA TERRESTRE // ¿QUÉ TE ESTÁ BLOQUEANDO AHORA?',
+      options:[['structure','Estructura'],['mix','Mezcla'],['sound','Selección sonora'],['bass','Bajo / low-end'],['workflow','Workflow'],['finish','No termino'],['labels','Sellos'],['mastering','Mastering']],
+      transmission:'TRANSMISIÓN ACTIVA',artifact:'LLEVA A LA SESIÓN',locked:'ORÁCULO BLOQUEADO',lockedBody:'Primero completa la calibración del Códex. El Oráculo necesita misión, sistema y disciplina antes de emitir una directiva.',lockedCta:'CALIBRAR CÓDEX',active:'DIRECTIVA DEL ORÁCULO'
+    } : {
+      kicker:'DMF // ORACLE 09',title:'THE FORMULA SPEAKS',
+      lede:'The legend is the interface. The training is real. The Oracle reads your calibration and turns two decades of studio decisions into the next practical directive.',
+      source:'SOURCE',sourceV:'DEMIAN MULLER',classL:'TRANSMISSION CLASS',classV:'ASCENDED METHOD / EARTHSIDE APPLICATION',engine:'ENGINE',engineV:'CODEX + DMF PATH + YOUR CURRENT BLOCK',
+      head:'GUIDANCE ENGINE',online:'ORACLE ONLINE',mission:'MISSION',system:'SYSTEM',discipline:'DISCIPLINE',
+      prompt:'EARTHSIDE INPUT // WHAT IS BLOCKING YOU RIGHT NOW?',
+      options:[['structure','Structure'],['mix','Mix'],['sound','Sound selection'],['bass','Bass / low-end'],['workflow','Workflow'],['finish','I do not finish'],['labels','Labels'],['mastering','Mastering']],
+      transmission:'ACTIVE TRANSMISSION',artifact:'BRING TO SESSION',locked:'ORACLE LOCKED',lockedBody:'Complete the Codex calibration first. The Oracle needs mission, system and discipline before it can issue a directive.',lockedCta:'CALIBRATE CODEX',active:'ORACLE DIRECTIVE'
+    };
+  }
+
+  function valueLabel(key,value){
+    var es=lang()==='es';
+    var maps={
+      mission:{finish:es?'Terminar tracks':'Finish tracks',mix:es?'Mejorar mezcla':'Improve mix',workflow:es?'Dominar workflow':'Master workflow',labels:es?'Llegar a sellos':'Reach labels'},
+      system:{ableton:'Ableton',logic:'Logic',fl:'FL Studio',other:es?'Otro DAW':'Other DAW'},
+      discipline:{'2h':es?'2 h / semana':'2 h / week','4h':es?'4 h / semana':'4 h / week','6h':es?'6+ h / semana':'6+ h / week'}
+    };
+    return maps[key]&&maps[key][value]?maps[key][value]:value;
+  }
+
+  function clearModuleHighlight(){
+    document.querySelectorAll('#modulesGrid .signal-node').forEach(function(n){n.classList.remove('is-oracle-active');n.removeAttribute('data-oracle');});
+  }
+
+  function highlightModule(idx){
+    clearModuleHighlight();
+    var nodes=document.querySelectorAll('#modulesGrid .signal-node');
+    var c=labels();
+    if(nodes[idx]){nodes[idx].classList.add('is-oracle-active');nodes[idx].setAttribute('data-oracle',c.active);}
+  }
+
+  function defaultBlocker(p){return p&&missionDefault[p.mission]?missionDefault[p.mission]:null;}
+
+  function render(root,seal){
+    var c=labels();
+    var p=profile();
+    var ready=profileReady(p);
+    var names=lang()==='es'?moduleNamesEs:moduleNamesEn;
+
+    var left='<div class="dmf-oracle-myth"><div class="dmf-oracle-kicker">'+c.kicker+'</div><h3 class="dmf-oracle-title">'+c.title+'</h3><p class="dmf-oracle-lede">'+c.lede+'</p><div class="dmf-oracle-source"><div>'+c.source+' // <strong>'+c.sourceV+'</strong></div><div>'+c.classL+' // <strong>'+c.classV+'</strong></div><div>'+c.engine+' // <strong>'+c.engineV+'</strong></div></div><div class="dmf-oracle-sigil" aria-hidden="true"><span>DMF</span></div></div>';
+
+    var right='<div class="dmf-oracle-console"><div class="dmf-oracle-head"><strong>'+c.head+'</strong><span class="dmf-oracle-status">'+c.online+'</span></div>';
+    if(!ready){
+      right+='<div class="dmf-oracle-lock"><strong>'+c.locked+'</strong><p>'+c.lockedBody+'</p><button type="button" class="dmf-oracle-calibrate">'+c.lockedCta+'</button></div></div>';
+      root.innerHTML='<div class="dmf-oracle-shell">'+left+right+'</div>';
+      clearModuleHighlight();
+      seal.classList.remove('is-visible');
+      var calibrate=root.querySelector('.dmf-oracle-calibrate');
+      if(calibrate)calibrate.addEventListener('click',function(){var el=document.querySelector('.dmf-initiation-protocol');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});});
+      return;
+    }
+
+    if(!oracleState.blocker)oracleState.blocker=defaultBlocker(p);
+    var profileHtml='<div class="dmf-oracle-profile"><div><span>'+c.mission+'</span><strong>'+valueLabel('mission',p.mission)+'</strong></div><div><span>'+c.system+'</span><strong>'+valueLabel('system',p.system)+'</strong></div><div><span>'+c.discipline+'</span><strong>'+valueLabel('discipline',p.discipline)+'</strong></div></div>';
+    var opts=c.options.map(function(o){return '<button type="button" class="dmf-oracle-option'+(oracleState.blocker===o[0]?' is-selected':'')+'" data-oracle-block="'+o[0]+'">'+o[1]+'</button>';}).join('');
+    right+=profileHtml+'<div class="dmf-oracle-prompt">'+c.prompt+'</div><div class="dmf-oracle-options">'+opts+'</div><div class="dmf-oracle-output"></div></div>';
+    root.innerHTML='<div class="dmf-oracle-shell">'+left+right+'</div>';
+
+    root.querySelectorAll('.dmf-oracle-option').forEach(function(btn){btn.addEventListener('click',function(){oracleState.blocker=btn.getAttribute('data-oracle-block');saveOracle();render(root,seal);});});
+
+    var idx=blockerMap[oracleState.blocker];
+    var g=guidance[lang()][oracleState.blocker];
+    var output=root.querySelector('.dmf-oracle-output');
+    if(typeof idx==='number'&&g){
+      output.innerHTML='<div class="dmf-oracle-transmission">'+c.transmission+' // MODULE '+String(idx+1).padStart(2,'0')+'</div><div class="dmf-oracle-module">'+names[idx]+'</div><div class="dmf-oracle-directive">'+g.directive+'</div><div class="dmf-oracle-artifact"><strong>'+c.artifact+'</strong> // '+g.artifact+'</div>';
+      output.classList.add('is-ready');
+      highlightModule(idx);
+      seal.innerHTML='<i></i> ORACLE // MODULE '+String(idx+1).padStart(2,'0')+' // SIGNAL ACTIVE';
+      seal.classList.add('is-visible');
+    }
+  }
+
+  function mount(){
+    var academy=document.getElementById('academy');
+    var codex=document.querySelector('.dmf-initiation-protocol');
+    if(!academy||!codex||document.querySelector('.dmf-oracle'))return;
+    loadOracle();
+
+    var root=document.createElement('div');
+    root.className='dmf-oracle';
+    root.setAttribute('aria-label','DMF Oracle guidance engine');
+    codex.insertAdjacentElement('afterend',root);
+
+    var seal=document.createElement('div');
+    seal.className='dmf-oracle-seal';
+    document.body.appendChild(seal);
+
+    render(root,seal);
+
+    document.addEventListener('click',function(e){
+      if(e.target.closest('.dmf-codex-option')||e.target.closest('.dmf-codex-reset'))setTimeout(function(){render(root,seal);},40);
+    });
+
+    var observer=new MutationObserver(function(){setTimeout(function(){render(root,seal);},20);});
+    observer.observe(codex,{childList:true,subtree:true});
+
+    var langBtn=document.querySelector('.lang-btn');
+    if(langBtn&&'MutationObserver'in window)new MutationObserver(function(){setTimeout(function(){render(root,seal);},0);}).observe(langBtn,{childList:true,subtree:true,characterData:true});
+
+    if('IntersectionObserver'in window){
+      var io=new IntersectionObserver(function(entries){if(!entries[0].isIntersecting)seal.classList.remove('is-visible');else if(profileReady(profile())&&oracleState.blocker)seal.classList.add('is-visible');},{threshold:.05});
+      io.observe(academy);
+    }
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(mount,0);},{once:true});else setTimeout(mount,0);
+})();
+</script>
+<!-- DMF_TRANSMISSION_BODY -->
+<script>
+(function(){
+  var PROFILE_KEY='dmf_codex_profile_v1';
+  var ORACLE_KEY='dmf_oracle_state_v1';
+  var HISTORY_KEY='dmf_transmission_history_v1';
+
+  var moduleNames={
+    en:['Track structure & development','Mixing & balance','Sound Selection','Bass creation','Workflow & efficiency','Producer Mindset','Music Market','Mastering & final prep'],
+    es:['Estructura y desarrollo de un track','Mixing y balance','Sound Selection','Creación de bajos','Workflow y eficiencia','Producer Mindset','Music Market','Mastering y preparación final']
+  };
+
+  var rules=[
+    {module:0,keys:['structure','arrangement','arrange','intro','break','build','drop','energy','estructura','arreglo','intro','quiebre','subida','caida','caída','energia','energía']},
+    {module:1,keys:['mix','mixing','balance','muddy','harsh','masking','mezcla','balance','opaco','sucio','enmascara','fuerte','volumen']},
+    {module:2,keys:['sound','sample','synth','texture','timbre','selection','sonido','sample','sinte','textura','timbre','seleccion','selección']},
+    {module:3,keys:['bass','kick','low end','low-end','sub','bajo','bombo','grave','graves','subgrave']},
+    {module:4,keys:['workflow','slow','organize','template','decision','lento','orden','organizar','plantilla','decision','decisión','demoro','demora']},
+    {module:5,keys:['finish','unfinished','stuck','blocked','procrast','terminar','termino','incompleto','bloqueado','bloqueo','posterg','traba','trabado']},
+    {module:6,keys:['label','labels','demo','release','pitch','sello','sellos','lanzamiento','enviar','presentar','outreach']},
+    {module:7,keys:['master','mastering','limiter','lufs','loudness','premaster','pre-master','masterizar','limitador','volumen final']}
+  ];
+
+  var guidance={
+    en:[
+      {diagnosis:'The problem reads as an arrangement and energy-flow issue. The track needs a clearer structural intention before more sound design.',directive:'Mark the exact section where momentum dies. Reduce the problem to 16–32 bars, identify what changes before and after the drop, and rebuild the energy transition before adding new elements.',artifact:'Bring the project with arrangement markers visible and one reference track with a transition you trust.'},
+      {diagnosis:'The signal points to balance and frequency ownership rather than a lack of processing.',directive:'Freeze new plugin decisions. Compare the current bounce at matched loudness, then isolate the three elements competing most for space. Correct level and masking before adding processing.',artifact:'Bring the project + latest stereo bounce + one commercial reference.'},
+      {diagnosis:'The weakness appears to come from source choice. Better processing will not rescue a sound that does not fit its role.',directive:'Loop the weakest 16 bars. Solo the essential roles, then audition replacements one role at a time. Keep only sounds that improve the section before processing.',artifact:'Bring the 16-bar section and the candidate sounds or instruments you are considering.'},
+      {diagnosis:'The low-end relationship is unstable. Kick and bass are behaving as separate objects instead of one rhythmic system.',directive:'Work on kick and bass before the rest of the mix. Inspect timing, envelope, octave and frequency overlap. Make the groove readable at low volume before adding weight.',artifact:'Bring kick and bass on separate editable channels and a bounce with no mastering chain.'},
+      {diagnosis:'The bottleneck is procedural. Too many open decisions are consuming time that should become repetitions.',directive:'Document the last five decisions that slowed the session. Turn repeatable choices into defaults, then define a fixed order for the next 45-minute production block.',artifact:'Bring one project where you repeatedly lose momentum and your current template if you use one.'},
+      {diagnosis:'The signal is a closure problem. The project likely needs fewer possibilities and a finish criterion.',directive:'Define what “finished enough” means for this track. Lock sound selection, write the remaining tasks as a maximum of five decisions, and do not reopen solved sections until the list is complete.',artifact:'Bring the unfinished project you have avoided the longest and a current bounce.'},
+      {diagnosis:'The issue has moved from production into positioning. The track must be tested against the context of the labels you want to approach.',directive:'Choose three realistic target labels. Compare your track against their recent releases for arrangement, sonic density and identity. Fix fit before writing outreach.',artifact:'Bring one finished track + three target labels + one recent release from each.'},
+      {diagnosis:'The signal belongs to final preparation. The first question is whether the mix is ready to be mastered at all.',directive:'Bypass the final limiter and inspect headroom, tonal balance and transient integrity. Correct mix problems in the mix, then print a clean pre-master for mastering decisions.',artifact:'Bring pre-master WAV + original project + current mastered reference.'}
+    ],
+    es:[
+      {diagnosis:'El problema se lee como estructura y flujo de energía. El track necesita una intención de arreglo más clara antes de sumar más diseño sonoro.',directive:'Marca el punto exacto donde muere el impulso. Reduce el problema a 16–32 compases, identifica qué cambia antes y después del drop y reconstruye la transición de energía antes de agregar elementos.',artifact:'Trae el proyecto con marcadores de arreglo visibles y un track de referencia con una transición que confíes.'},
+      {diagnosis:'La señal apunta a balance y propiedad de frecuencias más que a falta de procesamiento.',directive:'Congela nuevas decisiones de plugins. Compara el bounce actual a volumen igualado y aísla los tres elementos que más compiten por espacio. Corrige nivel y enmascaramiento antes de procesar más.',artifact:'Trae el proyecto + último bounce estéreo + una referencia comercial.'},
+      {diagnosis:'La debilidad parece venir de la fuente elegida. Más procesamiento no rescata un sonido que no cumple su función.',directive:'Lopea los 16 compases más débiles. Deja solo los roles esenciales y prueba reemplazos de a uno. Conserva únicamente los sonidos que mejoren la sección antes del procesamiento.',artifact:'Trae la sección de 16 compases y los sonidos o instrumentos candidatos.'},
+      {diagnosis:'La relación del low-end es inestable. Kick y bajo están funcionando como objetos separados en vez de un solo sistema rítmico.',directive:'Trabaja kick y bajo antes que el resto de la mezcla. Revisa timing, envolvente, octava y solapamiento de frecuencias. Haz que el groove se entienda a bajo volumen antes de agregar peso.',artifact:'Trae kick y bajo en canales separados y editables, más un bounce sin cadena de mastering.'},
+      {diagnosis:'El cuello de botella es procedural. Demasiadas decisiones abiertas consumen el tiempo que debería transformarse en repetición.',directive:'Anota las últimas cinco decisiones que frenaron la sesión. Convierte las decisiones repetibles en defaults y define un orden fijo para el siguiente bloque de 45 minutos.',artifact:'Trae un proyecto donde pierdas impulso repetidamente y tu template actual si usas uno.'},
+      {diagnosis:'La señal es un problema de cierre. El proyecto probablemente necesita menos posibilidades y un criterio concreto de término.',directive:'Define qué significa “suficientemente terminado” para este track. Cierra la selección de sonidos, escribe un máximo de cinco decisiones pendientes y no reabras secciones resueltas hasta completar la lista.',artifact:'Trae el proyecto sin terminar que más tiempo llevas evitando y un bounce actual.'},
+      {diagnosis:'El problema ya pasó de producción a posicionamiento. El track debe probarse contra el contexto de los sellos a los que quieres llegar.',directive:'Elige tres sellos objetivo realistas. Compara tu track con sus lanzamientos recientes en arreglo, densidad sonora e identidad. Corrige encaje antes de redactar outreach.',artifact:'Trae un track terminado + tres sellos objetivo + un lanzamiento reciente de cada uno.'},
+      {diagnosis:'La señal pertenece a preparación final. La primera pregunta es si la mezcla realmente está lista para masterizar.',directive:'Bypassea el limiter final y revisa headroom, balance tonal e integridad de transientes. Corrige problemas de mezcla dentro de la mezcla y luego imprime un pre-master limpio.',artifact:'Trae pre-master WAV + proyecto original + referencia masterizada actual.'}
+    ]
+  };
+
+  function lang(){
+    var btn=document.querySelector('.lang-btn');
+    return btn && btn.textContent.trim().toUpperCase()==='EN' ? 'es':'en';
+  }
+
+  function safeJSON(key){
+    try{return JSON.parse(localStorage.getItem(key)||'null');}catch(e){return null;}
+  }
+
+  function norm(text){
+    return String(text||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  }
+
+  function scoreText(text){
+    var t=norm(text), scores=[0,0,0,0,0,0,0,0];
+    rules.forEach(function(rule){rule.keys.forEach(function(k){var kk=norm(k);if(t.indexOf(kk)>-1)scores[rule.module]+=kk.indexOf(' ')>-1?3:2;});});
+    if(/drop/.test(t)) scores[0]+=3;
+    if(/no (funciona|works)|doesn.t work|no pega|sin fuerza/.test(t)){scores[0]+=2;scores[2]+=1;}
+    if(/no (termino|acabo)|can.t finish|cannot finish/.test(t)) scores[5]+=5;
+    var best=0;for(var i=1;i<scores.length;i++)if(scores[i]>scores[best])best=i;
+    return {module:best,score:scores[best],scores:scores};
+  }
+
+  function inferFromState(){
+    var oracle=safeJSON(ORACLE_KEY)||{};
+    var blockerMap={structure:0,mix:1,sound:2,bass:3,workflow:4,finish:5,labels:6,mastering:7};
+    if(oracle.blocker && blockerMap[oracle.blocker]!==undefined)return blockerMap[oracle.blocker];
+    var p=safeJSON(PROFILE_KEY)||{};
+    var missionMap={finish:0,mix:1,workflow:4,labels:6};
+    return missionMap[p.mission]!==undefined?missionMap[p.mission]:0;
+  }
+
+  function parseBpm(text){
+    var m=String(text||'').match(/(?:^|D)([7-9]d|1dd)s*(?:bpm)?/i);
+    if(!m)return null;var n=parseInt(m[1],10);return n>=70&&n<=190?n:null;
+  }
+
+  function parseStage(text){
+    var t=norm(text);
+    var pairs=[['drop','DROP'],['break','BREAK'],['intro','INTRO'],['build','BUILD'],['outro','OUTRO'],['mezcla','MIX'],['mix','MIX'],['master','MASTER'],['bajo','LOW-END'],['bass','LOW-END']];
+    for(var i=0;i<pairs.length;i++)if(t.indexOf(norm(pairs[i][0]))>-1)return pairs[i][1];
+    return null;
+  }
+
+  function confidence(score){return score>=6?'HIGH':score>=3?'MEDIUM':'ASSISTED';}
+
+  function localAnalyze(text){
+    var l=lang(), scored=scoreText(text), module=scored.score?scored.module:inferFromState();
+    var g=guidance[l][module], bpm=parseBpm(text), stage=parseStage(text);
+    return {source:'DMF LOCAL METHOD ENGINE',module:module,bpm:bpm,stage:stage,confidence:confidence(scored.score),diagnosis:g.diagnosis,directive:g.directive,artifact:g.artifact};
+  }
+
+  function endpoint(){return window.DMF_TRAINING_ENDPOINT || '';}
+
+  function remoteAnalyze(text){
+    var url=endpoint();if(!url)return Promise.resolve(null);
+    var payload={text:text,lang:lang(),profile:safeJSON(PROFILE_KEY),oracle:safeJSON(ORACLE_KEY)};
+    return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+      .then(function(r){if(!r.ok)throw new Error('uplink');return r.json();})
+      .then(function(data){
+        if(!data || typeof data.moduleIndex!=='number')return null;
+        var fallback=localAnalyze(text);
+        return {source:'DMF AI UPLINK',module:Math.max(0,Math.min(7,data.moduleIndex)),bpm:data.bpm||fallback.bpm,stage:data.stage||fallback.stage,confidence:data.confidence||'AI',diagnosis:data.diagnosis||fallback.diagnosis,directive:data.directive||fallback.directive,artifact:data.artifact||fallback.artifact};
+      }).catch(function(){return null;});
+  }
+
+  function labels(){
+    return lang()==='es'?{
+      kicker:'DMF // TRANSMISIÓN 10',title:'EL SISTEMA ESCUCHA',lede:'Describe el problema con tus propias palabras. La interfaz lee tu señal, la cruza con el Códex y el Oracle, y la traduce a una acción dentro de la fórmula DMF.',chain:'ENTRADA HUMANA → LECTURA DE SEÑAL → MÓDULO → DIRECTIVA → SESIÓN',listener:'CANAL DE ENTRENAMIENTO ABIERTO',head:'ENVÍA TU SEÑAL',online:'LISTENING',placeholder:'Ej: Tengo un track a 126 BPM. Llegué al drop, pero pierde fuerza y no sé si el problema es el arreglo o los sonidos…',send:'TRANSMITIR',examples:['Tengo un track a 126 BPM y el drop no funciona','Mi mezcla está embarrada y kick/bajo chocan','Tengo muchos loops pero nunca termino tracks'],parsed:'SEÑAL INTERPRETADA',bring:'LLEVA A LA SESIÓN',open:'ABRIR MÓDULO',again:'NUEVA TRANSMISIÓN',history:'MEMORIA DE SEÑAL',empty:'Escribe al menos 12 caracteres para transmitir.',profile:'CÓDEX',oracle:'ORACLE',uplink:'UPLINK',local:'LOCAL'}:{
+      kicker:'DMF // TRANSMISSION 10',title:'THE SYSTEM LISTENS',lede:'Describe the problem in your own words. The interface reads your signal, crosses it with Codex and Oracle context, and translates it into an action inside the DMF formula.',chain:'HUMAN INPUT → SIGNAL READ → MODULE → DIRECTIVE → SESSION',listener:'TRAINING CHANNEL OPEN',head:'TRANSMIT YOUR SIGNAL',online:'LISTENING',placeholder:'Example: I have a track at 126 BPM. I reached the drop, but it loses energy and I do not know if the problem is arrangement or sound choice…',send:'TRANSMIT',examples:['I have a track at 126 BPM and the drop does not work','My mix is muddy and kick/bass are fighting','I have lots of loops but I never finish tracks'],parsed:'SIGNAL INTERPRETED',bring:'BRING TO SESSION',open:'OPEN MODULE',again:'NEW TRANSMISSION',history:'SIGNAL MEMORY',empty:'Write at least 12 characters before transmitting.',profile:'CODEX',oracle:'ORACLE',uplink:'UPLINK',local:'LOCAL'};
+  }
+
+  function contextHTML(){
+    var c=labels(),p=safeJSON(PROFILE_KEY)||{},o=safeJSON(ORACLE_KEY)||{};
+    return '<span>'+c.profile+' <b>'+(p.mission||'—')+'</b></span><span>DAW <b>'+(p.system||'—')+'</b></span><span>'+c.oracle+' <b>'+(o.blocker||'—')+'</b></span><span>'+c.uplink+' <b>'+(endpoint()?'READY':c.local)+'</b></span>';
+  }
+
+  function clearModule(){document.querySelectorAll('#modulesGrid .signal-node').forEach(function(n){n.classList.remove('is-transmission-active');n.removeAttribute('data-transmission');});}
+  function highlightModule(idx){
+    clearModule();var nodes=document.querySelectorAll('#modulesGrid .signal-node');if(nodes[idx]){nodes[idx].classList.add('is-transmission-active');nodes[idx].setAttribute('data-transmission','TRANSMISSION ACTIVE');}
+  }
+
+  function loadHistory(){var h=safeJSON(HISTORY_KEY);return Array.isArray(h)?h:[];}
+  function saveHistory(text,result){
+    var h=loadHistory();h.unshift({text:text,module:result.module,ts:Date.now()});h=h.slice(0,3);try{localStorage.setItem(HISTORY_KEY,JSON.stringify(h));}catch(e){}return h;
+  }
+
+  function historyHTML(){
+    var c=labels(),h=loadHistory();if(!h.length)return '';
+    return '<div class="dmf-transmission-history"><div class="dmf-transmission-history-head">'+c.history+'</div><div class="dmf-transmission-history-list">'+h.map(function(x){var s=x.text.length>62?x.text.slice(0,62)+'…':x.text;return '<div class="dmf-transmission-history-item" data-history-text="'+encodeURIComponent(x.text)+'"><span>'+s.replace(/</g,'&lt;')+'</span><span>M'+String(x.module+1).padStart(2,'0')+'</span></div>';}).join('')+'</div></div>';
+  }
+
+  function renderResult(root,text,result){
+    var c=labels(),out=root.querySelector('.dmf-transmission-readout');var names=moduleNames[lang()];
+    var metrics=[];if(result.bpm)metrics.push('<span>'+result.bpm+' BPM</span>');if(result.stage)metrics.push('<span>'+result.stage+'</span>');metrics.push('<span>'+result.source+'</span>');
+    out.innerHTML='<div class="dmf-transmission-readout-top"><div><div class="dmf-transmission-tag">'+c.parsed+'</div><div class="dmf-transmission-module">'+String(result.module+1).padStart(2,'0')+' / '+names[result.module]+'</div></div><div class="dmf-transmission-confidence">CONFIDENCE // '+result.confidence+'</div></div><div class="dmf-transmission-metrics">'+metrics.join('')+'</div><div class="dmf-transmission-diagnosis">'+result.diagnosis+'</div><div class="dmf-transmission-directive">'+result.directive+'</div><div class="dmf-transmission-artifact"><strong>'+c.bring+' //</strong> '+result.artifact+'</div><div class="dmf-transmission-actions"><button type="button" data-action="module">'+c.open+'</button><button type="button" data-action="again">'+c.again+'</button></div>';
+    out.classList.add('is-ready');highlightModule(result.module);saveHistory(text,result);bindHistory(root);
+    out.querySelector('[data-action="module"]').addEventListener('click',function(){var nodes=document.querySelectorAll('#modulesGrid .signal-node');if(nodes[result.module])nodes[result.module].scrollIntoView({behavior:'smooth',block:'center'});});
+    out.querySelector('[data-action="again"]').addEventListener('click',function(){root.querySelector('.dmf-transmission-input').focus();});
+  }
+
+  function bindHistory(root){
+    var holder=root.querySelector('.dmf-transmission-history');if(holder)holder.remove();
+    var html=historyHTML();if(html)root.querySelector('.dmf-transmission-console').insertAdjacentHTML('beforeend',html);
+    root.querySelectorAll('.dmf-transmission-history-item').forEach(function(item){item.addEventListener('click',function(){var input=root.querySelector('.dmf-transmission-input');input.value=decodeURIComponent(item.getAttribute('data-history-text'));updateCount(root);input.focus();});});
+  }
+
+  function updateCount(root){var input=root.querySelector('.dmf-transmission-input'),counter=root.querySelector('.dmf-transmission-counter');counter.textContent=input.value.length+' / 600';}
+
+  function transmit(root){
+    var c=labels(),input=root.querySelector('.dmf-transmission-input'),button=root.querySelector('.dmf-transmission-send'),text=input.value.trim();
+    if(text.length<12){root.querySelector('.dmf-transmission-counter').textContent=c.empty;return;}
+    button.disabled=true;button.textContent='SCANNING…';
+    remoteAnalyze(text).then(function(remote){var result=remote||localAnalyze(text);renderResult(root,text,result);button.disabled=false;button.textContent=c.send;});
+  }
+
+  function render(root){
+    var c=labels();
+    root.innerHTML='<div class="dmf-transmission-shell"><div class="dmf-transmission-copy"><div class="dmf-transmission-kicker">'+c.kicker+'</div><h3 class="dmf-transmission-title">'+c.title+'</h3><p class="dmf-transmission-lede">'+c.lede+'</p><div class="dmf-transmission-chain"><strong>'+c.chain+'</strong></div><div class="dmf-transmission-listener"><i></i><span>'+c.listener+'</span></div></div><div class="dmf-transmission-console"><div class="dmf-transmission-head"><strong>'+c.head+'</strong><span class="dmf-transmission-status">'+c.online+'</span></div><div class="dmf-transmission-context">'+contextHTML()+'</div><div class="dmf-transmission-input-wrap"><textarea class="dmf-transmission-input" maxlength="600" placeholder="'+c.placeholder.replace(/"/g,'&quot;')+'"></textarea><span class="dmf-transmission-counter">0 / 600</span><button type="button" class="dmf-transmission-send">'+c.send+'</button></div><div class="dmf-transmission-examples">'+c.examples.map(function(x){return '<button type="button" class="dmf-transmission-example" data-example="'+encodeURIComponent(x)+'">'+x+'</button>';}).join('')+'</div><div class="dmf-transmission-readout"></div></div></div>';
+    var input=root.querySelector('.dmf-transmission-input');input.addEventListener('input',function(){updateCount(root);});
+    input.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key==='Enter')transmit(root);});
+    root.querySelector('.dmf-transmission-send').addEventListener('click',function(){transmit(root);});
+    root.querySelectorAll('.dmf-transmission-example').forEach(function(btn){btn.addEventListener('click',function(){input.value=decodeURIComponent(btn.getAttribute('data-example'));updateCount(root);transmit(root);});});
+    bindHistory(root);
+  }
+
+  function mount(){
+    var academy=document.getElementById('academy');if(!academy||document.querySelector('.dmf-transmission'))return;
+    var root=document.createElement('div');root.className='dmf-transmission';root.setAttribute('aria-label','DMF natural-language training transmission interface');
+    var oracle=document.querySelector('.dmf-oracle');var codex=document.querySelector('.dmf-initiation-protocol');
+    if(oracle)oracle.insertAdjacentElement('afterend',root);else if(codex)codex.insertAdjacentElement('afterend',root);else{var badge=academy.querySelector('.acad-badge');if(badge)badge.insertAdjacentElement('afterend',root);else academy.prepend(root);}
+    render(root);
+    var langBtn=document.querySelector('.lang-btn');if(langBtn&&'MutationObserver' in window){new MutationObserver(function(){setTimeout(function(){render(root);clearModule();},0);}).observe(langBtn,{childList:true,subtree:true,characterData:true});}
+    window.addEventListener('storage',function(e){if(e.key===PROFILE_KEY||e.key===ORACLE_KEY)render(root);});
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+})();
+</script>
+<!-- DMF_COMPUTE_UPLINK_BODY -->
+<script>
+(function(){
+  window.DMF_TRAINING_ENDPOINT = '/api/dmf/training';
+  window.DMF_COMPUTE_UPLINK = 'VBC COMPUTE';
+
+  function attachBadge(){
+    var head=document.querySelector('.dmf-transmission-head');
+    if(!head || head.querySelector('.dmf-compute-uplink')) return !!head;
+    var badge=document.createElement('span');
+    badge.className='dmf-compute-uplink';
+    badge.textContent='VBC COMPUTE // SECURE UPLINK';
+    head.appendChild(badge);
+    return true;
+  }
+
+  function mount(){
+    if(attachBadge()) return;
+    var tries=0;
+    var timer=setInterval(function(){
+      tries+=1;
+      if(attachBadge() || tries>40) clearInterval(timer);
+    },100);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mount,{once:true}); else mount();
+})();
+</script>
+<!-- DMF_TRAINING_STATE_BODY -->
+<script>
+(function(){
+  var STATE_KEY='dmf_training_state_v1';
+  var PROFILE_KEY='dmf_codex_profile_v1';
+  var ORACLE_KEY='dmf_oracle_state_v1';
+  var VERSION=1;
+  var moduleNames={
+    en:['Structure','Mixing','Sound','Bass','Workflow','Mindset','Market','Mastering'],
+    es:['Estructura','Mezcla','Sonido','Bajos','Workflow','Mindset','Mercado','Mastering']
+  };
+
+  function now(){return Date.now();}
+  function safeJSON(key){try{return JSON.parse(localStorage.getItem(key)||'null');}catch(e){return null;}}
+  function clean(v,max){return typeof v==='string'?v.trim().slice(0,max||600):'';}
+  function blankModules(){return Array.from({length:8},function(_,i){return {module:i,status:'unseen',attempts:0,lastSeen:null};});}
+  function defaultState(){return {version:VERSION,createdAt:now(),updatedAt:now(),currentModule:null,previousModule:null,blocker:'',bpm:null,stage:'',lastSignal:'',lastDiagnosis:'',activeDirective:'',requiredEvidence:'',evidenceStatus:'pending',mentorGate:'required',transmissions:0,modules:blankModules(),timeline:[]};}
+  function normalize(raw){
+    var base=defaultState(),s=raw&&typeof raw==='object'?raw:{};
+    base.createdAt=Number(s.createdAt)||base.createdAt;base.updatedAt=Number(s.updatedAt)||base.updatedAt;
+    base.currentModule=Number.isInteger(s.currentModule)&&s.currentModule>=0&&s.currentModule<8?s.currentModule:null;
+    base.previousModule=Number.isInteger(s.previousModule)&&s.previousModule>=0&&s.previousModule<8?s.previousModule:null;
+    base.blocker=clean(s.blocker,180);base.bpm=Number.isFinite(Number(s.bpm))?Number(s.bpm):null;base.stage=clean(s.stage,80);
+    base.lastSignal=clean(s.lastSignal,700);base.lastDiagnosis=clean(s.lastDiagnosis,900);base.activeDirective=clean(s.activeDirective,900);base.requiredEvidence=clean(s.requiredEvidence,600);
+    base.evidenceStatus=['pending','ready_for_review'].includes(s.evidenceStatus)?s.evidenceStatus:'pending';base.transmissions=Math.max(0,Number(s.transmissions)||0);
+    if(Array.isArray(s.modules)&&s.modules.length===8){base.modules=s.modules.map(function(m,i){return {module:i,status:['unseen','seen','active','review'].includes(m&&m.status)?m.status:'unseen',attempts:Math.max(0,Number(m&&m.attempts)||0),lastSeen:Number(m&&m.lastSeen)||null};});}
+    if(Array.isArray(s.timeline))base.timeline=s.timeline.slice(0,8).map(function(e){return {ts:Number(e.ts)||now(),module:Number.isInteger(e.module)?e.module:null,signal:clean(e.signal,180),stage:clean(e.stage,60),bpm:Number.isFinite(Number(e.bpm))?Number(e.bpm):null,type:clean(e.type,30)||'transmission'};});
+    return base;
+  }
+  function read(){return normalize(safeJSON(STATE_KEY));}
+  function write(state){state.updatedAt=now();try{localStorage.setItem(STATE_KEY,JSON.stringify(state));}catch(e){}window.dispatchEvent(new CustomEvent('dmf:training-state',{detail:snapshot(state)}));return state;}
+  function snapshot(input){var s=input||read();return {version:1,currentModule:s.currentModule,previousModule:s.previousModule,blocker:s.blocker,bpm:s.bpm,stage:s.stage,activeDirective:clean(s.activeDirective,420),requiredEvidence:clean(s.requiredEvidence,320),evidenceStatus:s.evidenceStatus,mentorGate:'required',transmissions:s.transmissions,moduleStates:s.modules.map(function(m){return {module:m.module,status:m.status,attempts:m.attempts};})};}
+  function isSpanish(){var b=document.querySelector('.lang-btn');return !!(b&&String(b.textContent||'').trim().toUpperCase()==='EN');}
+  function labels(){return isSpanish()?{kicker:'DMF // NÚCLEO DE MEMORIA 11',title:'EL SISTEMA RECUERDA',lede:'Cada transmisión actualiza tu estado de entrenamiento. El sistema conserva dónde estás, qué te bloqueó, qué debes ejecutar y qué evidencia falta antes de la revisión humana.',gate:'LA MEMORIA GUÍA. <strong>EL AVANCE REQUIERE REVISIÓN.</strong>',head:'ESTADO DE ENTRENAMIENTO',online:'MEMORIA ONLINE',module:'MÓDULO ACTIVO',blocker:'BLOQUEO',signals:'SEÑALES',status:'ESTADO',directive:'DIRECTIVA ACTIVA',evidence:'EVIDENCIA REQUERIDA',emptyDirective:'Envía una transmisión para generar una directiva de trabajo.',emptyEvidence:'La evidencia aparecerá después del diagnóstico.',evidenceReady:'EVIDENCIA LISTA PARA REVISIÓN',markEvidence:'MARCAR EVIDENCIA LISTA',open:'ABRIR MÓDULO ACTIVO',timeline:'MEMORIA RECIENTE',pending:'EN PRÁCTICA',review:'ESPERANDO REVISIÓN'}:{kicker:'DMF // MEMORY CORE 11',title:'THE SYSTEM REMEMBERS',lede:'Every transmission updates your training state. The system keeps where you are, what blocked you, what you must execute, and what evidence is still required before human review.',gate:'MEMORY GUIDES. <strong>ADVANCEMENT REQUIRES REVIEW.</strong>',head:'TRAINING STATE',online:'MEMORY ONLINE',module:'ACTIVE MODULE',blocker:'BLOCKER',signals:'SIGNALS',status:'STATUS',directive:'ACTIVE DIRECTIVE',evidence:'REQUIRED EVIDENCE',emptyDirective:'Send a transmission to generate an active training directive.',emptyEvidence:'Required evidence will appear after diagnosis.',evidenceReady:'EVIDENCE READY FOR REVIEW',markEvidence:'MARK EVIDENCE READY',open:'OPEN ACTIVE MODULE',timeline:'RECENT MEMORY',pending:'IN PRACTICE',review:'AWAITING REVIEW'};}
+
+  function extractArtifact(el){if(!el)return '';var t=String(el.textContent||'').trim();var parts=t.split('//');return clean(parts.length>1?parts.slice(1).join('//'):t,600);}
+  var lastSignature='';
+  function captureTransmission(){
+    var out=document.querySelector('.dmf-transmission-readout.is-ready');if(!out)return;
+    var mod=out.querySelector('.dmf-transmission-module'),diag=out.querySelector('.dmf-transmission-diagnosis'),dir=out.querySelector('.dmf-transmission-directive'),art=out.querySelector('.dmf-transmission-artifact'),input=document.querySelector('.dmf-transmission-input');
+    if(!mod||!diag||!dir)return;
+    var match=String(mod.textContent||'').match(/^s*(d{1,2})/),idx=match?Math.max(0,Math.min(7,parseInt(match[1],10)-1)):null;if(idx===null)return;
+    var metrics=Array.from(out.querySelectorAll('.dmf-transmission-metrics span')).map(function(n){return String(n.textContent||'').trim();});
+    var bpm=null,stage='';metrics.forEach(function(v){var b=v.match(/^(d{2,3})s*BPM$/i);if(b)bpm=Number(b[1]);else if(!/DMF|VBC|LOCAL|UPLINK|COMPUTE/i.test(v)&&!stage)stage=clean(v,80);});
+    var signal=clean(input&&input.value,700),diagnosis=clean(diag.textContent,900),directive=clean(dir.textContent,900),evidence=extractArtifact(art),signature=[idx,signal,diagnosis,directive,evidence].join('|');if(signature===lastSignature)return;lastSignature=signature;
+    var s=read(),o=safeJSON(ORACLE_KEY)||{};
+    if(s.currentModule!==null&&s.currentModule!==idx){s.previousModule=s.currentModule;if(s.modules[s.currentModule]&&s.modules[s.currentModule].status==='active')s.modules[s.currentModule].status='seen';}
+    s.currentModule=idx;s.blocker=clean(o.blocker||s.blocker,180);s.bpm=bpm||s.bpm;s.stage=stage||s.stage;s.lastSignal=signal;s.lastDiagnosis=diagnosis;s.activeDirective=directive;s.requiredEvidence=evidence;s.evidenceStatus='pending';s.transmissions+=1;
+    var m=s.modules[idx];m.status='active';m.attempts+=1;m.lastSeen=now();
+    s.timeline.unshift({ts:now(),module:idx,signal:clean(signal,180),stage:s.stage,bpm:s.bpm,type:'transmission'});s.timeline=s.timeline.slice(0,8);
+    write(s);render();
+  }
+
+  function markEvidenceReady(){var s=read();if(s.currentModule===null)return;s.evidenceStatus='ready_for_review';s.modules[s.currentModule].status='review';s.timeline.unshift({ts:now(),module:s.currentModule,signal:clean(s.requiredEvidence,180),stage:s.stage,bpm:s.bpm,type:'evidence'});s.timeline=s.timeline.slice(0,8);write(s);render();}
+  function openModule(){var s=read();if(s.currentModule===null)return;var nodes=document.querySelectorAll('#modulesGrid .signal-node');if(nodes[s.currentModule])nodes[s.currentModule].scrollIntoView({behavior:'smooth',block:'center'});}
+
+  function installFetchBridge(){
+    if(window.__DMF_MEMORY_FETCH_WRAPPED)return;window.__DMF_MEMORY_FETCH_WRAPPED=true;var nativeFetch=window.fetch.bind(window);
+    window.fetch=function(resource,options){
+      try{
+        var url=typeof resource==='string'?resource:(resource&&resource.url)||'';var opts=options||{};
+        if(url.indexOf('/api/dmf/training')!==-1&&String(opts.method||'GET').toUpperCase()==='POST'&&typeof opts.body==='string'){
+          var body=JSON.parse(opts.body);body.trainingState=snapshot();opts=Object.assign({},opts,{body:JSON.stringify(body)});return nativeFetch(resource,opts);
+        }
+      }catch(e){}
+      return nativeFetch(resource,options);
+    };
+  }
+
+  function makeNode(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
+  function render(){
+    var root=document.querySelector('.dmf-training-memory');if(!root)return;var s=read(),c=labels(),names=moduleNames[isSpanish()?'es':'en'];root.innerHTML='';
+    var shell=makeNode('div','dmf-memory-shell');var copy=makeNode('div','dmf-memory-copy');var kicker=makeNode('div','dmf-memory-kicker',c.kicker);var title=makeNode('h3','dmf-memory-title',c.title);var lede=makeNode('p','dmf-memory-lede',c.lede);var gate=makeNode('div','dmf-memory-gate');gate.innerHTML=c.gate;copy.append(kicker,title,lede,gate);
+    var consoleEl=makeNode('div','dmf-memory-console');var head=makeNode('div','dmf-memory-head');head.append(makeNode('strong','',c.head),makeNode('span','dmf-memory-online',c.online));consoleEl.appendChild(head);
+    var stats=makeNode('div','dmf-memory-stats');
+    var statData=[[c.module,s.currentModule===null?'—':String(s.currentModule+1).padStart(2,'0')+' / '+names[s.currentModule]],[c.blocker,s.blocker||'—'],[c.signals,String(s.transmissions)],[c.status,s.evidenceStatus==='ready_for_review'?c.review:c.pending]];
+    statData.forEach(function(x){var st=makeNode('div','dmf-memory-stat');st.append(makeNode('span','',x[0]),makeNode('b','',x[1]));stats.appendChild(st);});consoleEl.appendChild(stats);
+    var task=makeNode('div','dmf-memory-task');var d=makeNode('div','dmf-memory-card');d.append(makeNode('label','',c.directive),makeNode('p','',s.activeDirective||c.emptyDirective));var e=makeNode('div','dmf-memory-card is-evidence');e.append(makeNode('label','',c.evidence),makeNode('p','',s.requiredEvidence||c.emptyEvidence));task.append(d,e);consoleEl.appendChild(task);
+    var pathEl=makeNode('div','dmf-memory-path');s.modules.forEach(function(m,i){var n=makeNode('div','dmf-memory-node');n.dataset.state=m.status;n.append(makeNode('span','',String(i+1).padStart(2,'0')),makeNode('b','',names[i]));pathEl.appendChild(n);});consoleEl.appendChild(pathEl);
+    var actions=makeNode('div','dmf-memory-actions');var evidenceBtn=makeNode('button','',s.evidenceStatus==='ready_for_review'?c.evidenceReady:c.markEvidence);evidenceBtn.dataset.action='evidence';evidenceBtn.disabled=s.currentModule===null||s.evidenceStatus==='ready_for_review';evidenceBtn.addEventListener('click',markEvidenceReady);var openBtn=makeNode('button','',c.open);openBtn.disabled=s.currentModule===null;openBtn.addEventListener('click',openModule);actions.append(evidenceBtn,openBtn);consoleEl.appendChild(actions);
+    if(s.timeline.length){var tl=makeNode('div','dmf-memory-timeline');tl.appendChild(makeNode('div','dmf-memory-timeline-head',c.timeline));s.timeline.slice(0,4).forEach(function(ev){var row=makeNode('div','dmf-memory-event');row.append(makeNode('span','',ev.module===null?'—':'M'+String(ev.module+1).padStart(2,'0')),makeNode('b','',ev.type==='evidence'?(c.evidenceReady):clean(ev.signal,90)||'Signal'),makeNode('em','',ev.type==='evidence'?'review':(ev.bpm?ev.bpm+' BPM':ev.stage||'signal')));tl.appendChild(row);});consoleEl.appendChild(tl);}
+    shell.append(copy,consoleEl);root.appendChild(shell);
+  }
+
+  function mount(){
+    installFetchBridge();var transmission=document.querySelector('.dmf-transmission');if(!transmission)return;
+    if(!document.querySelector('.dmf-training-memory')){var root=document.createElement('div');root.className='dmf-training-memory';root.setAttribute('aria-label','DMF persistent student training memory');transmission.insertAdjacentElement('afterend',root);}render();
+    var out=document.querySelector('.dmf-transmission-readout');if(out&&'MutationObserver' in window)new MutationObserver(function(){setTimeout(captureTransmission,0);}).observe(out,{childList:true,subtree:true,characterData:true,attributes:true});
+    var langBtn=document.querySelector('.lang-btn');if(langBtn&&'MutationObserver' in window)new MutationObserver(function(){setTimeout(render,0);}).observe(langBtn,{childList:true,subtree:true,characterData:true});
+    window.addEventListener('storage',function(ev){if(ev.key===STATE_KEY)render();});
+  }
+
+  window.DMFTrainingState={read:read,snapshot:function(){return snapshot();},markEvidenceReady:markEvidenceReady};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
 })();
 </script>
 </body>
