@@ -79,7 +79,7 @@ async function getServiceAccountToken(env) {
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
   const pem = sa.private_key;
-  const pemBody = pem.replace(/-----BEGIN RSA PRIVATE KEY-----|-----END RSA PRIVATE KEY-----|\n/g, '');
+  const pemBody = pem.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\n/g, '');
   const binaryDer = Uint8Array.from(atob(pemBody), c => c.charCodeAt(0));
 
   const cryptoKey = await crypto.subtle.importKey(
@@ -145,7 +145,7 @@ async function verifyWebhookSignature(request, env) {
   const xRequestId = request.headers.get('x-request-id') || '';
 
   const url = new URL(request.url);
-  const dataId = url.searchParams.get('data.id') || '';
+  const dataId = (url.searchParams.get('data.id') || '').toLowerCase();
 
   const tsMatch = xSignature.match(/ts=([^,]+)/);
   const hashMatch = xSignature.match(/v1=([a-f0-9]+)/);
@@ -247,6 +247,13 @@ async function handleCreatePreference(request, origin, env) {
 
   const mpData = await mpRes.json();
 
+  await firestoreSet(env.DMF_FIREBASE_PROJECT_ID, 'checkoutSessions', purchaseId, {
+    preferenceId: { stringValue: mpData.id || '' },
+    expectedAmount: { doubleValue: product.price },
+    expectedCurrency: { stringValue: product.currency },
+    updatedAt: { timestampValue: new Date().toISOString() }
+  }, saToken).catch(() => {});
+
   return json(origin, 200, {
     ok: true,
     init_point: mpData.init_point,
@@ -268,14 +275,20 @@ async function handleWebhook(request, env) {
     return json(nullOrigin, 200, { ok: true, skipped: true });
   }
 
+  let signatureResult;
   try {
-    await verifyWebhookSignature(request, env);
+    signatureResult = await verifyWebhookSignature(request, env);
   } catch (e) {
     return json(nullOrigin, 401, { ok: false, error: 'Invalid signature' });
   }
 
-  const paymentId = String(webhookBody.data && webhookBody.data.id);
-  if (!paymentId || paymentId === 'undefined') {
+  const tsAge = Math.abs(Date.now() / 1000 - Number(signatureResult.ts));
+  if (tsAge > 300) {
+    return json(nullOrigin, 401, { ok: false, error: 'Signature expired' });
+  }
+
+  const paymentId = String(signatureResult.dataId);
+  if (!paymentId) {
     return json(nullOrigin, 400, { ok: false, error: 'Missing payment id' });
   }
 
@@ -283,7 +296,8 @@ async function handleWebhook(request, env) {
   const existing = await firestoreGet(
     env.DMF_FIREBASE_PROJECT_ID, 'payments', paymentId, saToken
   );
-  if (existing) {
+  if (existing && existing.fields && existing.fields.enrolled &&
+      existing.fields.enrolled.booleanValue === true) {
     return json(nullOrigin, 200, { ok: true, duplicate: true });
   }
 
@@ -335,6 +349,15 @@ async function handleWebhook(request, env) {
   const uid = session.fields.uid.stringValue;
   const productId = (session.fields.productId && session.fields.productId.stringValue) || '';
 
+  const expectedAmount = session.fields.expectedAmount && session.fields.expectedAmount.doubleValue;
+  const expectedCurrency = session.fields.expectedCurrency && session.fields.expectedCurrency.stringValue;
+  if (expectedAmount != null && payment.transaction_amount !== expectedAmount) {
+    return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'amount-mismatch' });
+  }
+  if (expectedCurrency && payment.currency_id !== expectedCurrency) {
+    return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'currency-mismatch' });
+  }
+
   await firestoreSet(env.DMF_FIREBASE_PROJECT_ID, 'enrollments', uid, {
     status: { stringValue: 'active' },
     productId: { stringValue: productId },
@@ -342,6 +365,11 @@ async function handleWebhook(request, env) {
     purchaseId: { stringValue: purchaseId },
     activatedAt: { timestampValue: new Date().toISOString() }
   }, saToken);
+
+  await firestoreSet(env.DMF_FIREBASE_PROJECT_ID, 'payments', paymentId, {
+    enrolled: { booleanValue: true },
+    enrolledAt: { timestampValue: new Date().toISOString() }
+  }, saToken).catch(() => {});
 
   await firestoreSet(env.DMF_FIREBASE_PROJECT_ID, 'checkoutSessions', purchaseId, {
     paymentId: { stringValue: paymentId },
@@ -354,6 +382,19 @@ async function handleWebhook(request, env) {
 }
 
 async function handleCheckStatus(request, origin, env) {
+  const auth = request.headers.get('Authorization') || '';
+  const authMatch = auth.match(/^Bearer\s+(.+)$/i);
+  if (!authMatch) {
+    return json(origin, 401, { ok: false, error: 'Authentication required' });
+  }
+
+  let user;
+  try {
+    user = await verifyFirebaseUser(authMatch[1], env);
+  } catch (e) {
+    return json(origin, 401, { ok: false, error: 'Authentication required' });
+  }
+
   const url = new URL(request.url);
   const purchaseId = url.searchParams.get('purchaseId');
   if (!purchaseId || purchaseId.length < 10) {
@@ -370,6 +411,10 @@ async function handleCheckStatus(request, origin, env) {
   }
 
   const f = session.fields;
+  if (f.uid && f.uid.stringValue !== user.uid) {
+    return json(origin, 403, { ok: false, error: 'Access denied' });
+  }
+
   return json(origin, 200, {
     ok: true,
     status: (f.paymentStatus && f.paymentStatus.stringValue) || f.status.stringValue,

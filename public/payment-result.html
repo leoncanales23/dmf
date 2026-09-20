@@ -57,6 +57,8 @@ a:hover{color:#ff7a45}
 </div>
 
 <script src="/academy-env.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script>
 (function () {
   'use strict';
@@ -100,69 +102,104 @@ a:hover{color:#ff7a45}
     return;
   }
 
+  if (window.__DMF_FIREBASE_CONFIG__) {
+    try {
+      if (typeof firebase !== 'undefined' && firebase.initializeApp) {
+        firebase.initializeApp(window.__DMF_FIREBASE_CONFIG__);
+      }
+    } catch (e) { /* may already be initialized */ }
+  }
+
   var attempts = 0;
   var maxAttempts = 20;
   var pollInterval = 3000;
 
   function poll() {
     attempts++;
-    fetch(PAYMENTS_URL + '/check-status?purchaseId=' + encodeURIComponent(purchaseId))
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (!data.ok) {
-          if (attempts < maxAttempts) {
-            setTimeout(poll, pollInterval);
-          } else {
-            showState('pending', 'Payment Processing', 'Your payment is being processed. You will receive access once it is confirmed. Check back later.');
-          }
-          return;
-        }
 
-        if (data.enrolled) {
-          showState('approved', 'Welcome to DMF Academy', 'Your payment has been confirmed and your account is now active. You can access the full training portal.');
-          return;
-        }
+    var user = typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser;
+    if (!user) {
+      showState('rejected', 'Session Expired', 'Please sign in to view your payment status.');
+      cardEl.insertAdjacentHTML('beforeend',
+        '<a class="result-btn" href="/login" style="margin-top:12px;background:#665f58">Sign In →</a>'
+      );
+      return;
+    }
 
-        if (data.status === 'approved') {
-          if (attempts < maxAttempts) {
-            statusEl.textContent = 'Activating...';
-            setTimeout(poll, pollInterval);
-          } else {
-            showState('approved', 'Payment Confirmed', 'Your payment is confirmed. Access is being activated — please try logging in shortly.');
-          }
-          return;
-        }
-
-        if (data.status === 'rejected' || data.status === 'cancelled' || data.status === 'refunded') {
-          showState('rejected', 'Payment Declined', 'Your payment could not be processed. No charge was made. Please try again or use a different payment method.');
-          return;
-        }
-
-        if (data.status === 'pending' || data.status === 'in_process') {
-          if (attempts < maxAttempts) {
-            setTimeout(poll, pollInterval);
-          } else {
-            showState('pending', 'Payment Pending', 'Your payment is being reviewed. This can take a few minutes for some payment methods. We will activate your account once confirmed.');
-          }
-          return;
-        }
-
-        if (attempts < maxAttempts) {
-          setTimeout(poll, pollInterval);
-        } else {
-          showState('pending', 'Processing', 'Your payment is being processed. Check back soon.');
-        }
+    user.getIdToken().then(function (idToken) {
+      fetch(PAYMENTS_URL + '/check-status?purchaseId=' + encodeURIComponent(purchaseId), {
+        headers: { 'Authorization': 'Bearer ' + idToken }
       })
-      .catch(function () {
-        if (attempts < maxAttempts) {
-          setTimeout(poll, pollInterval);
-        } else {
-          showState('pending', 'Connection Issue', 'Could not verify payment status. Please check your email or try accessing the academy later.');
-        }
-      });
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.ok) {
+            if (attempts < maxAttempts) {
+              setTimeout(poll, pollInterval);
+            } else {
+              showState('pending', 'Payment Processing', 'Your payment is being processed. You will receive access once it is confirmed. Check back later.');
+            }
+            return;
+          }
+
+          if (data.enrolled) {
+            showState('approved', 'Welcome to DMF Academy', 'Your payment has been confirmed and your account is now active. You can access the full training portal.');
+            return;
+          }
+
+          if (data.status === 'approved') {
+            if (attempts < maxAttempts) {
+              statusEl.textContent = 'Activating...';
+              setTimeout(poll, pollInterval);
+            } else {
+              showState('approved', 'Payment Confirmed', 'Your payment is confirmed. Access is being activated — please try logging in shortly.');
+            }
+            return;
+          }
+
+          if (data.status === 'rejected' || data.status === 'cancelled' || data.status === 'refunded') {
+            showState('rejected', 'Payment Declined', 'Your payment could not be processed. No charge was made. Please try again or use a different payment method.');
+            return;
+          }
+
+          if (data.status === 'pending' || data.status === 'in_process') {
+            if (attempts < maxAttempts) {
+              setTimeout(poll, pollInterval);
+            } else {
+              showState('pending', 'Payment Pending', 'Your payment is being reviewed. This can take a few minutes for some payment methods. We will activate your account once confirmed.');
+            }
+            return;
+          }
+
+          if (attempts < maxAttempts) {
+            setTimeout(poll, pollInterval);
+          } else {
+            showState('pending', 'Processing', 'Your payment is being processed. Check back soon.');
+          }
+        })
+        .catch(function () {
+          if (attempts < maxAttempts) {
+            setTimeout(poll, pollInterval);
+          } else {
+            showState('pending', 'Connection Issue', 'Could not verify payment status. Please check your email or try accessing the academy later.');
+          }
+        });
+    });
   }
 
-  poll();
+  if (typeof firebase !== 'undefined' && firebase.auth) {
+    firebase.auth().onAuthStateChanged(function (user) {
+      if (user) {
+        poll();
+      } else {
+        showState('rejected', 'Authentication Required', 'Please sign in to view your payment status.');
+        cardEl.insertAdjacentHTML('beforeend',
+          '<a class="result-btn" href="/login" style="margin-top:12px;background:#665f58">Sign In →</a>'
+        );
+      }
+    });
+  } else {
+    showState('rejected', 'Configuration Error', 'Authentication service is not available. Please try again later.');
+  }
 })();
 </script>
 

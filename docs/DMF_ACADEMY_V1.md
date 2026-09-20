@@ -482,7 +482,7 @@ Landing page (buy button)
 | GET | `/health` | Origin | Health check |
 | POST | `/create-preference` | Firebase ID token | Create MP checkout preference |
 | POST | `/webhook/mercadopago` | HMAC signature | Receive payment notifications |
-| GET | `/check-status` | Origin | Poll enrollment status |
+| GET | `/check-status` | Firebase ID token | Poll enrollment status |
 
 ### Products (server-side only)
 
@@ -501,18 +501,25 @@ Prices and product definitions live only in the Worker. The frontend sends only 
 - **MP_WEBHOOK_SECRET** is a Worker secret — used for HMAC verification
 - **DMF_FIREBASE_PRIVATE_KEY** is a Worker secret — service account JSON for Firestore admin writes
 - Webhook HMAC uses SHA-256 with Mercado Pago's `x-signature` + `x-request-id` headers
+- Webhook `data.id` normalized to lowercase before HMAC manifest construction (per MP docs)
+- Webhook uses signed `data.id` from query params — never the body's `data.id`
+- Webhook signature timestamp validated with 5-minute replay window
 - Payment status is verified via direct API call, never from webhook body alone
-- Enrollment is created only after verified `approved` payment
+- Amount and currency verified against `expectedAmount`/`expectedCurrency` stored during preference creation
+- Idempotency allows pending→approved transitions; duplicate only when enrollment already granted
+- Enrollment is created only after verified `approved` payment with correct amount/currency
 - `purchaseId` is an opaque UUID (`crypto.randomUUID()`) — no user data in URLs
 - `checkoutSessions` and `payments` collections deny all client reads/writes
+- `/check-status` requires Firebase ID token and verifies session ownership (`uid` match)
 - Payment result page polls server status — never trusts URL query parameters for access
+- Purchase intent flow completes checkout directly after auth (calls `/create-preference`, redirects to MP)
 - Account creation available on login page for new students (purchase intent preserved via sessionStorage)
 
 ### Firestore Collections
 
 | Collection | Access | Purpose |
 |------------|--------|---------|
-| `checkoutSessions/{purchaseId}` | Worker only (admin) | Links purchaseId → uid, productId, payment status |
+| `checkoutSessions/{purchaseId}` | Worker only (admin) | Links purchaseId → uid, productId, preferenceId, expectedAmount, currency, payment status |
 | `payments/{paymentId}` | Worker only (admin) | Idempotent payment record |
 | `enrollments/{uid}` | Worker write, student read own | Active enrollment grant |
 
@@ -617,3 +624,9 @@ Never put any secret in `wrangler.toml`, source code, or the frontend.
 29. DMF_PAYMENTS_URL in inject-academy-env.cjs
 30. Account creation (createUserWithEmailAndPassword) in login
 31. Firestore rules deny client writes on checkoutSessions and payments
+32. Correct PKCS#8 PEM header (not RSA PRIVATE KEY)
+33. Webhook uses signed dataId from signature verification
+34. Webhook timestamp replay protection (5-minute window)
+35. Amount/currency verification before enrollment grant
+36. /check-status requires Firebase ID token with uid ownership check
+37. Payment result page sends Authorization header with Firebase ID token
