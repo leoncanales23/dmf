@@ -170,6 +170,30 @@ jobs:
           grep -q "firstIncomplete" public/academy.html || { echo "FAIL: resume-first-incomplete logic missing"; exit 1; }
           echo "Academy progress sync validated — OK"
 
+      - name: Validate Adaptive Quality UX
+        run: |
+          node -e "
+            const src = require('fs').readFileSync('public/academy.html', 'utf8');
+            const checks = [
+              ['QualityUX.attachHls present', src.includes('QualityUX.attachHls')],
+              ['prefersNativeHls detection', src.includes('function prefersNativeHls')],
+              ['prefersNativeHls guards native path', src.includes('prefersNativeHls()')],
+              ['Hls.isSupported check', src.includes('Hls.isSupported()')],
+              ['dmfQualityBadge element', src.includes('dmfQualityBadge')],
+              ['dmfBuffering element', src.includes('dmfBuffering')],
+              ['pointer-events:none on overlay', /\.dmf-buffering-overlay[^}]*pointer-events\s*:\s*none/.test(src)],
+              ['Auto selector (currentLevel = -1)', src.includes('currentLevel = -1')],
+              ['LEVEL_SWITCHED handler', src.includes('LEVEL_SWITCHED')],
+            ];
+            let fail = false;
+            for (const [name, ok] of checks) {
+              console.log((ok ? 'PASS' : 'FAIL') + ': ' + name);
+              if (!ok) fail = true;
+            }
+            if (fail) process.exit(1);
+            console.log('All ' + checks.length + '/' + checks.length + ' Adaptive Quality UX checks passed');
+          "
+
       - name: Validate firebase.json academy rewrites
         run: |
           node -e "
