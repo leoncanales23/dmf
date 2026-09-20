@@ -752,6 +752,43 @@ jobs:
         run: |
           node workers/dmf-payments/test/merge-safe.test.cjs
 
+      - name: Validate payments bridge in landing source
+        run: |
+          echo "--- SOURCE index.html checks ---"
+          grep -q '/academy-env.js' index.html || { echo "FAIL: source missing academy-env.js"; exit 1; }
+          echo "1. academy-env.js present in source — OK"
+
+          grep -q 'firebase-auth-compat.js' index.html || { echo "FAIL: source missing firebase-auth-compat.js"; exit 1; }
+          echo "2. firebase-auth-compat.js present in source — OK"
+
+          grep -q '__DMF_PAYMENTS_URL__' index.html || { echo "FAIL: source missing __DMF_PAYMENTS_URL__"; exit 1; }
+          echo "3. __DMF_PAYMENTS_URL__ present in source — OK"
+
+          grep -q 'dmf-payments.vibraalto-cl.workers.dev' index.html || { echo "FAIL: source missing Worker URL fallback"; exit 1; }
+          echo "4. Worker URL fallback present in source — OK"
+
+          grep -q "'Authorization'" index.html || { echo "FAIL: source missing Authorization header"; exit 1; }
+          echo "5. Authorization header present in source — OK"
+
+          if grep -q "fetch('/api/create-preference'" index.html; then echo "FAIL: source still uses legacy /api/create-preference"; exit 1; fi
+          echo "6. No legacy /api/create-preference in source — OK"
+
+          echo "--- GENERATED public/index.html checks (post-build) ---"
+          node scripts/build-3d.cjs
+          grep -q '/academy-env.js' public/index.html || { echo "FAIL: generated missing academy-env.js"; exit 1; }
+          echo "7. academy-env.js present in generated — OK"
+
+          grep -q '__DMF_PAYMENTS_URL__' public/index.html || { echo "FAIL: generated missing __DMF_PAYMENTS_URL__"; exit 1; }
+          echo "8. __DMF_PAYMENTS_URL__ present in generated — OK"
+
+          grep -q 'dmf-payments.vibraalto-cl.workers.dev' public/index.html || { echo "FAIL: generated missing Worker URL fallback"; exit 1; }
+          echo "9. Worker URL fallback present in generated — OK"
+
+          if grep -q "fetch('/api/create-preference'" public/index.html; then echo "FAIL: generated still uses legacy /api/create-preference"; exit 1; fi
+          echo "10. No legacy /api/create-preference in generated — OK"
+
+          echo "All 10 payments bridge source-of-truth checks passed"
+
   validate-print:
     runs-on: ubuntu-latest
     steps:
