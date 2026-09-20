@@ -11,6 +11,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
 app.get('/academy', (req, res) => res.sendFile(path.join(__dirname, 'public', 'academy.html')));
 app.get('/academy/*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'academy.html')));
+app.get('/payment-result', (req, res) => res.sendFile(path.join(__dirname, 'public', 'payment-result.html')));
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN

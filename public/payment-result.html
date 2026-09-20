@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DMF Academy — Payment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#0a0806;color:#f2ede6;font-family:'Archivo',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+::selection{background:#ff5b1e;color:#0a0806}
+a{color:#ff5b1e;text-decoration:none;transition:color .2s}
+a:hover{color:#ff7a45}
+
+.result-container{width:100%;max-width:520px;text-align:center}
+.result-brand{margin-bottom:48px}
+.result-brand-name{font-family:'Anton',sans-serif;font-size:28px;letter-spacing:.14em;text-transform:uppercase;color:#f2ede6;margin-bottom:8px}
+.result-brand-sub{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#ff5b1e}
+.result-card{border:1px solid rgba(242,237,230,.1);padding:48px 32px;background:rgba(242,237,230,.02)}
+.result-icon{font-size:48px;margin-bottom:20px}
+.result-title{font-family:'Anton',sans-serif;font-size:28px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
+.result-msg{font-size:14px;color:#8a8178;line-height:1.7;margin-bottom:28px}
+.result-status{display:inline-block;padding:8px 20px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:28px}
+.result-status.polling{background:rgba(255,170,50,.1);border:1px solid rgba(255,170,50,.3);color:#ffaa32}
+.result-status.approved{background:rgba(80,200,120,.1);border:1px solid rgba(80,200,120,.3);color:#50c878}
+.result-status.rejected{background:rgba(255,60,60,.1);border:1px solid rgba(255,60,60,.3);color:#ff6b6b}
+.result-status.pending{background:rgba(255,170,50,.1);border:1px solid rgba(255,170,50,.3);color:#ffaa32}
+.result-btn{display:inline-block;padding:16px 32px;font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.12em;text-transform:uppercase;color:#0a0806;background:#ff5b1e;border:none;cursor:pointer;transition:background .2s;text-decoration:none}
+.result-btn:hover{background:#ff7a45;color:#0a0806}
+.result-footer{text-align:center;margin-top:32px;font-size:12px;color:#665f58;letter-spacing:.04em}
+.result-footer a{font-size:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:24px;height:24px;border:2px solid rgba(255,170,50,.3);border-top-color:#ffaa32;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px}
+</style>
+</head>
+<body>
+
+<div class="result-container">
+  <div class="result-brand">
+    <div class="result-brand-name">Demian Muller</div>
+    <div class="result-brand-sub">DMF Academy</div>
+  </div>
+
+  <div class="result-card" id="resultCard">
+    <div class="spinner" id="resultSpinner"></div>
+    <div class="result-title" id="resultTitle">Processing Payment</div>
+    <div class="result-msg" id="resultMsg">Verifying your payment status. This may take a moment...</div>
+    <div class="result-status polling" id="resultStatus">Checking</div>
+  </div>
+
+  <div class="result-footer">
+    <a href="/">← Back to DMF</a>
+  </div>
+</div>
+
+<script src="/academy-env.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var PAYMENTS_URL = window.__DMF_PAYMENTS_URL__ || 'https://dmf-payments.vibraalto-cl.workers.dev';
+  var params = new URLSearchParams(window.location.search);
+  var purchaseId = params.get('purchaseId');
+
+  var titleEl = document.getElementById('resultTitle');
+  var msgEl = document.getElementById('resultMsg');
+  var statusEl = document.getElementById('resultStatus');
+  var spinnerEl = document.getElementById('resultSpinner');
+  var cardEl = document.getElementById('resultCard');
+
+  function showState(state, title, msg) {
+    spinnerEl.style.display = 'none';
+    titleEl.textContent = title;
+    msgEl.textContent = msg;
+    statusEl.className = 'result-status ' + state;
+
+    if (state === 'approved') {
+      statusEl.textContent = 'Approved';
+      cardEl.insertAdjacentHTML('beforeend',
+        '<a class="result-btn" href="/academy" style="margin-top:12px">Enter Academy →</a>'
+      );
+    } else if (state === 'rejected') {
+      statusEl.textContent = 'Declined';
+      cardEl.insertAdjacentHTML('beforeend',
+        '<a class="result-btn" href="/" style="margin-top:12px">Try Again →</a>'
+      );
+    } else if (state === 'pending') {
+      statusEl.textContent = 'Pending';
+      cardEl.insertAdjacentHTML('beforeend',
+        '<a class="result-btn" href="/" style="margin-top:12px;background:#665f58">Back to DMF →</a>'
+      );
+    }
+  }
+
+  if (!purchaseId) {
+    showState('rejected', 'Invalid Link', 'This payment link is not valid. Please start a new purchase from the DMF website.');
+    return;
+  }
+
+  var attempts = 0;
+  var maxAttempts = 20;
+  var pollInterval = 3000;
+
+  function poll() {
+    attempts++;
+    fetch(PAYMENTS_URL + '/check-status?purchaseId=' + encodeURIComponent(purchaseId))
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.ok) {
+          if (attempts < maxAttempts) {
+            setTimeout(poll, pollInterval);
+          } else {
+            showState('pending', 'Payment Processing', 'Your payment is being processed. You will receive access once it is confirmed. Check back later.');
+          }
+          return;
+        }
+
+        if (data.enrolled) {
+          showState('approved', 'Welcome to DMF Academy', 'Your payment has been confirmed and your account is now active. You can access the full training portal.');
+          return;
+        }
+
+        if (data.status === 'approved') {
+          if (attempts < maxAttempts) {
+            statusEl.textContent = 'Activating...';
+            setTimeout(poll, pollInterval);
+          } else {
+            showState('approved', 'Payment Confirmed', 'Your payment is confirmed. Access is being activated — please try logging in shortly.');
+          }
+          return;
+        }
+
+        if (data.status === 'rejected' || data.status === 'cancelled' || data.status === 'refunded') {
+          showState('rejected', 'Payment Declined', 'Your payment could not be processed. No charge was made. Please try again or use a different payment method.');
+          return;
+        }
+
+        if (data.status === 'pending' || data.status === 'in_process') {
+          if (attempts < maxAttempts) {
+            setTimeout(poll, pollInterval);
+          } else {
+            showState('pending', 'Payment Pending', 'Your payment is being reviewed. This can take a few minutes for some payment methods. We will activate your account once confirmed.');
+          }
+          return;
+        }
+
+        if (attempts < maxAttempts) {
+          setTimeout(poll, pollInterval);
+        } else {
+          showState('pending', 'Processing', 'Your payment is being processed. Check back soon.');
+        }
+      })
+      .catch(function () {
+        if (attempts < maxAttempts) {
+          setTimeout(poll, pollInterval);
+        } else {
+          showState('pending', 'Connection Issue', 'Could not verify payment status. Please check your email or try accessing the academy later.');
+        }
+      });
+  }
+
+  poll();
+})();
+</script>
+
+</body>
+</html>
