@@ -259,9 +259,14 @@ async function handleCreatePreference(request, origin, env) {
     updatedAt: { timestampValue: new Date().toISOString() }
   }, saToken).catch(() => {});
 
+  const initPoint = mpData.sandbox_init_point || mpData.init_point;
+  if (!initPoint) {
+    return json(origin, 502, { ok: false, error: 'No checkout URL returned by payment provider' });
+  }
+
   return json(origin, 200, {
     ok: true,
-    init_point: mpData.init_point,
+    init_point: initPoint,
     purchaseId: purchaseId
   });
 }
