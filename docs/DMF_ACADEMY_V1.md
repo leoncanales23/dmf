@@ -27,14 +27,19 @@ for Hosting deployments. Firestore rules must be deployed separately with
 
 ```
 public/
-  login.html          — Login page (Firebase Auth or demo mode)
-  academy.html        — Student Portal SPA (dashboard + module views)
-  academy-config.js   — Module/lesson definitions + stream URL config
-  academy-env.js      — Generated runtime config (gitignored)
+  login.html            — Login + account creation (Firebase Auth or demo mode)
+  academy.html          — Student Portal SPA (dashboard + module views)
+  academy-config.js     — Module/lesson definitions + stream URL config
+  academy-env.js        — Generated runtime config (gitignored)
+  payment-result.html   — Post-checkout enrollment polling page
 
 scripts/
   inject-academy-link.cjs — Injects "Student Access" link into landing nav
   inject-academy-env.cjs  — Generates academy-env.js from env vars at build time
+
+workers/
+  dmf-stream-signer/    — Cloudflare Worker for signed video playback
+  dmf-payments/         — Cloudflare Worker for Mercado Pago checkout + enrollment
 
 firestore.rules           — Firestore security rules for dmf-academy project
 firebase.academy.json     — Firestore-only Firebase config for dmf-academy project
@@ -272,10 +277,12 @@ that serves HLS at `/{uid}/manifest/video.m3u8`.
 | `DMF_FIREBASE_API_KEY`    | (not set)                  | Firebase Web API key (dmf-academy)       |
 | `DMF_FIREBASE_AUTH_DOMAIN`| `dmf-academy.firebaseapp.com` | Firebase Auth domain (dmf-academy)    |
 | `DMF_FIREBASE_PROJECT_ID` | `dmf-academy`              | Firebase project ID for Auth + Firestore |
-| `MP_PUBLIC_KEY`            | —                          | Mercado Pago public key (existing)       |
-| `MP_ACCESS_TOKEN`          | —                          | Mercado Pago access token (existing)     |
+| `DMF_PAYMENTS_URL`        | `https://dmf-payments.vibraalto-cl.workers.dev` | Payments Worker base URL |
+| `MP_ACCESS_TOKEN`          | —                          | Mercado Pago access token (Worker secret) |
+| `MP_WEBHOOK_SECRET`        | —                          | Mercado Pago webhook secret (Worker secret) |
+| `DMF_FIREBASE_PRIVATE_KEY` | —                          | Firebase service account JSON (Worker secret) |
+| `DMF_FIREBASE_WEB_API_KEY` | —                          | Firebase Web API key (Worker secret) |
 | `PORT`                     | `3000`                     | Express server port (existing)           |
-| `BASE_URL`                 | `http://localhost:3000`    | Base URL for payment callbacks (existing)|
 
 ## Demo Mode
 
@@ -443,11 +450,92 @@ Progress is user-scoped. One browser account cannot read or write another studen
 
 The previous `dmf_progress_v2` cache is intentionally not auto-migrated because it was not user-scoped and could contain another account's state on a shared browser.
 
-## Mercado Pago
+## Mercado Pago — Checkout & Enrollment Bridge
 
-Existing payment flow is preserved. The academy does NOT grant access based on
-URL parameters like `?status=approved`. Entitlement is a separate layer that
-must be connected to payment webhooks (production gap).
+Payment processing runs on a Cloudflare Worker (`dmf-payments`) that bridges Mercado Pago Checkout Pro with Firestore enrollment activation. No Firebase Functions billing is required.
+
+### Architecture
+
+```
+Landing page (buy button)
+→ Firebase Auth check (user must be signed in)
+→ POST dmf-payments Worker /create-preference
+  → Worker validates Firebase ID token
+  → Creates checkoutSessions/{purchaseId} in Firestore (via service account)
+  → Creates Mercado Pago Checkout Pro preference
+  → Returns init_point URL to redirect user
+→ User completes payment on Mercado Pago
+→ Mercado Pago sends webhook to Worker /webhook/mercadopago
+  → Worker verifies HMAC SHA-256 signature
+  → Fetches payment details directly from MP API (never trusts webhook body)
+  → Idempotent: checks payments/{paymentId} to prevent duplicates
+  → If approved: creates enrollments/{uid} with status: 'active'
+  → Updates checkoutSessions/{purchaseId} with result
+→ payment-result.html polls /check-status until enrolled
+→ User enters Academy
+```
+
+### Worker Endpoints
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET | `/health` | Origin | Health check |
+| POST | `/create-preference` | Firebase ID token | Create MP checkout preference |
+| POST | `/webhook/mercadopago` | HMAC signature | Receive payment notifications |
+| GET | `/check-status` | Origin | Poll enrollment status |
+
+### Products (server-side only)
+
+| ID | Title | Price |
+|----|-------|-------|
+| `starter` | DMF Academy — Starter | $247 USD |
+| `pro` | DMF Academy — Pro | $497 USD |
+| `elite` | DMF Academy — Elite | $997 USD |
+| `addon` | DMF Academy — Labels | $80 USD |
+
+Prices and product definitions live only in the Worker. The frontend sends only `productId`.
+
+### Security
+
+- **MP_ACCESS_TOKEN** is a Worker secret — never in frontend or repository
+- **MP_WEBHOOK_SECRET** is a Worker secret — used for HMAC verification
+- **DMF_FIREBASE_PRIVATE_KEY** is a Worker secret — service account JSON for Firestore admin writes
+- Webhook HMAC uses SHA-256 with Mercado Pago's `x-signature` + `x-request-id` headers
+- Payment status is verified via direct API call, never from webhook body alone
+- Enrollment is created only after verified `approved` payment
+- `purchaseId` is an opaque UUID (`crypto.randomUUID()`) — no user data in URLs
+- `checkoutSessions` and `payments` collections deny all client reads/writes
+- Payment result page polls server status — never trusts URL query parameters for access
+- Account creation available on login page for new students (purchase intent preserved via sessionStorage)
+
+### Firestore Collections
+
+| Collection | Access | Purpose |
+|------------|--------|---------|
+| `checkoutSessions/{purchaseId}` | Worker only (admin) | Links purchaseId → uid, productId, payment status |
+| `payments/{paymentId}` | Worker only (admin) | Idempotent payment record |
+| `enrollments/{uid}` | Worker write, student read own | Active enrollment grant |
+
+### Worker Deployment
+
+```bash
+cd workers/dmf-payments
+npx wrangler deploy
+```
+
+Then set secrets:
+
+```bash
+npx wrangler secret put MP_ACCESS_TOKEN
+npx wrangler secret put MP_WEBHOOK_SECRET
+npx wrangler secret put DMF_FIREBASE_PRIVATE_KEY
+npx wrangler secret put DMF_FIREBASE_WEB_API_KEY
+```
+
+Configure the Mercado Pago webhook URL in the MP dashboard:
+`https://dmf-payments.vibraalto-cl.workers.dev/webhook/mercadopago`
+
+Never put any secret in `wrangler.toml`, source code, or the frontend.
 
 ## Production Gaps
 
@@ -466,8 +554,8 @@ must be connected to payment webhooks (production gap).
 - [x] Demo mode restricted to build-time only
 - [x] Two-project architecture documented (Hosting vs Academy)
 - [x] Firebase config isolation (firebase.academy.json separate from firebase.json)
-- [ ] Firestore enrollment documents linked to Mercado Pago payments
-- [ ] Payment webhook → entitlement grant flow
+- [x] Firestore enrollment documents linked to Mercado Pago payments
+- [x] Payment webhook → entitlement grant flow
 - [x] Server-side progress persistence (Firestore)
 - [x] Signed playback URLs (Cloudflare Stream) — Production: fail-closed signer for all 13 videos; `requireSignedURLs: true` on all 13 Cloudflare Stream UIDs; raw manifest requests return HTTP 401
 - [ ] Work submission system for practice assignments
@@ -516,3 +604,16 @@ must be connected to payment webhooks (production gap).
 16. No frontend files reference `vibraaltoai-11f55` (hosting project)
 17. Login does not allow demo via query string
 18. No service account or admin credentials in frontend
+19. Payments Worker files exist with Firebase Auth, HMAC webhook verification
+20. Direct payment verification via MP API (never trusts webhook body alone)
+21. Idempotent payment processing (payments collection)
+22. Enrollment activation in Worker
+23. Service account OAuth for Firestore admin writes
+24. Products defined server-side with correct prices
+25. No payment secrets (MP_ACCESS_TOKEN, MP_WEBHOOK_SECRET, DMF_FIREBASE_PRIVATE_KEY) in frontend
+26. CORS origin allowlist in payments Worker
+27. Payment result page with server-side status polling
+28. Checkout uses Worker endpoint (not Express)
+29. DMF_PAYMENTS_URL in inject-academy-env.cjs
+30. Account creation (createUserWithEmailAndPassword) in login
+31. Firestore rules deny client writes on checkoutSessions and payments

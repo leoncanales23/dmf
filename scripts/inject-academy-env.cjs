@@ -8,6 +8,7 @@ const OUT_PATH = path.join(__dirname, '..', 'public', 'academy-env.js');
 
 const STREAM_BASE = process.env.DMF_STREAM_BASE || '';
 const STREAM_SIGNER_URL = process.env.DMF_STREAM_SIGNER_URL || 'https://dmf-stream-signer.vibraalto-cl.workers.dev';
+const PAYMENTS_URL = process.env.DMF_PAYMENTS_URL || 'https://dmf-payments.vibraalto-cl.workers.dev';
 const DEMO = process.env.DMF_ACADEMY_DEMO === 'true';
 
 const FIREBASE_API_KEY = process.env.DMF_FIREBASE_API_KEY || '';
@@ -23,6 +24,10 @@ if (STREAM_BASE) {
 
 if (STREAM_SIGNER_URL) {
   lines.push('window.__DMF_STREAM_SIGNER_URL__ = ' + JSON.stringify(STREAM_SIGNER_URL) + ';');
+}
+
+if (PAYMENTS_URL) {
+  lines.push('window.__DMF_PAYMENTS_URL__ = ' + JSON.stringify(PAYMENTS_URL) + ';');
 }
 
 if (DEMO) {
@@ -43,6 +48,7 @@ fs.writeFileSync(OUT_PATH, content, 'utf8');
 console.log('DMF Academy // Environment config written to public/academy-env.js');
 if (STREAM_BASE) console.log('  STREAM_BASE: ' + STREAM_BASE);
 if (STREAM_SIGNER_URL) console.log('  STREAM_SIGNER: configured');
+if (PAYMENTS_URL) console.log('  PAYMENTS_URL: configured');
 if (DEMO) console.log('  DEMO MODE: enabled');
 if (FIREBASE_API_KEY) console.log('  FIREBASE AUTH: configured');
 if (!STREAM_BASE && !DEMO && !FIREBASE_API_KEY) console.log('  (no env vars set — defaults will apply)');

@@ -31,6 +31,10 @@
         "destination": "/academy.html"
       },
       {
+        "source": "/payment-result",
+        "destination": "/payment-result.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

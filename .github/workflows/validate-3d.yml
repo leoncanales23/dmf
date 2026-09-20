@@ -22,6 +22,7 @@ on:
       - 'public/login.html'
       - 'public/academy.html'
       - 'public/academy-config.js'
+      - 'public/payment-result.html'
       - 'firebase.json'
       - 'firebase.academy.json'
       - 'server.js'
@@ -154,7 +155,7 @@ jobs:
 
       - name: Validate no secrets in frontend
         run: |
-          for f in public/login.html public/academy.html public/academy-config.js; do
+          for f in public/login.html public/academy.html public/academy-config.js public/payment-result.html; do
             if grep -qi 'APP_USR\|accessToken\|service.account\|private_key' "$f"; then
               echo "FAIL: Possible secret found in $f"
               exit 1
@@ -208,6 +209,10 @@ jobs:
             const catchAll = rewrites.findIndex(r => r.source === '**');
             const loginIdx = rewrites.indexOf(loginRewrite);
             if (loginIdx > catchAll) { console.error('/login rewrite must come before catch-all'); process.exit(1); }
+            const paymentRewrite = rewrites.find(r => r.source === '/payment-result');
+            if (!paymentRewrite) { console.error('Missing /payment-result rewrite'); process.exit(1); }
+            const paymentIdx = rewrites.indexOf(paymentRewrite);
+            if (paymentIdx > catchAll) { console.error('/payment-result rewrite must come before catch-all'); process.exit(1); }
             console.log('Firebase rewrites validated — OK');
           "
 
@@ -259,7 +264,7 @@ jobs:
 
       - name: Validate no Cloudflare secrets in frontend
         run: |
-          for f in public/academy.html public/academy-config.js public/login.html; do
+          for f in public/academy.html public/academy-config.js public/login.html public/payment-result.html; do
             if grep -qiE 'cloudflare[-_]?(api|stream)[-_]?token|customer-[a-z0-9]+\.cloudflarestream\.com' "$f"; then
               echo "FAIL: Cloudflare secret or hardcoded domain found in $f"
               exit 1
@@ -556,7 +561,7 @@ jobs:
         run: |
           node -e "
             const fs = require('fs');
-            const files = ['public/academy.html', 'public/academy-config.js', 'public/login.html', 'scripts/inject-academy-env.cjs'];
+            const files = ['public/academy.html', 'public/academy-config.js', 'public/login.html', 'public/payment-result.html', 'scripts/inject-academy-env.cjs'];
             for (const f of files) {
               const src = fs.readFileSync(f, 'utf8');
               if (/vibraaltoai-11f55/.test(src)) {
@@ -577,13 +582,124 @@ jobs:
 
       - name: Validate no service accounts or admin credentials in public
         run: |
-          for f in public/login.html public/academy.html public/academy-config.js; do
+          for f in public/login.html public/academy.html public/academy-config.js public/payment-result.html; do
             if grep -qiE 'service[_-]?account|admin[_-]?sdk|firebase[_-]?admin|FIREBASE_TOKEN' "$f"; then
               echo "FAIL: Possible admin credential reference in $f"
               exit 1
             fi
           done
           echo "No admin credentials in frontend files — OK"
+
+      - name: Validate Mercado Pago payments Worker
+        run: |
+          # 1. Worker files exist
+          test -f workers/dmf-payments/src/index.js || { echo "FAIL: Payments Worker missing"; exit 1; }
+          test -f workers/dmf-payments/wrangler.toml || { echo "FAIL: Payments Wrangler config missing"; exit 1; }
+          echo "1. Payments Worker files present — OK"
+
+          # 2. Worker validates Firebase Auth
+          grep -q "accounts:lookup" workers/dmf-payments/src/index.js || { echo "FAIL: Firebase Auth validation missing in payments Worker"; exit 1; }
+          echo "2. Firebase Auth validation in payments Worker — OK"
+
+          # 3. Worker HMAC webhook verification
+          grep -q "HMAC" workers/dmf-payments/src/index.js || { echo "FAIL: HMAC webhook verification missing"; exit 1; }
+          grep -q "x-signature" workers/dmf-payments/src/index.js || { echo "FAIL: x-signature header check missing"; exit 1; }
+          echo "3. Webhook HMAC verification — OK"
+
+          # 4. Worker verifies payment via API (not trusting webhook body)
+          grep -q "api.mercadopago.com/v1/payments/" workers/dmf-payments/src/index.js || { echo "FAIL: Direct payment verification API call missing"; exit 1; }
+          echo "4. Direct payment verification — OK"
+
+          # 5. Idempotent processing (payments collection check)
+          grep -q "'payments'" workers/dmf-payments/src/index.js || { echo "FAIL: Idempotent payment check missing"; exit 1; }
+          echo "5. Idempotent payment processing — OK"
+
+          # 6. Enrollment activation via Firestore
+          grep -q "'enrollments'" workers/dmf-payments/src/index.js || { echo "FAIL: Enrollment activation missing in payments Worker"; exit 1; }
+          echo "6. Enrollment activation — OK"
+
+          # 7. Service account OAuth (not client credentials in frontend)
+          grep -q "getServiceAccountToken" workers/dmf-payments/src/index.js || { echo "FAIL: Service account token function missing"; exit 1; }
+          grep -q "googleapis.com/auth/datastore" workers/dmf-payments/src/index.js || { echo "FAIL: Datastore scope missing"; exit 1; }
+          echo "7. Service account OAuth — OK"
+
+          # 8. Products defined server-side only
+          node -e "
+            const src = require('fs').readFileSync('workers/dmf-payments/src/index.js', 'utf8');
+            const products = ['starter', 'pro', 'elite', 'addon'];
+            for (const p of products) {
+              if (src.indexOf(p + ':') === -1 && src.indexOf(p + ' :') === -1) {
+                console.error('FAIL: Product ' + p + ' not defined in Worker');
+                process.exit(1);
+              }
+            }
+            if (src.includes('247') && src.includes('497') && src.includes('997') && /price:\s*80/.test(src)) {
+              console.log('8. Products defined server-side with correct prices — OK');
+            } else {
+              console.error('FAIL: Product prices not found in Worker');
+              process.exit(1);
+            }
+          "
+
+          # 9. No MP_ACCESS_TOKEN in frontend
+          for f in public/index.html public/login.html public/academy.html public/payment-result.html; do
+            if grep -qi 'MP_ACCESS_TOKEN\|MP_WEBHOOK_SECRET\|DMF_FIREBASE_PRIVATE_KEY' "$f"; then
+              echo "FAIL: Payment secret reference found in $f"
+              exit 1
+            fi
+          done
+          echo "9. No payment secrets in frontend — OK"
+
+          # 10. CORS origin allowlist in payments Worker
+          grep -q "dmf.vibraalto.cl" workers/dmf-payments/src/index.js || { echo "FAIL: Production origin missing from payments CORS"; exit 1; }
+          echo "10. CORS origin allowlist — OK"
+
+          # 11. Payment result page exists and polls
+          test -f public/payment-result.html || { echo "FAIL: payment-result.html missing"; exit 1; }
+          grep -q "check-status" public/payment-result.html || { echo "FAIL: Status polling missing in payment-result.html"; exit 1; }
+          echo "11. Payment result page with polling — OK"
+
+          # 12. Payment result does NOT grant access from URL params
+          node -e "
+            const src = require('fs').readFileSync('public/payment-result.html', 'utf8');
+            if (/status=approved/.test(src) && /enrolled/.test(src)) {
+              if (src.indexOf('data.enrolled') !== -1 || src.indexOf('data.status') !== -1) {
+                console.log('12. Payment result uses server-verified status — OK');
+              } else {
+                console.error('FAIL: payment-result may trust URL params for access');
+                process.exit(1);
+              }
+            } else {
+              console.log('12. Payment result does not use URL status param — OK');
+            }
+          "
+
+          # 13. Checkout redirects to Worker, not Express
+          node -e "
+            const src = require('fs').readFileSync('public/index.html', 'utf8');
+            if (src.indexOf('__DMF_PAYMENTS_URL__') !== -1 || src.indexOf('dmf-payments') !== -1) {
+              console.log('13. Checkout uses Worker endpoint — OK');
+            } else {
+              console.error('FAIL: Checkout does not reference payments Worker');
+              process.exit(1);
+            }
+          "
+
+          # 14. inject-academy-env handles DMF_PAYMENTS_URL
+          grep -q "DMF_PAYMENTS_URL" scripts/inject-academy-env.cjs || { echo "FAIL: DMF_PAYMENTS_URL missing from inject script"; exit 1; }
+          grep -q "__DMF_PAYMENTS_URL__" scripts/inject-academy-env.cjs || { echo "FAIL: __DMF_PAYMENTS_URL__ window var missing from inject script"; exit 1; }
+          echo "14. DMF_PAYMENTS_URL in inject script — OK"
+
+          # 15. Login supports account creation
+          grep -q "createUserWithEmailAndPassword" public/login.html || { echo "FAIL: Account creation missing from login"; exit 1; }
+          echo "15. Account creation in login — OK"
+
+          # 16. Firestore rules deny client writes on payment collections
+          grep -q "checkoutSessions" firestore.rules || { echo "FAIL: checkoutSessions rule missing"; exit 1; }
+          grep -q "payments" firestore.rules || { echo "FAIL: payments rule missing"; exit 1; }
+          echo "16. Payment collection rules — OK"
+
+          echo "All 16 Mercado Pago payments checks passed"
 
   validate-print:
     runs-on: ubuntu-latest
