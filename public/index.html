@@ -1436,18 +1436,31 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         },
         body: JSON.stringify({ productId: productId })
       })
-      .then(function(r){ return r.json(); })
+      .then(function(r){
+        if (!r.ok) {
+          return r.text().then(function(t) {
+            var detail;
+            try { detail = JSON.parse(t).error; } catch(_) { detail = t.substring(0, 200); }
+            throw new Error('HTTP ' + r.status + ': ' + (detail || 'unknown'));
+          });
+        }
+        return r.json();
+      })
       .then(function(data){
-        if (data.ok && data.init_point) {
+        if (data && data.ok && data.init_point) {
           window.location.href = data.init_point;
         } else {
-          alert(lang === 'es' ? 'Error al crear el pago. Intenta de nuevo.' : 'Could not create payment. Please try again.');
+          var errDetail = (data && data.error) ? data.error : 'unknown';
+          console.error('[DMF] Payment response:', JSON.stringify(data));
+          alert(lang === 'es' ? 'Error al crear el pago (' + errDetail + '). Intenta de nuevo.' : 'Could not create payment (' + errDetail + '). Please try again.');
           btn.disabled = false;
           btn.innerHTML = origText;
         }
       })
-      .catch(function(){
-        alert(lang === 'es' ? 'Error de conexión. Intenta de nuevo.' : 'Connection error. Please try again.');
+      .catch(function(err){
+        console.error('[DMF] Checkout error:', err);
+        var msg = err && err.message ? err.message : 'network error';
+        alert(lang === 'es' ? 'Error de conexión: ' + msg + '. Intenta de nuevo.' : 'Connection error: ' + msg + '. Please try again.');
         btn.disabled = false;
         btn.innerHTML = origText;
       });
