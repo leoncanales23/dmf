@@ -243,7 +243,7 @@ jobs:
           done
           echo "No Cloudflare secrets in frontend files — OK"
 
-      - name: Validate Stage 2 signed Stream playback
+      - name: Validate signed Stream playback (production)
         run: |
           # 1. Signer references present
           test -f workers/dmf-stream-signer/src/index.js || { echo "FAIL: Stream signer Worker missing"; exit 1; }
@@ -256,7 +256,7 @@ jobs:
           grep -q "__DMF_STREAM_SIGNER_URL__" scripts/inject-academy-env.cjs || { echo "FAIL: signer URL reference missing in inject script"; exit 1; }
           echo "1. Signer references present — OK"
 
-          # 2. No fail-open fallback (Stage 2 is fail-closed)
+          # 2. No fail-open fallback (production is fail-closed)
           if grep -q "Signed playback fallback" public/academy.html; then
             echo "FAIL: Stage 1 fail-open fallback still present in academy.html"
             exit 1
@@ -285,9 +285,17 @@ jobs:
             console.log('4. All 13 UIDs present — OK');
           "
 
-          # 5. Canary UID present
-          grep -q "9bb8ec71e5f2cf3054979e77b65c1bba" public/academy-config.js || { echo "FAIL: canary UID missing from academy-config.js"; exit 1; }
-          echo "5. Canary UID 9bb8ec71...1bba present — OK"
+          # 5. All 13 UIDs unique (no duplicates)
+          node -e "
+            const src = require('fs').readFileSync('public/academy-config.js', 'utf8');
+            const uids = (src.match(/streamUid:\s*'([a-f0-9]{32})'/g) || []).map(m => m.match(/'([a-f0-9]{32})'/)[1]);
+            const unique = new Set(uids);
+            if (unique.size !== 13) {
+              console.error('FAIL: Expected 13 unique UIDs, found ' + unique.size + ' unique out of ' + uids.length);
+              process.exit(1);
+            }
+            console.log('5. All 13 UIDs unique — OK');
+          "
 
           # 6. No console.log/warn of signed tokens
           if grep -qE 'console\.(log|warn).*token' public/academy.html; then
@@ -314,13 +322,13 @@ jobs:
           fi
           echo "8. No billing-dependent Firebase signer — OK"
 
-          # 9. Stage 2 documented
-          grep -q "Stage 2" docs/DMF_ACADEMY_V1.md || { echo "FAIL: Stage 2 not documented in DMF_ACADEMY_V1.md"; exit 1; }
-          echo "9. Stage 2 documented — OK"
+          # 9. Signed playback production documented
+          grep -q "Signed Stream Playback — Production" docs/DMF_ACADEMY_V1.md || { echo "FAIL: Signed playback production not documented in DMF_ACADEMY_V1.md"; exit 1; }
+          echo "9. Signed playback production documented — OK"
 
-          # 10. Canary UID documented
-          grep -q "9bb8ec71e5f2cf3054979e77b65c1bba" docs/DMF_ACADEMY_V1.md || { echo "FAIL: canary UID not documented"; exit 1; }
-          echo "10. Canary UID documented — OK"
+          # 10. Production status documented (13/13 protected)
+          grep -q "requireSignedURLs: true" docs/DMF_ACADEMY_V1.md || { echo "FAIL: requireSignedURLs production status not documented"; exit 1; }
+          echo "10. Production status documented — OK"
 
           # 11. Fail-closed playback verified in code
           node -e "
@@ -332,9 +340,55 @@ jobs:
             console.log('11. Fail-closed error handling verified — OK');
           "
 
-          echo "Stage 2 signed Stream playback validated — OK"
+          # 12. Worker allowlist — STREAM_UIDS has exactly 13 entries
+          node -e "
+            const src = require('fs').readFileSync('workers/dmf-stream-signer/src/index.js', 'utf8');
+            const uids = (src.match(/'[a-f0-9]{32}'/g) || []);
+            if (uids.length !== 13) {
+              console.error('FAIL: Worker STREAM_UIDS must have exactly 13 entries, found ' + uids.length);
+              process.exit(1);
+            }
+            console.log('12. Worker allowlist has 13 UIDs — OK');
+          "
 
-      - name: Validate Stage 2 canary acceptance tests
+          # 13. UID parity — academy-config.js streamUids === Worker STREAM_UIDS
+          node -e "
+            const fs = require('fs');
+            const configSrc = fs.readFileSync('public/academy-config.js', 'utf8');
+            const workerSrc = fs.readFileSync('workers/dmf-stream-signer/src/index.js', 'utf8');
+            const configUids = new Set((configSrc.match(/streamUid:\s*'([a-f0-9]{32})'/g) || []).map(m => m.match(/'([a-f0-9]{32})'/)[1]));
+            const workerUids = new Set((workerSrc.match(/'([a-f0-9]{32})'/g) || []).map(m => m.match(/'([a-f0-9]{32})'/)[1]));
+            if (configUids.size !== 13) { console.error('FAIL: academy-config.js has ' + configUids.size + ' UIDs, expected 13'); process.exit(1); }
+            if (workerUids.size !== 13) { console.error('FAIL: Worker has ' + workerUids.size + ' UIDs, expected 13'); process.exit(1); }
+            const missingInWorker = [...configUids].filter(u => !workerUids.has(u));
+            const extraInWorker = [...workerUids].filter(u => !configUids.has(u));
+            if (missingInWorker.length > 0) { console.error('FAIL: UIDs in config but not in Worker: ' + missingInWorker.join(', ')); process.exit(1); }
+            if (extraInWorker.length > 0) { console.error('FAIL: UIDs in Worker but not in config: ' + extraInWorker.join(', ')); process.exit(1); }
+            console.log('13. UID parity: academy-config.js === Worker STREAM_UIDS (13/13) — OK');
+          "
+
+          # 14. Lesson order integrity — 4 modules with correct lesson counts
+          node -e "
+            const src = require('fs').readFileSync('public/academy-config.js', 'utf8');
+            const moduleMatches = src.match(/lessons:\s*\[/g) || [];
+            if (moduleMatches.length !== 4) { console.error('FAIL: Expected 4 modules, found ' + moduleMatches.length); process.exit(1); }
+            const uidMatches = src.match(/streamUid:\s*'[a-f0-9]{32}'/g) || [];
+            if (uidMatches.length !== 13) { console.error('FAIL: Expected 13 lessons with streamUid, found ' + uidMatches.length); process.exit(1); }
+            console.log('14. Lesson order integrity: 4 modules, 13 lessons — OK');
+          "
+
+          # 15. No raw UID playback logic (no publicUrl fallback, no unsigned manifest construction)
+          node -e "
+            const src = require('fs').readFileSync('public/academy.html', 'utf8');
+            if (src.indexOf('publicUrl') !== -1) { console.error('FAIL: publicUrl reference found in academy.html'); process.exit(1); }
+            if (src.indexOf('Signed playback fallback') !== -1) { console.error('FAIL: Stage 1 fallback comment found'); process.exit(1); }
+            if (/getStreamUrl\s*\(\s*lesson\.streamUid\s*\)/.test(src)) { console.error('FAIL: raw UID passed to getStreamUrl (must use signed token)'); process.exit(1); }
+            console.log('15. No raw UID playback logic — OK');
+          "
+
+          echo "Signed Stream playback (production) validated — OK"
+
+      - name: Validate signed playback acceptance tests
         run: |
           node -e "
             const fs = require('fs');
@@ -394,7 +448,7 @@ jobs:
               process.exit(1);
             }
 
-            console.log('All ' + passed + '/5 Stage 2 canary acceptance tests passed');
+            console.log('All ' + passed + '/5 signed playback acceptance tests passed');
           "
 
       - name: Validate Firestore rules exist and are secure

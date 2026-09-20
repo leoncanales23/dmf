@@ -176,7 +176,7 @@ git diff -- public/academy-config.js
 - **HLS.js** (loaded on demand from CDN) for non-Safari browsers
 - **Native HLS** for Safari (via `canPlayType('application/vnd.apple.mpegurl')`)
 
-### Signed Stream Playback — Stage 2 Canary
+### Signed Stream Playback — Production
 
 The signer runs on a Cloudflare Worker so the Academy does not depend on billing-enabled Firebase Functions or Google Secret Manager.
 
@@ -194,38 +194,37 @@ Firebase Auth user
 
 The Worker only signs the 13 known DMF video UIDs. It cannot mint tokens for arbitrary videos in the Cloudflare account.
 
-### Stage 2 — Fail-Closed Playback
+### Fail-Closed Playback
 
 The frontend is **fail-closed**: if the signer is unavailable, the user is not authenticated, or any error occurs in the signing flow, playback returns `null` and the player shows "Video no disponible." There is no public URL fallback.
 
 Signed tokens are never logged (`console.log`/`console.warn`), never stored in `localStorage`, Firestore, or the DOM, and never placed in query parameters. The token is used exclusively to construct the HLS manifest URL passed to `hls.js` or native HLS.
 
-### Canary: Ableton Intro Part 1
+### Signed Playback Production Status
 
-Cloudflare `requireSignedURLs` is enabled **only** for the canary video:
+All 13 Cloudflare Stream videos are protected with `requireSignedURLs: true`. Raw manifest requests return HTTP 401.
 
-| Lesson | UID | requireSignedURLs |
-|--------|-----|-------------------|
-| Ableton Intro · Part 1 | `9bb8ec71e5f2cf3054979e77b65c1bba` | **true** |
-| All other 12 videos | (see map above) | false |
+| Item | Status |
+|------|--------|
+| Videos with `requireSignedURLs: true` | **13 / 13** |
+| Raw UID manifest requests blocked (HTTP 401) | **13 / 13** |
+| Frontend fail-closed (no public URL fallback) | **Yes** |
+| Worker signer operational | **Yes** |
+| Worker validates: origin, Firebase Auth, enrollment, UID allowlist | **Yes** |
+| Signed tokens: no logging, no storage, no DOM/query exposure | **Yes** |
 
-The frontend already requests signed tokens for **all** videos. The canary validates end-to-end signed playback in production with one video before enabling `requireSignedURLs` for the remaining 12.
+### Manual Browser Smoke Test
 
-To enable `requireSignedURLs` for the canary UID via Cloudflare API:
+> **Status: pending user confirmation**
 
-```bash
-curl -X POST \
-  "https://api.cloudflare.com/client/v4/accounts/{account_id}/stream/{video_uid}" \
-  -H "Authorization: Bearer $CLOUDFLARE_STREAM_API_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"requireSignedURLs": true}'
-```
+To validate end-to-end signed playback in production, play one lesson from each module with a real enrolled account:
 
-Where `{video_uid}` is `9bb8ec71e5f2cf3054979e77b65c1bba`. Do **not** run this for any other UID until the canary is validated.
+1. INTRO — any lesson
+2. CLASE 1 — any lesson
+3. CLASE 2 — any lesson
+4. CLASE 3 — any lesson
 
-### Stage 3 (future)
-
-Once the canary is validated in production, enable `requireSignedURLs: true` for all remaining 12 videos. No frontend changes are needed — the fail-closed signer flow already handles all 13 UIDs.
+Each lesson must load the HLS manifest via signed token and play without error.
 
 ### Worker deployment
 
@@ -249,10 +248,10 @@ Production now defaults to `https://dmf-stream-signer.vibraalto-cl.workers.dev`.
 
 ## Security
 
-- Signed URLs enforced for canary UID; remaining 12 videos still public until Stage 3
+- Signed URLs enforced for all 13 videos (`requireSignedURLs: true` on every Cloudflare Stream UID)
 - `CLOUDFLARE_STREAM_API_TOKEN` never appears in frontend code
 - `customer-*.cloudflarestream.com` domain never hardcoded in source
-- CI validates: all 13 UIDs mapped, manifest pattern present, no secrets, no fallback, canary UID present
+- CI validates: all 13 UIDs mapped, manifest pattern present, no secrets, no fallback, UID parity between config and Worker
 
 ### Local Testing
 
@@ -470,7 +469,7 @@ must be connected to payment webhooks (production gap).
 - [ ] Firestore enrollment documents linked to Mercado Pago payments
 - [ ] Payment webhook → entitlement grant flow
 - [x] Server-side progress persistence (Firestore)
-- [~] Signed playback URLs (Cloudflare Stream) — Stage 2 canary: fail-closed signer for all 13 videos; `requireSignedURLs: true` on canary UID `9bb8ec71e5f2cf3054979e77b65c1bba`; remaining 12 videos pending Stage 3
+- [x] Signed playback URLs (Cloudflare Stream) — Production: fail-closed signer for all 13 videos; `requireSignedURLs: true` on all 13 Cloudflare Stream UIDs; raw manifest requests return HTTP 401
 - [ ] Work submission system for practice assignments
 - [ ] Review/feedback workflow for instructors
 - [ ] Email notifications (enrollment confirmation, review ready)
@@ -494,7 +493,7 @@ must be connected to payment webhooks (production gap).
 - No `?demo=true` query string activation in production
 - Signed playback tokens never logged, stored, or exposed in DOM/query params
 - Fail-closed playback: signer failure → no video, never public fallback
-- Canary video (`9bb8ec71e5f2cf3054979e77b65c1bba`) requires signed URLs at Cloudflare level
+- All 13 videos require signed URLs at Cloudflare level (`requireSignedURLs: true`)
 
 ## CI Validation
 
