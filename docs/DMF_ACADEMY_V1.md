@@ -508,9 +508,10 @@ Prices and product definitions live only in the Worker. The frontend sends only 
 - Amount and currency verified against `expectedAmount`/`expectedCurrency` stored during preference creation
 - Idempotency allows pending→approved transitions; duplicate only when enrollment already granted
 - Enrollment is created only after verified `approved` payment with correct amount/currency
+- All Firestore writes use `updateMask.fieldPaths` (merge-safe): each write only touches its own fields, preserving fields from prior writes
 - `purchaseId` is an opaque UUID (`crypto.randomUUID()`) — no user data in URLs
 - `checkoutSessions` and `payments` collections deny all client reads/writes
-- `/check-status` requires Firebase ID token and verifies session ownership (`uid` match)
+- `/check-status` requires Firebase ID token and verifies session ownership (`uid` match, fail-closed: missing uid returns 403)
 - Payment result page polls server status — never trusts URL query parameters for access
 - Purchase intent flow completes checkout directly after auth (calls `/create-preference`, redirects to MP)
 - Account creation available on login page for new students (purchase intent preserved via sessionStorage)
@@ -519,7 +520,7 @@ Prices and product definitions live only in the Worker. The frontend sends only 
 
 | Collection | Access | Purpose |
 |------------|--------|---------|
-| `checkoutSessions/{purchaseId}` | Worker only (admin) | Links purchaseId → uid, productId, preferenceId, expectedAmount, currency, payment status |
+| `checkoutSessions/{purchaseId}` | Worker only (admin) | Links purchaseId → uid, email, productId, status, expectedAmount, expectedCurrency, createdAt (initial); preferenceId, updatedAt (post-preference); paymentId, paymentStatus, enrolled, updatedAt (post-webhook) |
 | `payments/{paymentId}` | Worker only (admin) | Idempotent payment record |
 | `enrollments/{uid}` | Worker write, student read own | Active enrollment grant |
 
@@ -630,3 +631,9 @@ Never put any secret in `wrangler.toml`, source code, or the frontend.
 35. Amount/currency verification before enrollment grant
 36. /check-status requires Firebase ID token with uid ownership check
 37. Payment result page sends Authorization header with Firebase ID token
+38. Merge-safe Firestore writes: `firestoreSet` uses `updateMask.fieldPaths` from `Object.keys(fields)`
+39. `expectedAmount`/`expectedCurrency` in initial checkoutSession write (not dependent on MP response)
+40. Post-preference write contains only `preferenceId` + `updatedAt`
+41. Webhook denies enrollment when `expectedAmount` or `expectedCurrency` missing (session-integrity-error)
+42. `/check-status` denies access when `uid` absent or mismatched (fail-closed 403)
+43. Merge semantics simulation: sequential writes preserve fields from prior writes

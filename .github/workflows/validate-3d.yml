@@ -748,6 +748,10 @@ jobs:
 
           echo "All 22 Mercado Pago payments checks passed"
 
+      - name: Validate merge-safe Firestore writes
+        run: |
+          node workers/dmf-payments/test/merge-safe.test.cjs
+
   validate-print:
     runs-on: ubuntu-latest
     steps:
