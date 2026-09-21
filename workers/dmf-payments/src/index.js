@@ -281,6 +281,8 @@ async function handleWebhook(request, env) {
     return json(nullOrigin, 400, { ok: false });
   }
 
+  console.log('[DMF PAYMENTS] webhook received: type=' + (webhookBody.type || 'unknown') + ' action=' + (webhookBody.action || 'unknown'));
+
   if (webhookBody.type !== 'payment') {
     return json(nullOrigin, 200, { ok: true, skipped: true });
   }
@@ -289,11 +291,25 @@ async function handleWebhook(request, env) {
   try {
     signatureResult = await verifyWebhookSignature(request, env);
   } catch (e) {
+    console.log('[DMF PAYMENTS] signature verification failed: ' + e.message);
     return json(nullOrigin, 401, { ok: false, error: 'Invalid signature' });
   }
 
-  const tsAge = Math.abs(Date.now() / 1000 - Number(signatureResult.ts));
-  if (tsAge > 300) {
+  const bodyDataId = webhookBody.data && webhookBody.data.id;
+  if (bodyDataId != null && String(bodyDataId).toLowerCase() !== signatureResult.dataId) {
+    console.log('[DMF PAYMENTS] data.id mismatch: query=' + signatureResult.dataId + ' body=' + String(bodyDataId).toLowerCase());
+    return json(nullOrigin, 401, { ok: false, error: 'data.id mismatch' });
+  }
+
+  const rawTs = Number(signatureResult.ts);
+  if (!Number.isFinite(rawTs)) {
+    console.log('[DMF PAYMENTS] invalid signature timestamp');
+    return json(nullOrigin, 401, { ok: false, error: 'Invalid signature timestamp' });
+  }
+  const tsMs = rawTs > 1e12 ? rawTs : rawTs * 1000;
+  const tsAgeMs = Math.abs(Date.now() - tsMs);
+  if (tsAgeMs > 300000) {
+    console.log('[DMF PAYMENTS] signature expired: age=' + tsAgeMs + 'ms');
     return json(nullOrigin, 401, { ok: false, error: 'Signature expired' });
   }
 
@@ -308,6 +324,7 @@ async function handleWebhook(request, env) {
   );
   if (existing && existing.fields && existing.fields.enrolled &&
       existing.fields.enrolled.booleanValue === true) {
+    console.log('[DMF PAYMENTS] duplicate webhook for payment=' + paymentId);
     return json(nullOrigin, 200, { ok: true, duplicate: true });
   }
 
@@ -317,10 +334,12 @@ async function handleWebhook(request, env) {
   );
 
   if (!paymentRes.ok) {
+    console.log('[DMF PAYMENTS] MP payment API error: status=' + paymentRes.status);
     return json(nullOrigin, 502, { ok: false, error: 'Payment verification failed' });
   }
 
   const payment = await paymentRes.json();
+  console.log('[DMF PAYMENTS] payment=' + paymentId + ' status=' + (payment.status || 'unknown'));
 
   await firestoreSet(env.DMF_FIREBASE_PROJECT_ID, 'payments', paymentId, {
     paymentId: { stringValue: paymentId },
@@ -333,6 +352,7 @@ async function handleWebhook(request, env) {
   }, saToken);
 
   if (payment.status !== 'approved') {
+    console.log('[DMF PAYMENTS] payment not approved, skipping enrollment');
     if (payment.external_reference) {
       await firestoreSet(env.DMF_FIREBASE_PROJECT_ID, 'checkoutSessions', payment.external_reference, {
         paymentId: { stringValue: paymentId },
@@ -345,6 +365,7 @@ async function handleWebhook(request, env) {
 
   const purchaseId = payment.external_reference;
   if (!purchaseId) {
+    console.log('[DMF PAYMENTS] no external_reference, skipping enrollment');
     return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'no-reference' });
   }
 
@@ -353,6 +374,7 @@ async function handleWebhook(request, env) {
   );
 
   if (!session || !session.fields || !session.fields.uid) {
+    console.log('[DMF PAYMENTS] checkout session not found for purchase=' + purchaseId);
     return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'session-not-found' });
   }
 
@@ -362,12 +384,15 @@ async function handleWebhook(request, env) {
   const expectedAmount = session.fields.expectedAmount && session.fields.expectedAmount.doubleValue;
   const expectedCurrency = session.fields.expectedCurrency && session.fields.expectedCurrency.stringValue;
   if (expectedAmount == null || !expectedCurrency) {
+    console.log('[DMF PAYMENTS] session integrity error for purchase=' + purchaseId);
     return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'session-integrity-error' });
   }
   if (payment.transaction_amount !== expectedAmount) {
+    console.log('[DMF PAYMENTS] amount mismatch: expected=' + expectedAmount + ' got=' + payment.transaction_amount);
     return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'amount-mismatch' });
   }
   if (payment.currency_id !== expectedCurrency) {
+    console.log('[DMF PAYMENTS] currency mismatch: expected=' + expectedCurrency + ' got=' + payment.currency_id);
     return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'currency-mismatch' });
   }
 
@@ -391,6 +416,7 @@ async function handleWebhook(request, env) {
     updatedAt: { timestampValue: new Date().toISOString() }
   }, saToken).catch(() => {});
 
+  console.log('[DMF PAYMENTS] enrollment activated: uid=' + uid + ' product=' + productId + ' payment=' + paymentId);
   return json(nullOrigin, 200, { ok: true, enrolled: true });
 }
 
@@ -445,6 +471,7 @@ export default {
       try {
         return await handleWebhook(request, env);
       } catch (e) {
+        console.log('[DMF PAYMENTS] webhook internal error: ' + e.message);
         return json('null', 500, { ok: false, error: 'Internal error' });
       }
     }
