@@ -721,10 +721,10 @@ jobs:
           grep -q "tsAge" workers/dmf-payments/src/index.js || { echo "FAIL: Webhook timestamp age check missing"; exit 1; }
           echo "19. Webhook replay protection — OK"
 
-          # 20. Amount/currency verification before enrollment
-          grep -q "expectedAmount" workers/dmf-payments/src/index.js || { echo "FAIL: Amount verification missing before enrollment"; exit 1; }
-          grep -q "expectedCurrency" workers/dmf-payments/src/index.js || { echo "FAIL: Currency verification missing before enrollment"; exit 1; }
-          echo "20. Amount/currency verification — OK"
+          # 20. Merchant order validation before enrollment
+          grep -q "merchant_orders/" workers/dmf-payments/src/index.js || { echo "FAIL: Merchant order API call missing before enrollment"; exit 1; }
+          grep -q "validatePaymentIntegrity" workers/dmf-payments/src/index.js || { echo "FAIL: validatePaymentIntegrity function missing"; exit 1; }
+          echo "20. Merchant order validation — OK"
 
           # 21. check-status requires Firebase authentication
           node -e "
@@ -755,6 +755,10 @@ jobs:
       - name: Validate webhook timestamp and signature hardening
         run: |
           node workers/dmf-payments/test/webhook.test.cjs
+
+      - name: Validate merchant order payment integrity
+        run: |
+          node workers/dmf-payments/test/integrity.test.cjs
 
       - name: Validate payments bridge in landing source
         run: |

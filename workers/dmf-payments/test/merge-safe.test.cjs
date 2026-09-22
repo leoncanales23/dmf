@@ -100,33 +100,33 @@ test('5. post-preference write does not contain expectedAmount or expectedCurren
 
 // --- Fail-closed checks ---
 
-test('6. webhook fails if expectedAmount is missing', function () {
+test('6. webhook validates payment via merchant order API', function () {
   const webhookFn = SRC.substring(
     SRC.indexOf('async function handleWebhook'),
     SRC.indexOf('\n}\n', SRC.indexOf('async function handleWebhook')) + 2
   );
   assert.ok(
-    webhookFn.includes('expectedAmount == null'),
-    'webhook must check expectedAmount == null'
+    webhookFn.includes('merchant_orders/'),
+    'webhook must fetch merchant order from MP API'
   );
   assert.ok(
-    webhookFn.includes('session-integrity-error'),
-    'webhook must return session-integrity-error when expectedAmount missing'
+    webhookFn.includes('validatePaymentIntegrity('),
+    'webhook must call validatePaymentIntegrity'
   );
 });
 
-test('7. webhook fails if expectedCurrency is missing', function () {
+test('7. webhook rejects when merchant order is missing', function () {
   const webhookFn = SRC.substring(
     SRC.indexOf('async function handleWebhook'),
     SRC.indexOf('\n}\n', SRC.indexOf('async function handleWebhook')) + 2
   );
   assert.ok(
-    webhookFn.includes('!expectedCurrency'),
-    'webhook must check !expectedCurrency'
+    webhookFn.includes('missing-merchant-order'),
+    'webhook must handle missing merchant order'
   );
   assert.ok(
-    webhookFn.includes('session-integrity-error'),
-    'webhook must return session-integrity-error when expectedCurrency missing'
+    webhookFn.includes('integrity.valid'),
+    'webhook must check integrity.valid result'
   );
 });
 
