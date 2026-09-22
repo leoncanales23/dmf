@@ -176,6 +176,57 @@ async function verifyWebhookSignature(request, env) {
   return { dataId, ts };
 }
 
+function validatePaymentIntegrity(payment, merchantOrder, session, products) {
+  if (!payment || payment.status !== 'approved') {
+    return { valid: false, reason: 'payment-not-approved' };
+  }
+
+  if (!payment.external_reference || payment.external_reference !== session.purchaseId) {
+    return { valid: false, reason: 'payment-reference-mismatch' };
+  }
+
+  if (!merchantOrder || merchantOrder.external_reference !== session.purchaseId) {
+    return { valid: false, reason: 'merchant-order-reference-mismatch' };
+  }
+
+  if (merchantOrder.preference_id !== session.preferenceId) {
+    return { valid: false, reason: 'preference-mismatch' };
+  }
+
+  if (merchantOrder.status !== 'closed' && merchantOrder.order_status !== 'paid') {
+    return { valid: false, reason: 'order-not-paid' };
+  }
+
+  if (typeof merchantOrder.paid_amount !== 'number' ||
+      typeof merchantOrder.total_amount !== 'number' ||
+      merchantOrder.paid_amount < merchantOrder.total_amount) {
+    return { valid: false, reason: 'order-not-fully-paid' };
+  }
+
+  var payments = Array.isArray(merchantOrder.payments) ? merchantOrder.payments : [];
+  var found = payments.some(
+    function (p) { return String(p.id) === String(payment.id) && p.status === 'approved'; }
+  );
+  if (!found) {
+    return { valid: false, reason: 'payment-not-in-order' };
+  }
+
+  if (!session.productId || !products[session.productId]) {
+    return { valid: false, reason: 'product-mismatch' };
+  }
+
+  if (Array.isArray(merchantOrder.items) && merchantOrder.items.length > 0) {
+    var itemMatch = merchantOrder.items.some(
+      function (item) { return item.id === session.productId; }
+    );
+    if (!itemMatch) {
+      return { valid: false, reason: 'product-mismatch' };
+    }
+  }
+
+  return { valid: true, reason: null };
+}
+
 async function handleCreatePreference(request, origin, env) {
   const auth = request.headers.get('Authorization') || '';
   const match = auth.match(/^Bearer\s+(.+)$/i);
@@ -380,20 +431,41 @@ async function handleWebhook(request, env) {
 
   const uid = session.fields.uid.stringValue;
   const productId = (session.fields.productId && session.fields.productId.stringValue) || '';
+  const preferenceId = (session.fields.preferenceId && session.fields.preferenceId.stringValue) || '';
 
-  const expectedAmount = session.fields.expectedAmount && session.fields.expectedAmount.doubleValue;
-  const expectedCurrency = session.fields.expectedCurrency && session.fields.expectedCurrency.stringValue;
-  if (expectedAmount == null || !expectedCurrency) {
-    console.log('[DMF PAYMENTS] session integrity error for purchase=' + purchaseId);
-    return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'session-integrity-error' });
+  const orderId = payment.order && payment.order.id;
+  if (!orderId) {
+    console.log('[DMF PAYMENTS] missing merchant order for payment=' + paymentId);
+    return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'missing-merchant-order' });
   }
-  if (payment.transaction_amount !== expectedAmount) {
-    console.log('[DMF PAYMENTS] amount mismatch: expected=' + expectedAmount + ' got=' + payment.transaction_amount);
-    return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'amount-mismatch' });
+
+  const orderRes = await fetch(
+    'https://api.mercadopago.com/merchant_orders/' + orderId,
+    { headers: { Authorization: 'Bearer ' + env.MP_ACCESS_TOKEN } }
+  );
+  if (!orderRes.ok) {
+    console.log('[DMF PAYMENTS] merchant order API error: status=' + orderRes.status);
+    return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'merchant-order-api-failed' });
   }
-  if (payment.currency_id !== expectedCurrency) {
-    console.log('[DMF PAYMENTS] currency mismatch: expected=' + expectedCurrency + ' got=' + payment.currency_id);
-    return json(nullOrigin, 200, { ok: true, enrolled: false, reason: 'currency-mismatch' });
+
+  const merchantOrder = await orderRes.json();
+  console.log('[DMF PAYMENTS] merchant order fetched: id=' + orderId + ' status=' + (merchantOrder.status || 'unknown'));
+
+  const integrity = validatePaymentIntegrity(
+    payment,
+    merchantOrder,
+    { purchaseId, preferenceId, productId },
+    PRODUCTS
+  );
+  if (!integrity.valid) {
+    console.log('[DMF PAYMENTS] integrity check failed: ' + integrity.reason);
+    return json(nullOrigin, 200, { ok: true, enrolled: false, reason: integrity.reason });
+  }
+
+  console.log('[DMF PAYMENTS] preference verified: ' + preferenceId);
+  console.log('[DMF PAYMENTS] merchant order fully paid: ' + merchantOrder.paid_amount + '/' + merchantOrder.total_amount);
+  if (payment.currency_id && PRODUCTS[productId] && payment.currency_id !== PRODUCTS[productId].currency) {
+    console.log('[DMF PAYMENTS] converted payment accepted: ' + PRODUCTS[productId].currency + ' -> ' + payment.currency_id);
   }
 
   await firestoreSet(env.DMF_FIREBASE_PROJECT_ID, 'enrollments', uid, {
