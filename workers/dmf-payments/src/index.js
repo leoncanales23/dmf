@@ -274,6 +274,9 @@ async function handleCreatePreference(request, origin, env) {
   }, saToken);
 
   const backBase = env.DMF_PUBLIC_URL || 'https://dmf.vibraalto.cl';
+  const paymentEnvironment = env.DMF_MP_ENVIRONMENT === 'sandbox' ? 'sandbox' : 'production';
+  const resultUrl = backBase + '/payment-result.html?purchaseId=' + purchaseId +
+    '&paymentEnvironment=' + paymentEnvironment;
 
   const prefBody = {
     items: [{
