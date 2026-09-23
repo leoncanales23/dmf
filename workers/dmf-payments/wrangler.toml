@@ -6,3 +6,6 @@ workers_dev = true
 
 [vars]
 DMF_FIREBASE_PROJECT_ID = "dmf-academy"
+DMF_PUBLIC_URL = "https://dmf.vibraalto.cl"
+DMF_WEBHOOK_URL = "https://dmf-payments.vibraalto-cl.workers.dev/webhook/mercadopago"
+DMF_MP_ENVIRONMENT = "production"

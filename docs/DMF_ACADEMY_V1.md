@@ -280,6 +280,7 @@ that serves HLS at `/{uid}/manifest/video.m3u8`.
 | `DMF_PAYMENTS_URL`        | `https://dmf-payments.vibraalto-cl.workers.dev` | Payments Worker base URL |
 | `MP_ACCESS_TOKEN`          | —                          | Mercado Pago access token (Worker secret) |
 | `MP_WEBHOOK_SECRET`        | —                          | Mercado Pago webhook secret (Worker secret) |
+| `DMF_MP_ENVIRONMENT`       | `production`               | Checkout URL selector: `production` or `sandbox` |
 | `DMF_FIREBASE_PRIVATE_KEY` | —                          | Firebase service account JSON (Worker secret) |
 | `DMF_FIREBASE_WEB_API_KEY` | —                          | Firebase Web API key (Worker secret) |
 | `PORT`                     | `3000`                     | Express server port (existing)           |
@@ -525,6 +526,11 @@ Prices and product definitions live only in the Worker. The frontend sends only 
 | `enrollments/{uid}` | Worker write, student read own | Active enrollment grant |
 
 ### Worker Deployment
+
+The recommended payment product is **Mercado Pago Checkout Pro** because the DMF
+plans are one-time purchases and payment data remains on Mercado Pago's hosted
+checkout. The account-owner setup checklist, sandbox procedure, and production
+cutover are documented in [`workers/dmf-payments/README.md`](../workers/dmf-payments/README.md).
 
 ```bash
 cd workers/dmf-payments

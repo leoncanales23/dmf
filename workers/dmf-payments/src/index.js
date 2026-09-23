@@ -227,6 +227,11 @@ function validatePaymentIntegrity(payment, merchantOrder, session, products) {
   return { valid: true, reason: null };
 }
 
+function selectCheckoutUrl(preference, environment) {
+  const sandbox = environment === 'sandbox';
+  return sandbox ? preference.sandbox_init_point : preference.init_point;
+}
+
 async function handleCreatePreference(request, origin, env) {
   const auth = request.headers.get('Authorization') || '';
   const match = auth.match(/^Bearer\s+(.+)$/i);
@@ -290,11 +295,16 @@ async function handleCreatePreference(request, origin, env) {
     )
   };
 
+  if (user.email) {
+    prefBody.payer = { email: user.email };
+  }
+
   const mpRes = await fetch('https://api.mercadopago.com/checkout/preferences', {
     method: 'POST',
     headers: {
       Authorization: 'Bearer ' + env.MP_ACCESS_TOKEN,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': purchaseId
     },
     body: JSON.stringify(prefBody)
   });
@@ -310,7 +320,7 @@ async function handleCreatePreference(request, origin, env) {
     updatedAt: { timestampValue: new Date().toISOString() }
   }, saToken).catch(() => {});
 
-  const initPoint = mpData.sandbox_init_point || mpData.init_point;
+  const initPoint = selectCheckoutUrl(mpData, env.DMF_MP_ENVIRONMENT || 'production');
   if (!initPoint) {
     return json(origin, 502, { ok: false, error: 'No checkout URL returned by payment provider' });
   }
