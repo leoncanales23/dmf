@@ -2128,6 +2128,48 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     ring2.position.y = 0.01;
     scene.add(ring2);
 
+    // === LIVE SET — procedural performance on the static mesh (GLB has no rig) ===
+    // Anchors are raw GLB object-space coordinates: DJ head/neck, monitor cones.
+    var RELIC_BPM = 124;
+    var liveBeatTime = 0;
+    var relicMotion = {
+      uKick: {value: 0}, uNod: {value: 0}, uSway: {value: 0},
+      uBounce: {value: 0}, uBeatIndex: {value: 0}, uLive: {value: 0}
+    };
+    var RELIC_CONES = [
+      [-0.644, -0.064, -0.405], [0.652, -0.050, -0.395],
+      [-0.630, -0.270, -0.040], [-0.620, -0.400, 0.165],
+      [0.624, -0.280, -0.038], [0.624, -0.400, 0.173]
+    ];
+    var RELIC_MOTION_GLSL =
+      'uniform float uKick;\nuniform float uNod;\nuniform float uSway;\nuniform float uBounce;\nuniform float uLive;\nvarying vec3 vObjPos;\n' +
+      'vec3 relicMotion(vec3 p, vec3 n){\n' +
+      '  float hw = 1.0 - smoothstep(0.12, 0.19, distance(p, vec3(0.305, 0.24, -0.2)));\n' +
+      '  float a = uNod * uLive * hw;\n' +
+      '  vec3 piv = vec3(0.305, 0.12, -0.21);\n' +
+      '  vec3 r = p - piv;\n' +
+      '  vec3 o = piv + vec3(r.x, r.y * cos(a) - r.z * sin(a), r.y * sin(a) + r.z * cos(a));\n' +
+      '  float bw = max(hw, 1.0 - smoothstep(0.7, 1.0, length((p - vec3(0.31, 0.02, -0.24)) / vec3(0.26, 0.26, 0.18))));\n' +
+      '  o += vec3(uSway, -uBounce, 0.0) * bw * uLive;\n' +
+      '  float cw = 0.0;\n' +
+      RELIC_CONES.map(function(c){
+        return '  cw += 1.0 - smoothstep(0.03, 0.07, distance(p, vec3(' + c.join(', ') + ')));\n';
+      }).join('') +
+      '  o += n * min(cw, 1.0) * uKick * 0.018 * uLive;\n' +
+      '  return o;\n' +
+      '}\n';
+
+    function injectRelicMotion(shader){
+      shader.uniforms.uKick = relicMotion.uKick;
+      shader.uniforms.uNod = relicMotion.uNod;
+      shader.uniforms.uSway = relicMotion.uSway;
+      shader.uniforms.uBounce = relicMotion.uBounce;
+      shader.uniforms.uLive = relicMotion.uLive;
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\n' + RELIC_MOTION_GLSL)
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed = relicMotion(position, normal);\nvObjPos = position;');
+    }
+
     // === LOAD MODEL — RELIC Material Pass: zone-based painting ===
     var modelRef = null;
     var modelTargetScale = 0;
@@ -2257,6 +2299,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
               shader.uniforms.uActiveZone = {value: -1.0};
               shader.uniforms.uTime = {value: 0.0};
               shader.uniforms.uIntensity = {value: quality === 'balanced' ? 0.7 : 1.0};
+              injectRelicMotion(shader);
+              shader.uniforms.uBeatIndex = relicMotion.uBeatIndex;
               shader.vertexShader = shader.vertexShader.replace(
                 '#include <common>',
                 '#include <common>\nattribute float aZoneId;\nattribute float aNormY;\nvarying float vZoneId;\nvarying float vNormY;'
@@ -2267,10 +2311,22 @@ if (window.__DMF_FIREBASE_CONFIG__) {
               );
               shader.fragmentShader = shader.fragmentShader.replace(
                 '#include <common>',
-                '#include <common>\nuniform float uActiveZone;\nuniform float uTime;\nuniform float uIntensity;\nvarying float vZoneId;\nvarying float vNormY;'
+                '#include <common>\nuniform float uActiveZone;\nuniform float uTime;\nuniform float uIntensity;\nvarying float vZoneId;\nvarying float vNormY;\n' +
+                'uniform float uKick;\nuniform float uLive;\nuniform float uBeatIndex;\nvarying vec3 vObjPos;\n' +
+                'float relicHash(float n){ return fract(sin(n) * 43758.5453); }'
               );
               shader.fragmentShader = shader.fragmentShader.replace(
                 '#include <tonemapping_fragment>',
+                'float logoMask = step(-0.57, vObjPos.z) * step(vObjPos.z, -0.5) *\n' +
+                '  step(-0.31, vObjPos.x) * step(vObjPos.x, 0.31) * step(0.1, vObjPos.y) * step(vObjPos.y, 0.56) *\n' +
+                '  smoothstep(0.08, 0.22, diffuseColor.r - diffuseColor.b) * uLive;\n' +
+                'if(logoMask > 0.0){\n' +
+                '  float col = vObjPos.x < -0.235 ? 0.0 : (vObjPos.x < -0.16 ? 1.0 : (vObjPos.x < 0.15 ? 2.0 : (vObjPos.x < 0.215 ? 3.0 : 4.0)));\n' +
+                '  float lvl = 0.25 + 0.75 * relicHash(col * 12.9898 + uBeatIndex * 78.233);\n' +
+                '  float ly = (vObjPos.y - 0.12) / 0.4;\n' +
+                '  float eq = col == 2.0 ? 1.0 : 1.0 - smoothstep(lvl - 0.04, lvl + 0.04, ly);\n' +
+                '  gl_FragColor.rgb += vec3(1.0, 0.36, 0.08) * eq * (0.2 + 0.8 * uKick) * logoMask * 0.9 * uIntensity;\n' +
+                '}\n' +
                 'if(uActiveZone >= 0.0){\n' +
                 '  float zId = floor(vZoneId + 0.5);\n' +
                 '  float aZ = floor(uActiveZone + 0.5);\n' +
@@ -2308,6 +2364,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
               blending: THREE.AdditiveBlending,
               depthWrite: false
             });
+            wireMat.onBeforeCompile = injectRelicMotion;
             wireRef = new THREE.Mesh(geo, wireMat);
             child.parent.add(wireRef);
 
@@ -2319,6 +2376,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
               blending: THREE.AdditiveBlending,
               depthWrite: false
             });
+            edgeMat.onBeforeCompile = injectRelicMotion;
             edgeRef = new THREE.Mesh(geo, edgeMat);
             edgeRef.scale.setScalar(1.022);
             child.parent.add(edgeRef);
@@ -2525,6 +2583,19 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         if(!isVisible) return;
         autoAngle += dt * 0.072;
 
+        // Live set — beat clock drives head nod, body groove, cone pump, logo EQ
+        liveBeatTime += dt;
+        var beats = liveBeatTime * RELIC_BPM / 60;
+        var beatPhase = beats - Math.floor(beats);
+        var kick = Math.exp(-beatPhase * 7);
+        var nodCurve = 0.5 + 0.5 * Math.cos(2 * Math.PI * (beatPhase - 0.12));
+        relicMotion.uKick.value = kick;
+        relicMotion.uNod.value = 0.13 * nodCurve * nodCurve;
+        relicMotion.uSway.value = 0.006 * Math.sin(Math.PI * beats);
+        relicMotion.uBounce.value = 0.005 * Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * beatPhase), 3);
+        relicMotion.uBeatIndex.value = Math.floor(beats) % 64;
+        relicMotion.uLive.value = modelTargetScale > 0 ? modelCurrentScale / modelTargetScale : 0;
+
         // Model entrance
         if(modelRef && modelCurrentScale < modelTargetScale){
           modelCurrentScale += (modelTargetScale - modelCurrentScale) * 0.03;
@@ -2547,10 +2618,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         camera.lookAt(0, 1.1 + Math.sin(autoAngle * 0.6) * 0.04, 0);
 
         // Dynamic lighting — museum breathing
-        rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2;
+        rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 + kick * 0.25;
         accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12;
         fillLight.intensity = 0.3 + Math.sin(autoAngle * 1.0 + 2) * 0.06;
-        underGlow.intensity = 0.15 + Math.sin(autoAngle * 2.8) * 0.08;
+        underGlow.intensity = 0.15 + Math.sin(autoAngle * 2.8) * 0.08 + kick * 0.3;
         haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06;
 
         var hShift = Math.sin(autoAngle * 0.4) * 0.04;
@@ -2575,16 +2646,16 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         pMat.opacity = 0.4 + Math.sin(autoAngle * 1.6) * 0.12;
 
         // Rings
-        var ringPulse = 1 + Math.sin(autoAngle * 1.8) * 0.06;
+        var ringPulse = 1 + Math.sin(autoAngle * 1.8) * 0.06 + kick * 0.035;
         ring.scale.set(ringPulse, ringPulse, 1);
-        ringMat.opacity = 0.035 + Math.sin(autoAngle * 1.8) * 0.02;
+        ringMat.opacity = 0.035 + Math.sin(autoAngle * 1.8) * 0.02 + kick * 0.05;
 
         var ring2Pulse = 1 + Math.sin(autoAngle * 1.1 + 1) * 0.05;
         ring2.scale.set(ring2Pulse, ring2Pulse, 1);
         ring2Mat.opacity = 0.018 + Math.sin(autoAngle * 1.1 + 1) * 0.012;
 
         // Pedestal rim glow
-        pedestalRimMat.opacity = 0.2 + Math.sin(autoAngle * 2.2) * 0.08;
+        pedestalRimMat.opacity = 0.2 + Math.sin(autoAngle * 2.2) * 0.08 + kick * 0.15;
 
         // Halo breathing
         haloMat.opacity = 0.06 + Math.sin(autoAngle * 0.9) * 0.03;

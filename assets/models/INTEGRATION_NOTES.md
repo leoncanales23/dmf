@@ -15,12 +15,18 @@ shader injection for GPU-side reactive anatomy and cinematic glow.
 - per-vertex zone detection via GPU `aZoneId` attribute
 - DORMANT / AWAKENED / TRANSMITTING state machine
 - bilingual HUD (EN/ES) with `MutationObserver` language sync
+- **Live set** (124 BPM beat clock): the GLB is a single static mesh with no
+  rig, so motion is procedural in the vertex shader using object-space
+  anchors — DJ head nods around a neck pivot, torso sways/bounces, monitor
+  cones pump on the kick, and the DMF logo bars light up like an equalizer.
+  Pedestal rim, rings and under-glow are kick-synced. The same displacement
+  is applied to the wireframe/edge overlays so they stay aligned.
 - `IntersectionObserver` pauses render off-screen; `getDelta()` clamped
   to 50ms to prevent time jump on re-entry
 
 **Performance**:
 - quality tiers: HIGH (desktop) / BALANCED (mobile ≥480px) / STATIC (<480px)
-- `prefers-reduced-motion` disables auto-rotation
+- `prefers-reduced-motion` disables auto-rotation and the live set
 - Save-Data / 2G connections skip the 3D layer entirely
 - model load failure removes the section cleanly
 

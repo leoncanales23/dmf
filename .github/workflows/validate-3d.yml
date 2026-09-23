@@ -70,6 +70,8 @@ jobs:
           grep -q 'DMF_MESHY_3D_HEAD' public/index.html
           grep -q 'dmf-signal-band' public/index.html
           grep -q 'The Receiver' public/index.html
+          grep -q 'RELIC_BPM' public/index.html
+          grep -q 'transformed = relicMotion(position, normal)' public/index.html
           grep -q 'DMF_CODEX_HEAD' public/index.html
           grep -q 'dmf-initiation-protocol' public/index.html
           grep -q 'INITIATION PROTOCOL' public/index.html
