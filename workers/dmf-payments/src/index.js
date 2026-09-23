@@ -267,6 +267,7 @@ async function handleCreatePreference(request, origin, env) {
     email: { stringValue: user.email || '' },
     productId: { stringValue: productId },
     status: { stringValue: 'pending' },
+    paymentEnvironment: { stringValue: env.DMF_MP_ENVIRONMENT === 'sandbox' ? 'sandbox' : 'production' },
     expectedAmount: { doubleValue: product.price },
     expectedCurrency: { stringValue: product.currency },
     createdAt: { timestampValue: new Date().toISOString() }
@@ -409,6 +410,7 @@ async function handleWebhook(request, env) {
     amount: { doubleValue: payment.transaction_amount || 0 },
     currency: { stringValue: payment.currency_id || '' },
     payerEmail: { stringValue: (payment.payer && payment.payer.email) || '' },
+    paymentEnvironment: { stringValue: env.DMF_MP_ENVIRONMENT === 'sandbox' ? 'sandbox' : 'production' },
     processedAt: { timestampValue: new Date().toISOString() }
   }, saToken);
 
@@ -442,6 +444,21 @@ async function handleWebhook(request, env) {
   const uid = session.fields.uid.stringValue;
   const productId = (session.fields.productId && session.fields.productId.stringValue) || '';
   const preferenceId = (session.fields.preferenceId && session.fields.preferenceId.stringValue) || '';
+  const workerEnvironment = env.DMF_MP_ENVIRONMENT === 'sandbox' ? 'sandbox' : 'production';
+  // Sessions created before environment tagging are production by default.
+  const sessionEnvironment = (
+    session.fields.paymentEnvironment &&
+    session.fields.paymentEnvironment.stringValue
+  ) || 'production';
+
+  if (sessionEnvironment !== workerEnvironment) {
+    console.log('[DMF PAYMENTS] environment mismatch: session=' + sessionEnvironment + ' worker=' + workerEnvironment);
+    return json(nullOrigin, 200, {
+      ok: true,
+      enrolled: false,
+      reason: 'environment-mismatch'
+    });
+  }
 
   const orderId = payment.order && payment.order.id;
   if (!orderId) {
