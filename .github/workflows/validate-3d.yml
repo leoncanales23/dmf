@@ -760,6 +760,11 @@ jobs:
         run: |
           node workers/dmf-payments/test/integrity.test.cjs
 
+      - name: Validate preference and payment environment isolation
+        run: |
+          node workers/dmf-payments/test/preference.test.cjs
+          node workers/dmf-payments/test/environment.test.cjs
+
       - name: Validate payments bridge in landing source
         run: |
           echo "--- SOURCE index.html checks ---"
