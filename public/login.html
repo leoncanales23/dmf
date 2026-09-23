@@ -107,7 +107,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   'use strict';
 
   var DEMO_MODE = !!(window.__DMF_ACADEMY_DEMO__);
-  var PAYMENTS_URL = window.__DMF_PAYMENTS_URL__ || 'https://dmf-payments.vibraalto-cl.workers.dev';
+  var purchaseEnvironment = 'production';
+  try {
+    purchaseEnvironment = sessionStorage.getItem('dmf_purchase_environment') === 'sandbox' ? 'sandbox' : 'production';
+  } catch (_) { /* ignore */ }
+  var PAYMENTS_URL = purchaseEnvironment === 'sandbox'
+    ? 'https://dmf-payments-sandbox.vibraalto-cl.workers.dev'
+    : (window.__DMF_PAYMENTS_URL__ || 'https://dmf-payments.vibraalto-cl.workers.dev');
   var isSignUp = false;
 
   var demoBadge = document.getElementById('demoBadge');
