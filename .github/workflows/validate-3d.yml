@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/build-3d.cjs'
+      - 'scripts/overdrive/**'
       - 'scripts/inject-codex.cjs'
       - 'scripts/inject-oracle.cjs'
       - 'scripts/inject-transmission.cjs'
@@ -72,6 +73,10 @@ jobs:
           grep -q 'The Receiver' public/index.html
           grep -q 'RELIC_BPM' public/index.html
           grep -q 'transformed = relicMotion(position, normal)' public/index.html
+          grep -q 'function DMFSignalEngine(' public/index.html
+          grep -q 'DMFCameraRig' public/index.html
+          grep -q 'dmf-live-hud' public/index.html
+          grep -q "classList.add('dmf-choreo')" public/index.html
           grep -q 'DMF_CODEX_HEAD' public/index.html
           grep -q 'dmf-initiation-protocol' public/index.html
           grep -q 'INITIATION PROTOCOL' public/index.html
@@ -90,6 +95,12 @@ jobs:
           grep -q 'DMF_ACADEMY_LINK' public/index.html
           grep -q 'Student Access' public/index.html
           grep -q 'dmfTraining' firebase.json
+
+      - name: Validate DMF Overdrive engine and landing
+        run: |
+          for f in scripts/overdrive/*.js; do node --check "$f"; done
+          node scripts/overdrive/test/engine.test.cjs
+          node scripts/overdrive/test/landing.test.cjs
 
   validate-academy:
     runs-on: ubuntu-latest

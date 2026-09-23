@@ -371,8 +371,82 @@ ul{list-style:none}
 .concert-particle:nth-child(8){left:50%;top:80%;animation:particleDrift 9s ease-in-out 1.2s infinite}
 @keyframes particleDrift{0%{opacity:0;transform:translateY(0)}20%{opacity:.7}50%{opacity:.3;transform:translateY(-30px)}80%{opacity:.6}100%{opacity:0;transform:translateY(-60px)}}
 
+/* DMF OVERDRIVE — hero composition */
+.hero{overflow-x:clip}
+.hero-copy{position:relative;z-index:1;transform:translate3d(0,var(--hero-copy-y,0px),0)}
+.hero-ghost{position:absolute;z-index:0;left:-1.5vw;top:50%;transform:translate3d(0,calc(-50% + var(--hero-ghost-y,0px)),0);font-family:'Anton',sans-serif;font-size:clamp(150px,29vw,470px);line-height:.8;letter-spacing:.01em;text-transform:uppercase;white-space:nowrap;color:transparent;-webkit-text-stroke:1px rgba(242,237,230,.055);pointer-events:none;-webkit-user-select:none;user-select:none}
+.hero h1 .hero-line{display:block;overflow:hidden;padding-top:.08em;margin-top:-.08em}
+.hero h1 .hero-line>span{display:block}
+.hero-img{z-index:1;transform:translate3d(0,var(--hero-img-y,0px),0)}
+.hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:18px 30px;margin-top:36px}
+.hero-cta{display:inline-flex;align-items:center;gap:14px;padding:18px 30px;background:#ff5b1e;color:#0a0806;font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.1em;text-transform:uppercase;transition:background .2s,transform .2s}
+.hero-cta:hover{background:#ff7a45;color:#0a0806;transform:translateY(-2px)}
+.hero-cta-2{display:inline-flex;align-items:center;gap:10px;padding:6px 0;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:#c9c0b6;border-bottom:1px solid rgba(242,237,230,.18);transition:color .2s,border-color .2s}
+.hero-cta-2:hover{color:#ff5b1e;border-color:#ff5b1e}
+.hero-stats{margin-top:40px}
+.hero-signal{position:absolute;left:0;right:0;bottom:0;height:48px;pointer-events:none;z-index:1}
+.hero-signal-h{position:absolute;left:0;bottom:22px;width:70.5%;height:1px;background:linear-gradient(90deg,rgba(255,91,30,0),rgba(255,91,30,.9) 35%,#ff5b1e);box-shadow:0 0 10px rgba(255,91,30,.45);transform-origin:left center}
+.hero-signal-v{position:absolute;left:70.5%;bottom:0;width:1px;height:23px;background:#ff5b1e;box-shadow:0 0 10px rgba(255,91,30,.45);transform-origin:top center}
+.hero-signal-label{position:absolute;right:calc(29.5% + 18px);bottom:30px;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#8a8178;white-space:nowrap}
+
+/* DMF OVERDRIVE — scroll choreography (only armed when JS + motion allowed) */
+.dmf-choreo .hero .hero-kicker,.dmf-choreo .hero .hero-role,.dmf-choreo .hero .hero-actions,.dmf-choreo .hero .hero-stats>div,.dmf-choreo .hero-signal-label{opacity:0;transform:translateY(14px);transition:opacity .8s ease,transform .9s cubic-bezier(.2,.7,.2,1)}
+.dmf-choreo .hero h1 .hero-line>span{transform:translateY(105%);transition:transform 1.05s cubic-bezier(.7,0,.15,1)}
+.dmf-choreo .hero .hero-img{clip-path:inset(100% 0 0 0);transition:clip-path 1.3s cubic-bezier(.7,0,.15,1) .15s}
+.dmf-choreo .hero .hero-img img{transform:scale(1.12);transition:transform 1.8s cubic-bezier(.2,.7,.2,1) .15s}
+.dmf-choreo .hero-signal-h{transform:scaleX(0);transition:transform 1s cubic-bezier(.7,0,.2,1) .7s}
+.dmf-choreo .hero-signal-v{transform:scaleY(0);transition:transform .5s cubic-bezier(.4,0,.2,1) 1.65s}
+.dmf-choreo .hero.is-in .hero-kicker,.dmf-choreo .hero.is-in .hero-role,.dmf-choreo .hero.is-in .hero-actions,.dmf-choreo .hero.is-in .hero-stats>div,.dmf-choreo .hero.is-in .hero-signal-label{opacity:1;transform:none}
+.dmf-choreo .hero.is-in .hero-role{transition-delay:.42s}
+.dmf-choreo .hero.is-in .hero-actions{transition-delay:.55s}
+.dmf-choreo .hero.is-in .hero-stats>div:nth-child(1){transition-delay:.7s}
+.dmf-choreo .hero.is-in .hero-stats>div:nth-child(2){transition-delay:.8s}
+.dmf-choreo .hero.is-in .hero-stats>div:nth-child(3){transition-delay:.9s}
+.dmf-choreo .hero.is-in .hero-signal-label{transition-delay:1.3s}
+.dmf-choreo .hero.is-in h1 .hero-line>span{transform:none}
+.dmf-choreo .hero.is-in h1 .hero-line:nth-child(2)>span{transition-delay:.12s}
+.dmf-choreo .hero.is-in .hero-img{clip-path:inset(0 0 0 0)}
+.dmf-choreo .hero.is-in .hero-img img{transform:none}
+.dmf-choreo .hero.is-in .hero-signal-h{transform:scaleX(1)}
+.dmf-choreo .hero.is-in .hero-signal-v{transform:scaleY(1)}
+
+.dmf-choreo .section-head .section-num,.dmf-choreo .acad-kicker,.dmf-choreo .acad-tag,.dmf-choreo .acad-sub,.dmf-choreo .acad-badge{opacity:0;transform:translateY(12px);transition:opacity .7s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
+.dmf-choreo .section-title,.dmf-choreo .acad-title,.dmf-choreo .band-text p{clip-path:inset(100% 0 -.1em 0);transform:translateY(.28em);transition:clip-path 1s cubic-bezier(.7,0,.15,1) .08s,transform 1.1s cubic-bezier(.2,.7,.2,1) .08s}
+.dmf-choreo .is-in .section-num,.dmf-choreo .acad-kicker.is-in,.dmf-choreo .acad-tag.is-in,.dmf-choreo .acad-sub.is-in,.dmf-choreo .acad-badge.is-in{opacity:1;transform:none}
+.dmf-choreo .acad-sub.is-in{transition-delay:.18s}
+.dmf-choreo .acad-badge.is-in{transition-delay:.3s}
+.dmf-choreo .is-in .section-title,.dmf-choreo .acad-title.is-in,.dmf-choreo .band.is-in .band-text p{clip-path:inset(-.1em 0 -.1em 0);transform:none}
+.dmf-choreo .band img,.dmf-choreo .fly-card-img img,.dmf-choreo .tips-img img{transform:scale(1.05);transition:transform 1.8s cubic-bezier(.2,.7,.2,1)}
+.dmf-choreo .band.is-in img,.dmf-choreo .fly-card.is-in .fly-card-img img,.dmf-choreo .tips-img.is-in img{transform:none}
+.dmf-choreo .section::before,.dmf-choreo .contact::before{content:'';position:absolute;left:0;top:-1px;width:clamp(80px,16vw,220px);height:1px;background:#ff5b1e;box-shadow:0 0 10px rgba(255,91,30,.5);transform:scaleX(0);transform-origin:left center;transition:transform 1.1s cubic-bezier(.7,0,.2,1) .15s;pointer-events:none}
+.dmf-choreo .section.is-in::before,.dmf-choreo .contact.is-in::before{transform:scaleX(1)}
+.dmf-choreo .section.is-in .section-num{animation:dmfActivate 1.3s ease-out .4s both}
+@keyframes dmfActivate{0%{text-shadow:0 0 0 rgba(255,91,30,0)}30%{text-shadow:0 0 18px rgba(255,91,30,.85)}100%{text-shadow:0 0 0 rgba(255,91,30,0)}}
+
+/* DMF OVERDRIVE — landing signal bus (vars are written only on visible blocks) */
+.nav{box-shadow:0 1px 0 rgba(255,91,30,calc(var(--dmf-peak,0) * .45))}
+.nav-logo{text-shadow:0 0 calc(var(--dmf-peak,0) * 14px) rgba(255,91,30,calc(var(--dmf-peak,0) * .6))}
+.section::after,.contact::after{content:'';position:absolute;left:0;right:0;top:-1px;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,91,30,.9),transparent) no-repeat;background-size:24% 100%;background-position:calc(var(--dmf-phase,0) * 130% - 15%) 0;opacity:calc(var(--dmf-kick,0) * .6)}
+.hero h1,.section-title,.acad-title{color:#f2ede6;color:color-mix(in srgb,#f2ede6,#ffd3bf calc(var(--dmf-energy,0) * 22%))}
+.hero-cta,.acad-cta,.acad-cta-free{box-shadow:0 0 calc(var(--dmf-peak,0) * 26px) rgba(255,91,30,calc(var(--dmf-peak,0) * .5))}
+.tier-card.tier-featured{box-shadow:0 0 calc(40px + var(--dmf-low,0) * 26px) rgba(255,91,30,calc(.12 + var(--dmf-low,0) * .1)),0 20px 60px rgba(0,0,0,.3)}
+.tier-card.tier-featured .tier-cta{box-shadow:0 4px 16px rgba(255,91,30,.25),0 0 calc(var(--dmf-peak,0) * 24px) rgba(255,91,30,calc(var(--dmf-peak,0) * .45))}
+.signal-path::after{content:'';position:absolute;left:19px;top:0;width:2px;height:100%;background:linear-gradient(to bottom,#ffb599,#ff5b1e);box-shadow:0 0 10px rgba(255,91,30,.6);transform-origin:top center;transform:scaleY(var(--dmf-path,0));transition:transform .7s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+.signal-node.is-live::before{background:#ff5b1e;border-color:#ff5b1e;box-shadow:0 0 calc(10px + var(--dmf-kick,0) * 16px) rgba(255,91,30,.55)}
+.signal-node.is-live .signal-node-state{color:#ff5b1e}
+.signal-node.is-live .signal-node-wave{opacity:.7}
+@media(max-width:600px){.signal-path::after{left:11px}}
+
+@media(prefers-reduced-motion:reduce){
+  .section::after,.contact::after{display:none}
+}
+
 /* MOBILE */
 @media(max-width:900px){
+  .hero-signal-h{width:50%}
+  .hero-signal-v{left:50%}
+  .hero-signal-label{right:calc(50% + 18px)}
+  .hero-ghost{top:auto;bottom:16%;transform:translate3d(0,var(--hero-ghost-y,0px),0);font-size:36vw}
   .nav-links .nav-link{display:none}
   .hamburger{display:flex}
   .nav-links.open .nav-link{display:block}
@@ -386,6 +460,9 @@ ul{list-style:none}
   .contact-card{min-width:auto}
 }
 @media(max-width:600px){
+  .scroll-cue{display:none}
+  .hero-signal-label{left:20px;right:auto;font-size:8px;letter-spacing:.24em}
+  .hero-cta{padding:16px 22px;font-size:14px}
   .hero h1{font-size:clamp(48px,16vw,80px)}
   .hero-stats{gap:24px}
   .stat-num{font-size:36px}
@@ -428,7 +505,8 @@ ul{list-style:none}
 .dmf-signal-chip-inline{font-size:7px;padding:2px 6px;border:1px solid rgba(255,91,30,.18);color:#665f58;letter-spacing:.14em}
 .dmf-signal-hint{font-size:9px;letter-spacing:.17em;text-transform:uppercase;color:#665f58}
 
-.dmf-signal-visual{position:relative;min-height:clamp(420px,48vw,640px);overflow:hidden;background:#040303}
+.dmf-signal-visual{position:relative;min-height:clamp(420px,48vw,640px);overflow:hidden;background:#040303;touch-action:pan-y;cursor:grab;-webkit-user-select:none;user-select:none}
+.dmf-signal-visual.is-dragging{cursor:grabbing}
 .dmf-signal-visual canvas{display:block;width:100%!important;height:100%!important;position:absolute;inset:0}
 .dmf-signal-visual::after{content:'';position:absolute;z-index:3;inset:0;pointer-events:none;background:linear-gradient(90deg,#050404 0%,rgba(5,4,4,.55) 8%,transparent 28%,transparent 84%,rgba(5,4,4,.25) 100%),linear-gradient(180deg,rgba(5,4,4,.30),transparent 16%,transparent 80%,rgba(5,4,4,.50));box-shadow:inset 0 0 100px rgba(0,0,0,.5)}
 .dmf-signal-scan{position:absolute;z-index:4;left:8%;right:8%;top:18%;height:1px;background:linear-gradient(90deg,transparent,#ff5b1e 28%,rgba(255,91,30,.15) 65%,transparent);box-shadow:0 0 18px rgba(255,91,30,.45),0 0 40px rgba(255,91,30,.15);opacity:.22;animation:dmfSignalScan 7s ease-in-out infinite;pointer-events:none}
@@ -481,8 +559,44 @@ ul{list-style:none}
   .dmf-signal-hint{display:none}
   .dmf-signal-edition-tag{left:14px;bottom:14px}
 }
+/* DMF OVERDRIVE — state, arrival from the hero signal line, LIVE SIGNAL HUD */
+.dmf-signal-band.has-scene .dmf-signal-fallback{opacity:0}
+.dmf-signal-band{box-shadow:inset 0 1px 0rgba(255,91,30,calc(var(--dmf-overdrive,0) * .45)),inset 0 -1px 0 rgba(255,91,30,calc(var(--dmf-overdrive,0) * .25))}
+.dmf-relic-state.is-overdrive{color:#fff1e6;text-shadow:0 0 12px rgba(255,91,30,.75),0 0 2px rgba(255,91,30,.9)}
+.dmf-signal-band.is-overdrive .dmf-signal-corner strong{color:#fff1e6;text-shadow:0 0 14px rgba(255,91,30,.55)}
+.dmf-signal-band.is-overdrive .dmf-signal-vignette{background:radial-gradient(ellipse 60% 52% at 50% 50%,transparent 30%,rgba(4,3,3,.8) 100%);transition:background 1s}
+.dmf-signal-arrival{position:absolute;z-index:4;left:50%;top:0;width:1px;height:0;opacity:0;pointer-events:none;background:linear-gradient(to bottom,rgba(255,91,30,0),#ff5b1e 70%,#ffb599);box-shadow:0 0 12px rgba(255,91,30,.6)}
+.dmf-signal-band.is-receiving .dmf-signal-arrival{animation:dmfArrival 1.6s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes dmfArrival{0%{height:0;opacity:1}55%{height:46%;opacity:1}100%{height:46%;opacity:0}}
+
+.dmf-live-hud{position:absolute;inset:0;z-index:9;display:none;pointer-events:none;font-family:'Archivo',sans-serif;color:#f2ede6}
+.dmf-signal-visual.is-fullscreen .dmf-live-hud{display:block}
+.dmf-signal-visual.is-fullscreen .dmf-signal-corner,.dmf-signal-visual.is-fullscreen .dmf-signal-edition-tag,.dmf-signal-visual.is-fullscreen .dmf-signal-scan2{display:none}
+.dmf-live-hud-top{position:absolute;left:76px;top:28px;display:flex;align-items:baseline;gap:18px}
+.dmf-live-hud-title{font-size:9px;font-weight:700;letter-spacing:.34em;text-transform:uppercase;color:#ff5b1e}
+.dmf-live-hud-bpm{font-size:8px;letter-spacing:.24em;text-transform:uppercase;color:#8a8178}
+.dmf-live-hud-bpm b{font-family:'Anton',sans-serif;font-weight:400;font-size:15px;letter-spacing:.06em;color:#f2ede6;margin-right:4px}
+.dmf-live-hud-main{position:absolute;left:clamp(20px,3vw,40px);bottom:clamp(24px,4vw,44px);width:min(300px,64vw)}
+.dmf-live-hud-state{font-family:'Anton',sans-serif;font-size:clamp(34px,5vw,64px);line-height:.9;letter-spacing:.02em;color:rgba(242,237,230,.88);margin-bottom:18px;transition:color .6s,text-shadow .6s}
+.dmf-live-hud[data-state="DORMANT"] .dmf-live-hud-state{color:rgba(242,237,230,.32)}
+.dmf-live-hud[data-state="OVERDRIVE"] .dmf-live-hud-state{color:#ff5b1e;text-shadow:0 0 28px rgba(255,91,30,.35)}
+.dmf-live-hud-meter,.dmf-live-hud-bands div{display:grid;grid-template-columns:56px 1fr;align-items:center;gap:12px;font-size:8px;letter-spacing:.24em;text-transform:uppercase;color:#8a8178}
+.dmf-live-hud-meter{margin-bottom:12px}
+.dmf-live-hud-bands{display:grid;gap:7px}
+.dmf-live-hud i{display:block;height:1px;background:rgba(242,237,230,.12);overflow:hidden}
+.dmf-live-hud-meter i{height:2px}
+.dmf-live-hud em{display:block;height:100%;background:#ff5b1e;transform-origin:left center;transform:scaleX(0)}
+.dmf-live-hud-bands em{background:rgba(242,237,230,.7)}
+.dmf-live-hud-hint{position:absolute;right:clamp(20px,3vw,40px);bottom:clamp(24px,4vw,44px);display:flex;flex-direction:column;align-items:flex-end;gap:7px;font-size:8px;letter-spacing:.26em;text-transform:uppercase;color:#665f58}
+.dmf-signal-band.is-drop-armed .dmf-live-hud-drop{color:#ff5b1e}
+@media(max-width:560px){
+  .dmf-live-hud-top{left:70px;top:30px;flex-direction:column;gap:4px}
+  .dmf-live-hud-hint{right:20px;top:30px;bottom:auto}
+}
 @media(prefers-reduced-motion:reduce){
   .dmf-signal-scan,.dmf-signal-scan2,.dmf-signal-loader::after{animation:none}
+  .dmf-signal-arrival{display:none}
+  .dmf-live-hud-drop{display:none}
 }
 </style>
 <!-- DMF_CODEX_HEAD -->
@@ -817,13 +931,18 @@ ul{list-style:none}
 
 <!-- HERO -->
 <header id="top" class="hero">
-  <div>
+  <div class="hero-ghost" aria-hidden="true">Signal</div>
+  <div class="hero-copy">
     <div class="hero-kicker">
       <span class="hero-kicker-line"></span>
       <span class="hero-kicker-text">Press Kit — EPK</span>
     </div>
-    <h1>Demian<br>Muller</h1>
+    <h1 aria-label="Demian Muller"><span class="hero-line"><span>Demian</span></span><span class="hero-line"><span>Muller</span></span></h1>
     <p class="hero-role" data-i18n="role">Electronic Artist · DJ · Live Act</p>
+    <div class="hero-actions">
+      <a href="#academy" class="hero-cta"><span data-i18n="heroCta">Enter DMF Academy</span><span aria-hidden="true">→</span></a>
+      <a href="#relic" class="hero-cta-2"><span data-i18n="heroCta2">Receive the signal</span><span aria-hidden="true">↓</span></a>
+    </div>
     <div class="hero-stats">
       <div><div class="stat-num">20+</div><div class="stat-label" data-i18n="statYears">Years touring</div></div>
       <div><div class="stat-num">500+</div><div class="stat-label" data-i18n="statTracks">Tracks & remixes</div></div>
@@ -833,6 +952,11 @@ ul{list-style:none}
   <div class="hero-img">
     <img src="assets/images/jpg_0_19kb.jpg" alt="Demian Muller">
     <div class="hero-img-overlay"></div>
+  </div>
+  <div class="hero-signal" aria-hidden="true">
+    <span class="hero-signal-label" data-i18n="heroSignal">Signal in · physical × digital</span>
+    <span class="hero-signal-h"></span>
+    <span class="hero-signal-v"></span>
   </div>
   <div class="scroll-cue">
     <span data-i18n="scroll">Scroll</span>
@@ -1155,6 +1279,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       navAcademy:'Academy', navDemos:'Lab', navTips:'Tips',
       role:'Electronic Artist · DJ · Live Act',
       scroll:'Scroll',
+      heroCta:'Enter DMF Academy', heroCta2:'Receive the signal', heroSignal:'Signal in · physical × digital',
       statYears:'Years touring', statTracks:'Tracks & remixes', statAwards:'Beatport contest wins',
       bioTitle:'Biography',
       bioA:'<p>Demian Muller is an electronic music artist, DJ and live act with an international career spanning more than 20 years.</p><p>Since 2008, he has released over 500 tracks and remixes on labels including Cadenza, 8Bit, Get Physical Music, Circus Recordings, Sincopat, CR2 Records and Cluber. His sound moves between house, tech house and minimal, with influences from afro house and organic house, focused on groove, atmosphere and club functionality.</p><p>A 3-time Beatport Remix Contest winner, Demian has collaborated on remixes with artists including John Digweed, Yousef, Djuma Soundsystem, DJ Pierre and Proudly People, among others.</p>',
@@ -1239,6 +1364,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       navAcademy:'Academy', navDemos:'Lab', navTips:'Consejos',
       role:'Artista Electrónico · DJ · Live Act',
       scroll:'Desliza',
+      heroCta:'Entrar a DMF Academy', heroCta2:'Recibir la señal', heroSignal:'Señal entrante · físico × digital',
       statYears:'Años de carrera', statTracks:'Tracks y remixes', statAwards:'Premios Beatport',
       bioTitle:'Biografía',
       bioA:'<p>Demian Muller es artista de música electrónica, DJ y live act, con una carrera internacional de más de 20 años.</p><p>Desde 2008 ha publicado más de 500 tracks y remixes en sellos como Cadenza, 8Bit, Get Physical Music, Circus Recordings, Sincopat, CR2 Records y Cluber. Su sonido se mueve entre house, tech house y minimal, con influencias del afro house y el organic house, centrado en el groove, la atmósfera y la funcionalidad de club.</p><p>Ganador tres veces del Beatport Remix Contest, ha colaborado en remixes con artistas como John Digweed, Yousef, Djuma Soundsystem, DJ Pierre y Proudly People, entre otros.</p>',
@@ -1793,27 +1919,571 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   renderDemos();
 })();
 </script>
+<script>
+/* DMF OVERDRIVE — scroll choreography (reveal → tension → activation → release) and hero depth.
+   Native IntersectionObserver + rAF, transforms only. Content stays visible without JS or with reduced motion. */
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !('IntersectionObserver' in window)) return;
+  document.documentElement.classList.add('dmf-choreo');
+
+  var io = new IntersectionObserver(function(entries){
+    for (var i = 0; i < entries.length; i++) {
+      if (entries[i].isIntersecting) {
+        entries[i].target.classList.add('is-in');
+        io.unobserve(entries[i].target);
+      }
+    }
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0 });
+  var els = document.querySelectorAll('.hero, .section, .contact, .band, .section-head, .acad-kicker, .acad-tag, .acad-title, .acad-sub, .acad-badge, .fly-card, .tips-img');
+  for (var i = 0; i < els.length; i++) io.observe(els[i]);
+
+  var hero = document.querySelector('.hero');
+  if (!hero) return;
+  var heroOn = false, ticking = false;
+  function update(){
+    ticking = false;
+    if (!heroOn) return;
+    var y = -hero.getBoundingClientRect().top;
+    hero.style.setProperty('--hero-ghost-y', (y * 0.22).toFixed(1) + 'px');
+    hero.style.setProperty('--hero-copy-y', (y * 0.06).toFixed(1) + 'px');
+    hero.style.setProperty('--hero-img-y', (y * -0.05).toFixed(1) + 'px');
+  }
+  function request(){ if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+  new IntersectionObserver(function(en){ heroOn = en[0].isIntersecting; if (heroOn) request(); }).observe(hero);
+  window.addEventListener('scroll', request, { passive: true });
+})();
+</script>
 <!-- DMF_MESHY_3D_BODY -->
 <script>
-(function(){
-  function mountDMFSignal(){
+/* DMF OVERDRIVE ENGINE — pure, deterministic, ES5, no DOM.
+ * Inlined into public/index.html by scripts/build-3d.cjs; required directly by tests. */
+(function (root) {
+  'use strict';
+
+  var BPM = 124;
+  var CYCLE_BARS = 32;
+
+  function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+  function frac(v) { return v - Math.floor(v); }
+
+  // Frame-rate independent attack/release follower (time constants in seconds).
+  function follow(current, target, attack, release, dt) {
+    var tau = target > current ? attack : release;
+    return current + (target - current) * (1 - Math.exp(-dt / tau));
+  }
+
+  // Damped spring: impulses add velocity, step() integrates toward a target.
+  function DMFSpring(stiffness, damping) {
+    this.x = 0;
+    this.v = 0;
+    this.k = stiffness;
+    this.c = damping;
+  }
+  DMFSpring.prototype.impulse = function (j) { this.v += j; };
+  DMFSpring.prototype.step = function (target, dt) {
+    var steps = dt > 0.016 ? Math.ceil(dt / 0.016) : 1;
+    var h = dt / steps;
+    for (var i = 0; i < steps; i++) {
+      this.v += (this.k * (target - this.x) - this.c * this.v) * h;
+      this.x += this.v * h;
+    }
+    return this.x;
+  };
+
+  // Synthetic 124 BPM performance with a 32-bar arrangement
+  // (intro 0-7, groove 8-15, build 16-23, drop 24-31) plus optional analyser input.
+  function DMFSignalEngine(opts) {
+    opts = opts || {};
+    this.bpm = opts.bpm || BPM;
+    this.time = 0;
+    this.beatOffset = (opts.startBar || 0) * 4;
+    this.forceDrop = false;
+    this.audioMix = 0;
+    this.audio = null;
+    this.audioKick = 0;
+    this.audioSnare = 0;
+    this.audioLastOnset = -1;
+    this.audioInterval = 60 / this.bpm;
+    this.out = {
+      low: 0, mid: 0, high: 0, energy: 0,
+      kick: 0, snare: 0, transient: 0,
+      beatPhase: 0, beatIndex: 0, bar: 0, barInCycle: 0,
+      dropEnergy: 0, drive: 0, section: 'intro', bpm: this.bpm, source: 'clock'
+    };
+  }
+
+  DMFSignalEngine.prototype.setForceDrop = function (on) { this.forceDrop = !!on; };
+
+  // bands: {low, mid, high} normalized 0..1, kickOnset/snareOnset booleans.
+  DMFSignalEngine.prototype.inputAudio = function (bands) { this.audio = bands; };
+  DMFSignalEngine.prototype.clearAudio = function () { this.audio = null; };
+
+  DMFSignalEngine.prototype.update = function (dt) {
+    dt = dt > 0.1 ? 0.1 : (dt < 0 ? 0 : dt);
+    this.time += dt;
+    var o = this.out;
+
+    var beats = this.time * this.bpm / 60 + this.beatOffset;
+    var beatIndex = Math.floor(beats);
+    var phase = beats - beatIndex;
+    var bar = Math.floor(beats / 4);
+    var barPos = frac(beats / 4);
+    var barInCycle = ((bar % CYCLE_BARS) + CYCLE_BARS) % CYCLE_BARS;
+    var beatInBar = ((beatIndex % 4) + 4) % 4;
+
+    var drive, section, isDrop = 0, buildP = 0;
+    if (this.forceDrop) { drive = 1; section = 'drop'; isDrop = 1; }
+    else if (barInCycle < 8) { drive = 0.3; section = 'intro'; }
+    else if (barInCycle < 16) { drive = 0.55; section = 'groove'; }
+    else if (barInCycle < 24) {
+      buildP = (barInCycle - 16 + barPos) / 8;
+      drive = 0.6 + 0.32 * buildP;
+      section = 'build';
+    } else { drive = 1; section = 'drop'; isDrop = 1; }
+
+    // Kick: four-on-the-floor, silent on the last build bar for tension.
+    var kickGate = (section === 'build' && barInCycle === 23 && !this.forceDrop) ? 0 : 1;
+    var kick = Math.exp(-phase * 7) * kickGate * (section === 'intro' ? 0.75 : 1);
+
+    // Snare on 2 and 4; rolls into 8ths then 16ths during the build.
+    var snare;
+    if (section === 'build' && barInCycle >= 20) {
+      var sub = barInCycle >= 22 ? 4 : 2;
+      snare = Math.exp(-frac(beats * sub) * 10) * (0.45 + 0.55 * buildP);
+    } else {
+      snare = (beatInBar === 1 || beatInBar === 3) ? Math.exp(-phase * 9) * (section === 'intro' ? 0.5 : 1) : 0;
+    }
+
+    var openHat = Math.exp(-frac(beats + 0.5) * 6) * (drive > 0.5 ? 1 : 0.45);
+    var closedHat = Math.exp(-frac(beats * 4) * 12) * 0.35 * drive;
+    var riser = section === 'build' ? buildP * buildP * 0.5 : 0;
+    var bass = (section === 'intro' ? 0.15 : 0.35) * (1 - Math.exp(-phase * 4)) * (1 - phase) * 2;
+    var pad = 0.25 * drive * (0.5 + 0.5 * Math.sin(2 * Math.PI * beats / 8));
+
+    var rawLow = clamp01(kick * 0.9 + bass);
+    var rawMid = clamp01(snare * 0.8 + pad);
+    var rawHigh = clamp01(openHat * 0.6 + closedHat + riser);
+    var rawKick = kick;
+    var rawSnare = snare;
+
+    // Analyser input crossfades over the synthetic clock.
+    this.audioMix = follow(this.audioMix, this.audio ? 1 : 0, 0.3, 1.5, dt);
+    this.audioKick *= Math.exp(-dt * 14);
+    this.audioSnare *= Math.exp(-dt * 16);
+    if (this.audio) {
+      var a = this.audio;
+      if (a.kickOnset) {
+        if (this.audioLastOnset >= 0) {
+          var iv = this.time - this.audioLastOnset;
+          if (iv > 0.3 && iv < 1.0) this.audioInterval += (iv - this.audioInterval) * 0.2;
+        }
+        this.audioLastOnset = this.time;
+        this.audioKick = 1;
+      }
+      if (a.snareOnset) this.audioSnare = 1;
+    }
+    var m = this.audioMix;
+    if (m > 0.001) {
+      var al = this.audio ? this.audio.low : 0;
+      var am = this.audio ? this.audio.mid : 0;
+      var ah = this.audio ? this.audio.high : 0;
+      rawLow = rawLow + (clamp01(al) - rawLow) * m;
+      rawMid = rawMid + (clamp01(am) - rawMid) * m;
+      rawHigh = rawHigh + (clamp01(ah) - rawHigh) * m;
+      rawKick = rawKick + (this.audioKick - rawKick) * m;
+      rawSnare = rawSnare + (this.audioSnare - rawSnare) * m;
+      var audioDrive = clamp01((al * 0.5 + am * 0.3 + ah * 0.2) * 1.3);
+      drive = drive + (audioDrive - drive) * m;
+      isDrop = isDrop + ((audioDrive > 0.75 ? 1 : 0) - isDrop) * m;
+      if (m > 0.5 && this.audioLastOnset >= 0) {
+        phase = clamp01((this.time - this.audioLastOnset) / this.audioInterval);
+      }
+    }
+
+    o.low = follow(o.low, rawLow, 0.012, 0.16, dt);
+    o.mid = follow(o.mid, rawMid, 0.015, 0.2, dt);
+    o.high = follow(o.high, rawHigh, 0.008, 0.12, dt);
+    var bandMix = 0.5 * o.low + 0.3 * o.mid + 0.2 * o.high;
+    o.energy = clamp01(follow(o.energy, 0.35 * bandMix + 0.65 * drive, 0.08, 0.6, dt));
+    o.dropEnergy = clamp01(follow(o.dropEnergy, isDrop ? 1 : drive * 0.6, 0.4, 1.2, dt));
+    o.kick = clamp01(rawKick);
+    o.snare = clamp01(rawSnare);
+    o.transient = o.kick > o.snare ? o.kick : o.snare;
+    o.beatPhase = phase;
+    o.beatIndex = beatIndex;
+    o.bar = bar;
+    o.barInCycle = barInCycle;
+    o.drive = drive;
+    o.section = section;
+    o.source = m > 0.5 ? 'audio' : 'clock';
+    o.bpm = m > 0.5 ? Math.round(60 / this.audioInterval) : this.bpm;
+    return o;
+  };
+
+  var LEVELS = ['DORMANT', 'AWAKENED', 'TRANSMITTING'];
+
+  // DORMANT → AWAKENED → TRANSMITTING by energy (with hysteresis bands);
+  // OVERDRIVE only after sustained drop energy, released after sustained calm.
+  function DMFStateMachine() {
+    this.level = 0;
+    this.overdrive = false;
+    this.odTimer = 0;
+    this.overdriveMix = 0;
+    this.state = 'DORMANT';
+  }
+
+  DMFStateMachine.prototype.update = function (sig, dt, ctx) {
+    ctx = ctx || {};
+    var active = ctx.active !== false;
+    var e = sig.energy;
+    var lvl = this.level;
+    if (!active) lvl = 0;
+    else {
+      if (lvl === 0 && e > 0.3) lvl = 1;
+      else if (lvl === 1 && e < 0.22) lvl = 0;
+      if (lvl === 1 && e > 0.62) lvl = 2;
+      else if (lvl === 2 && e < 0.5) lvl = 1;
+    }
+    this.level = lvl;
+
+    if (!this.overdrive) {
+      if (active && sig.dropEnergy > 0.78) {
+        this.odTimer += dt;
+        if (this.odTimer > 1.2) { this.overdrive = true; this.odTimer = 0; }
+      } else this.odTimer = 0;
+    } else if (!active) {
+      this.overdrive = false;
+      this.odTimer = 0;
+    } else if (sig.dropEnergy < 0.45) {
+      this.odTimer += dt;
+      if (this.odTimer > 0.9) { this.overdrive = false; this.odTimer = 0; }
+    } else this.odTimer = 0;
+
+    this.overdriveMix = follow(this.overdriveMix, this.overdrive ? 1 : 0, 0.6, 1.2, dt);
+    var shown = Math.max(lvl, ctx.hoverLevel || 0);
+    this.state = this.overdrive ? 'OVERDRIVE' : LEVELS[shown];
+    return this.state;
+  };
+
+  // One-way quality downgrade from rolling FPS; never upgrades, so tiers cannot oscillate.
+  function DMFPerformanceGovernor(tier, opts) {
+    opts = opts || {};
+    this.tier = tier;
+    this.window = opts.window || 3;
+    this.acc = 0;
+    this.frames = 0;
+    this.windows = 0;
+    this.fps = 60;
+  }
+
+  DMFPerformanceGovernor.prototype.sample = function (realDt) {
+    if (realDt > 0.25) { this.acc = 0; this.frames = 0; return null; }
+    this.acc += realDt;
+    this.frames++;
+    if (this.acc < this.window) return null;
+    this.fps = this.frames / this.acc;
+    this.acc = 0;
+    this.frames = 0;
+    this.windows++;
+    if (this.windows < 2) return null;
+    if (this.tier === 'high' && this.fps < 35) { this.tier = 'balanced'; return 'balanced'; }
+    if (this.tier === 'balanced' && this.fps < 24) { this.tier = 'lite'; return 'lite'; }
+    return null;
+  };
+
+  var api = {
+    BPM: BPM,
+    clamp01: clamp01,
+    follow: follow,
+    DMFSpring: DMFSpring,
+    DMFSignalEngine: DMFSignalEngine,
+    DMFStateMachine: DMFStateMachine,
+    DMFPerformanceGovernor: DMFPerformanceGovernor
+  };
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.DMFOverdrive = api;
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
+/* DMF SIGNAL BUS — browser runtime. One clock drives the relic and the landing.
+ * Inlined into public/index.html by scripts/build-3d.cjs after engine.js. */
+(function () {
+  'use strict';
+  var O = window.DMFOverdrive;
+  if (!O || window.DMFSignal) return;
+
+  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  var saveData = !!(conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || '')));
+  var debug = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || /[?&]dmfdebug=1/.test(location.search);
+
+  var engine = new O.DMFSignalEngine({ startBar: 8 });
+  var machine = new O.DMFStateMachine();
+  var listeners = [];
+
+  var hub = window.DMFSignal = {
+    signal: engine.out,
+    state: 'DORMANT',
+    overdriveMix: 0,
+    hoverLevel: 0,
+    forceDrop: false,
+    reduced: reduce,
+    saveData: saveData,
+    running: false,
+    fps: 60,
+    qualityTier: 'none',
+    setForceDrop: function (on) { hub.forceDrop = !!on; engine.setForceDrop(!!on); },
+    onFrame: function (fn) { listeners.push(fn); },
+    attachAudio: attachAudio,
+    scan: scan
+  };
+
+  var perf = null;
+  if (debug) {
+    perf = window.__DMF_PERF__ = {
+      fps: 0, qualityTier: 'none', state: 'DORMANT',
+      low: 0, mid: 0, high: 0, energy: 0, kick: 0, overdrive: 0, source: 'clock'
+    };
+  }
+
+  if (reduce || saveData) return;
+
+  // === DMFAudioReactive — same-origin <video>/<audio> feed a real analyser when playing ===
+  var AC = window.AudioContext || window.webkitAudioContext;
+  var actx = null, analyser = null, freq = null, sources = [];
+  var bins = null;
+  var agc = [0.2, 0.2, 0.2];
+  var prevBand = [0, 0, 0];
+  var fluxAvg = [0, 0, 0];
+  var sinceOnset = [1, 1];
+  var audioFrame = { low: 0, mid: 0, high: 0, kickOnset: false, snareOnset: false };
+
+  function attachAudio(el) {
+    if (!AC || !el) return;
+    if (el.__dmfAudio) { if (actx && actx.resume) actx.resume(); return; }
+    try {
+      if (new URL(el.currentSrc || el.src, location.href).origin !== location.origin) return;
+    } catch (_) { return; }
+    if (!actx) { try { actx = new AC(); } catch (_) { return; } }
+    var ready = actx.resume ? actx.resume() : null;
+    var connect = function () {
+      if (actx.state !== 'running' || el.__dmfAudio) return;
+      try {
+        if (!analyser) {
+          analyser = actx.createAnalyser();
+          analyser.fftSize = 1024;
+          analyser.smoothingTimeConstant = 0.55;
+          freq = new Uint8Array(analyser.frequencyBinCount);
+          var hz = actx.sampleRate / analyser.fftSize;
+          bins = [[Math.max(1, Math.round(20 / hz)), Math.round(150 / hz)],
+                  [Math.round(150 / hz), Math.round(2000 / hz)],
+                  [Math.round(2000 / hz), Math.min(freq.length - 1, Math.round(12000 / hz))]];
+          analyser.connect(actx.destination);
+        }
+        actx.createMediaElementSource(el).connect(analyser);
+        el.__dmfAudio = true;
+        sources.push(el);
+      } catch (_) {}
+    };
+    if (ready && ready.then) ready.then(connect, function () {});
+    else connect();
+  }
+
+  document.addEventListener('play', function (e) {
+    var t = e.target;
+    if (t && (t.tagName === 'VIDEO' || t.tagName === 'AUDIO')) attachAudio(t);
+  }, true);
+
+  function bandLevel(b) {
+    var sum = 0, lo = bins[b][0], hi = bins[b][1];
+    for (var i = lo; i <= hi; i++) sum += freq[i];
+    return sum / ((hi - lo + 1) * 255);
+  }
+
+  function pollAudio(dt) {
+    var playing = false;
+    for (var i = 0; i < sources.length; i++) {
+      var s = sources[i];
+      if (!s.paused && !s.ended && !s.muted && s.volume > 0) { playing = true; break; }
+    }
+    if (!playing || !analyser || actx.state !== 'running') {
+      if (engine.audio) engine.clearAudio();
+      return;
+    }
+    analyser.getByteFrequencyData(freq);
+    for (var b = 0; b < 3; b++) {
+      var v = bandLevel(b);
+      agc[b] = Math.max(agc[b] * Math.exp(-dt * 0.35), v, 0.04);
+      var n = v / agc[b];
+      var flux = Math.max(0, n - prevBand[b]);
+      prevBand[b] = n;
+      var isOnset = b < 2 && flux > fluxAvg[b] * 2.2 + 0.06 && sinceOnset[b] > 0.22;
+      fluxAvg[b] += (flux - fluxAvg[b]) * 0.1;
+      if (b === 0) { audioFrame.low = n; audioFrame.kickOnset = isOnset; }
+      else if (b === 1) { audioFrame.mid = n; audioFrame.snareOnset = isOnset; }
+      else audioFrame.high = n;
+      if (b < 2) sinceOnset[b] = isOnset ? 0 : sinceOnset[b] + dt;
+    }
+    engine.inputAudio(audioFrame);
+  }
+
+  // === DMFLandingBus — CSS custom properties on visible blocks only ===
+  var TARGETS = '.nav, header.hero, .section, .contact, .band, .dmf-signal-band';
+  var VARS = ['--dmf-energy', '--dmf-kick', '--dmf-low', '--dmf-high', '--dmf-peak', '--dmf-phase', '--dmf-overdrive'];
+  var vals = [0, 0, 0, 0, 0, 0, 0];
+  var visible = [];
+  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function (entries) {
+    for (var i = 0; i < entries.length; i++) {
+      var el = entries[i].target;
+      var idx = visible.indexOf(el);
+      if (entries[i].isIntersecting) { if (idx < 0) visible.push(el); }
+      else if (idx >= 0) {
+        visible.splice(idx, 1);
+        for (var k = 0; k < VARS.length; k++) el.style.removeProperty(VARS[k]);
+        el.__dmfVals = null;
+      }
+    }
+  }, { rootMargin: '8% 0px' }) : null;
+
+  function scan() {
+    if (!io) return;
+    var list = document.querySelectorAll(TARGETS);
+    for (var i = 0; i < list.length; i++) {
+      if (!list[i].__dmfBus) { list[i].__dmfBus = true; io.observe(list[i]); }
+    }
+    pathRefresh();
+  }
+
+  function smooth01(e0, e1, x) { var t = O.clamp01((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); }
+
+  var lastWrite = 0;
+  function writeBus(now, s) {
+    if (now - lastWrite < 33) return;
+    lastWrite = now;
+    vals[0] = s.energy;
+    vals[1] = s.kick;
+    vals[2] = s.low;
+    vals[3] = s.high;
+    vals[4] = O.clamp01((s.transient - 0.5) * 2) * smooth01(0.55, 0.85, s.energy);
+    vals[5] = s.beatPhase;
+    vals[6] = machine.overdriveMix;
+    for (var i = 0; i < visible.length; i++) {
+      var el = visible[i];
+      var cache = el.__dmfVals || (el.__dmfVals = [-1, -1, -1, -1, -1, -1, -1]);
+      for (var k = 0; k < VARS.length; k++) {
+        var v = Math.round(vals[k] * 1000) / 1000;
+        if (cache[k] !== v) { cache[k] = v; el.style.setProperty(VARS[k], v); }
+      }
+    }
+  }
+
+  // Academy signal path: one node goes live per bar and the line fills to it.
+  var path = null, pathNodes = null, pathTops = null, pathVisible = false, liveNode = -1;
+  var pathIO = 'IntersectionObserver' in window ? new IntersectionObserver(function (en) {
+    pathVisible = en[0].isIntersecting;
+  }) : null;
+  var pathMO = 'MutationObserver' in window ? new MutationObserver(function () { pathMeasure(); }) : null;
+
+  function pathRefresh() {
+    var p = document.getElementById('modulesGrid');
+    if (!p || p === path) return;
+    path = p;
+    if (pathIO) pathIO.observe(p);
+    if (pathMO) pathMO.observe(p, { childList: true });
+    pathMeasure();
+  }
+  function pathMeasure() {
+    if (!path) return;
+    pathNodes = path.querySelectorAll('.signal-node');
+    var h = path.offsetHeight || 1;
+    pathTops = [];
+    for (var i = 0; i < pathNodes.length; i++) pathTops.push((pathNodes[i].offsetTop + 31) / h);
+    liveNode = -1;
+  }
+  var resizeTimer = 0;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(pathMeasure, 200);
+  });
+
+  function drivePath(s) {
+    if (!pathVisible || !pathNodes || !pathNodes.length) return;
+    var idx = ((s.bar % pathNodes.length) + pathNodes.length) % pathNodes.length;
+    if (idx === liveNode) return;
+    if (liveNode >= 0 && pathNodes[liveNode]) pathNodes[liveNode].classList.remove('is-live');
+    pathNodes[idx].classList.add('is-live');
+    liveNode = idx;
+    path.style.setProperty('--dmf-path', pathTops[idx].toFixed(3));
+  }
+
+  // === Frame loop — single rAF for bus, relic and HUD ===
+  var last = 0, fpsAcc = 0, fpsFrames = 0;
+  function frame(now) {
+    requestAnimationFrame(frame);
+    var raw = last ? (now - last) / 1000 : 0.016;
+    last = now;
+    var dt = raw > 0.1 ? 0.1 : raw;
+    pollAudio(dt);
+    var s = engine.update(dt);
+    hub.state = machine.update(s, dt, { active: true, hoverLevel: hub.hoverLevel });
+    hub.overdriveMix = machine.overdriveMix;
+    for (var i = 0; i < listeners.length; i++) listeners[i](s, dt, raw, hub);
+    writeBus(now, s);
+    drivePath(s);
+    if (raw < 0.25) { fpsAcc += raw; fpsFrames++; }
+    if (fpsAcc >= 1) { hub.fps = Math.round(fpsFrames / fpsAcc); fpsAcc = 0; fpsFrames = 0; }
+    if (perf) {
+      perf.fps = hub.fps; perf.qualityTier = hub.qualityTier; perf.state = hub.state;
+      perf.low = s.low; perf.mid = s.mid; perf.high = s.high; perf.energy = s.energy;
+      perf.kick = s.kick; perf.overdrive = machine.overdriveMix; perf.source = s.source;
+    }
+  }
+
+  function start() {
+    if (hub.running) return;
+    hub.running = true;
+    document.documentElement.classList.add('dmf-signal-live');
+    scan();
+    setTimeout(scan, 1500);
+    requestAnimationFrame(frame);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+  else start();
+})();
+
+</script>
+<script>
+/* DMF RELIC RUNTIME — The Receiver: scene, DMFRelicAnimator, DMFCameraRig, DMF LIVE SIGNAL HUD.
+ * Inlined into public/index.html by scripts/build-3d.cjs after engine.js and signal-bus.js. */
+(function () {
+  var RELIC_BPM = 124;
+
+  function getLang() {
+    var btn = document.querySelector('.lang-btn');
+    return btn && btn.textContent.trim().toUpperCase() === 'EN' ? 'es' : 'en';
+  }
+
+  function mountDMFSignal() {
     var hero = document.querySelector('header.hero');
-    if(!hero || document.querySelector('.dmf-signal-band')) return;
+    if (!hero || document.querySelector('.dmf-signal-band')) return;
 
     var band = document.createElement('section');
     band.className = 'dmf-signal-band';
-    band.setAttribute('aria-label','DMF RELIC Collector Edition 01');
+    band.id = 'relic';
+    band.setAttribute('aria-label', 'DMF RELIC Collector Edition 01');
     band.innerHTML = [
       '<div class="dmf-signal-shell">',
         '<div class="dmf-signal-copy">',
           '<div class="dmf-signal-kicker" data-dmf-en="DMF // RELIC SERIES" data-dmf-es="DMF // SERIE RELIC">DMF // RELIC SERIES</div>',
           '<h2 class="dmf-signal-title" data-dmf-en="The Receiver" data-dmf-es="El Receptor">The Receiver</h2>',
-          '<div class="dmf-signal-subtitle" data-dmf-en="Collector Edition 01" data-dmf-es="Edici\u00f3n de Colecci\u00f3n 01">Collector Edition 01</div>',
-          '<p class="dmf-signal-lede" data-dmf-en="The first terrestrial keeper of the formula. A digital relic from the DMF universe, preserved as a collectible and prepared for 3D print." data-dmf-es="El primer guardi\u00e1n terrestre de la f\u00f3rmula. Una reliquia digital del universo DMF, preservada como pieza de colecci\u00f3n y preparada para impresi\u00f3n 3D.">The first terrestrial keeper of the formula. A digital relic from the DMF universe, preserved as a collectible and prepared for 3D print.</p>',
+          '<div class="dmf-signal-subtitle" data-dmf-en="Collector Edition 01" data-dmf-es="Edición de Colección 01">Collector Edition 01</div>',
+          '<p class="dmf-signal-lede" data-dmf-en="The first terrestrial keeper of the formula. A digital relic from the DMF universe, preserved as a collectible and prepared for 3D print." data-dmf-es="El primer guardián terrestre de la fórmula. Una reliquia digital del universo DMF, preservada como pieza de colección y preparada para impresión 3D.">The first terrestrial keeper of the formula. A digital relic from the DMF universe, preserved as a collectible and prepared for 3D print.</p>',
           '<div class="dmf-relic-card">',
-            '<div class="dmf-relic-card-title" data-dmf-en="Edition Record" data-dmf-es="Registro de Edici\u00f3n">Edition Record</div>',
+            '<div class="dmf-relic-card-title" data-dmf-en="Edition Record" data-dmf-es="Registro de Edición">Edition Record</div>',
             '<div class="dmf-relic-row"><span class="dmf-relic-label">Series</span><span class="dmf-relic-value">Relic Series</span></div>',
-            '<div class="dmf-relic-row"><span class="dmf-relic-label" data-dmf-en="Edition" data-dmf-es="Edici\u00f3n">Edition</span><span class="dmf-relic-value">01</span></div>',
+            '<div class="dmf-relic-row"><span class="dmf-relic-label" data-dmf-en="Edition" data-dmf-es="Edición">Edition</span><span class="dmf-relic-value">01</span></div>',
             '<div class="dmf-relic-row"><span class="dmf-relic-label">Material</span><span class="dmf-relic-value" data-dmf-en="Digital / Printable" data-dmf-es="Digital / Imprimible">Digital / Printable</span></div>',
             '<div class="dmf-relic-row"><span class="dmf-relic-label" data-dmf-en="Origin" data-dmf-es="Origen">Origin</span><span class="dmf-relic-value">DMF Signal Archive</span></div>',
             '<div class="dmf-relic-row"><span class="dmf-relic-label">Status</span><span class="dmf-relic-value" data-dmf-en="Collectible Prototype" data-dmf-es="Prototipo Coleccionable">Collectible Prototype</span></div>',
@@ -1824,65 +2494,84 @@ if (window.__DMF_FIREBASE_CONFIG__) {
             '<span class="dmf-signal-chip">3D Printable</span>',
           '</div>',
           '<div class="dmf-signal-actions">',
-            '<a class="dmf-signal-cta dmf-signal-view3d" href="javascript:void(0)" role="button"><span data-dmf-en="View Relic" data-dmf-es="Ver Reliquia">View Relic</span><span aria-hidden="true"> \u2192</span></a>',
+            '<a class="dmf-signal-cta dmf-signal-view3d" href="javascript:void(0)" role="button"><span data-dmf-en="Live Signal" data-dmf-es="Se\u00f1al en Vivo">Live Signal</span><span aria-hidden="true"> →</span></a>',
             '<a class="dmf-signal-cta dmf-signal-cta--secondary" href="assets/models/dmf-studio-optimized.glb" download><span data-dmf-en="Download Digital Relic" data-dmf-es="Descargar Reliquia Digital">Download Digital Relic</span></a>',
-            '<a class="dmf-signal-cta dmf-signal-cta--tertiary" href="assets/models/DMF_RELIC_01.3mf" download><span data-dmf-en="3D Print Master" data-dmf-es="Modelo Impresi\u00f3n 3D">3D Print Master</span></a>',
+            '<a class="dmf-signal-cta dmf-signal-cta--tertiary" href="assets/models/DMF_RELIC_01.3mf" download><span data-dmf-en="3D Print Master" data-dmf-es="Modelo Impresión 3D">3D Print Master</span></a>',
           '</div>',
-          '<span class="dmf-signal-hint" data-dmf-en="Interactive \u00b7 drag to orbit" data-dmf-es="Interactivo \u00b7 arrastra para rotar">Interactive \u00b7 drag to orbit</span>',
+          '<span class="dmf-signal-hint" data-dmf-en="Interactive · drag to orbit" data-dmf-es="Interactivo · arrastra para rotar">Interactive · drag to orbit</span>',
         '</div>',
         '<div class="dmf-signal-visual">',
           '<div class="dmf-signal-fallback" aria-hidden="true">RELIC</div>',
           '<div class="dmf-signal-loader" aria-hidden="true"></div>',
+          '<div class="dmf-signal-arrival" aria-hidden="true"></div>',
           '<div class="dmf-signal-scan" aria-hidden="true"></div>',
           '<div class="dmf-signal-scan2" aria-hidden="true"></div>',
           '<div class="dmf-signal-vignette" aria-hidden="true"></div>',
-          '<div class="dmf-signal-corner" aria-hidden="true"><strong>DMF / RELIC 01</strong><span data-dmf-en="Signal Sculpture" data-dmf-es="Escultura Se\u00f1al">Signal Sculpture</span><span class="dmf-relic-state">DORMANT</span></div>',
-          '<div class="dmf-signal-edition-tag" aria-hidden="true" data-dmf-en="Collector Artifact \u00b7 DMF Universe" data-dmf-es="Artefacto Coleccionable \u00b7 Universo DMF">Collector Artifact \u00b7 DMF Universe</div>',
+          '<div class="dmf-signal-corner" aria-hidden="true"><strong>DMF / RELIC 01</strong><span data-dmf-en="Signal Sculpture" data-dmf-es="Escultura Señal">Signal Sculpture</span><span class="dmf-relic-state">DORMANT</span></div>',
+          '<div class="dmf-signal-edition-tag" aria-hidden="true" data-dmf-en="Collector Artifact · DMF Universe" data-dmf-es="Artefacto Coleccionable · Universo DMF">Collector Artifact · DMF Universe</div>',
           '<div class="dmf-relic-readout" aria-hidden="true"><div class="dmf-relic-readout-component"></div><div class="dmf-relic-readout-status"></div><div class="dmf-relic-readout-lore"></div></div>',
-          '<button class="dmf-signal-fullscreen-close" aria-label="Close" type="button">\u2715</button>',
+          '<div class="dmf-live-hud" aria-hidden="true">',
+            '<div class="dmf-live-hud-top"><span class="dmf-live-hud-title">DMF Live Signal</span><span class="dmf-live-hud-bpm"><b>' + RELIC_BPM + '</b> BPM</span></div>',
+            '<div class="dmf-live-hud-main">',
+              '<div class="dmf-live-hud-state">DORMANT</div>',
+              '<div class="dmf-live-hud-meter"><span data-dmf-en="Energy" data-dmf-es="Energía">Energy</span><i><em data-hud="energy"></em></i></div>',
+              '<div class="dmf-live-hud-bands">',
+                '<div><span>Low</span><i><em data-hud="low"></em></i></div>',
+                '<div><span>Mid</span><i><em data-hud="mid"></em></i></div>',
+                '<div><span>High</span><i><em data-hud="high"></em></i></div>',
+              '</div>',
+            '</div>',
+            '<div class="dmf-live-hud-hint"><span class="dmf-live-hud-drop" data-dmf-en="Space / Tap — Drop" data-dmf-es="Espacio / Toca — Drop">Space / Tap — Drop</span><span data-dmf-en="Esc — Exit" data-dmf-es="Esc — Salir">Esc — Exit</span></div>',
+          '</div>',
+          '<button class="dmf-signal-fullscreen-close" aria-label="Close" type="button">✕</button>',
         '</div>',
       '</div>'
     ].join('');
 
     hero.insertAdjacentElement('afterend', band);
 
-    function syncSignalLanguage(){
-      var btn = document.querySelector('.lang-btn');
-      var current = btn && btn.textContent.trim().toUpperCase() === 'EN' ? 'en' : 'es';
-      band.querySelectorAll('[data-dmf-en]').forEach(function(el){
+    function syncSignalLanguage() {
+      var current = getLang();
+      band.querySelectorAll('[data-dmf-en]').forEach(function (el) {
         el.textContent = current === 'es' ? el.getAttribute('data-dmf-es') : el.getAttribute('data-dmf-en');
       });
     }
     syncSignalLanguage();
 
     var langBtn = document.querySelector('.lang-btn');
-    if(langBtn && 'MutationObserver' in window){
-      new MutationObserver(syncSignalLanguage).observe(langBtn,{childList:true,subtree:true,characterData:true});
+    if (langBtn && 'MutationObserver' in window) {
+      new MutationObserver(syncSignalLanguage).observe(langBtn, { childList: true, subtree: true, characterData: true });
     }
 
-    var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    var constrained = connection && (connection.saveData || /(^|-)2g$/.test(connection.effectiveType || ''));
-    if(constrained) return;
+    var hub = window.DMFSignal;
+    if (hub && hub.scan) hub.scan();
+    if (!hub || hub.saveData) return;
 
-    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var visual = band.querySelector('.dmf-signal-visual');
-
     var threeScript = document.createElement('script');
     threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-    threeScript.onload = function(){
+    threeScript.onload = function () {
       var loaderScript = document.createElement('script');
       loaderScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
-      loaderScript.onload = function(){ initScene(visual, band, reduceMotion); };
-      loaderScript.onerror = function(){};
+      loaderScript.onload = function () { initScene(visual, band, hub); };
+      loaderScript.onerror = function () {};
       document.head.appendChild(loaderScript);
     };
-    threeScript.onerror = function(){};
+    threeScript.onerror = function () {};
     document.head.appendChild(threeScript);
   }
 
-  function initScene(container, band, reduceMotion){
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function ease(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
+  function ease5(t) { t = clamp(t, 0, 1); return t * t * t * (t * (t * 6 - 15) + 10); }
+  function frac(v) { return v - Math.floor(v); }
+  function hash(n) { var x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); }
+
+  function initScene(container, band, hub) {
     var THREE = window.THREE;
-    if(!THREE || !THREE.GLTFLoader) return;
+    if (!THREE || !THREE.GLTFLoader) return;
+    var O = window.DMFOverdrive;
+    var reduceMotion = hub.reduced || !hub.onFrame;
 
     var w = container.clientWidth;
     var h = container.clientHeight;
@@ -1895,9 +2584,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     camera.position.set(4, 2.8, 5);
     camera.lookAt(0, 0.9, 0);
 
-    var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
     renderer.setSize(w, h);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1905,17 +2593,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     renderer.outputEncoding = THREE.sRGBEncoding;
     container.appendChild(renderer.domElement);
 
-    // === QUALITY TIER — adaptive performance ===
-    var isMobile = w < 768 || ('ontouchstart' in window);
-    var isLowEnd = isMobile && w < 480;
-    var quality = isLowEnd ? 'static' : (isMobile ? 'balanced' : 'high');
-    if(quality === 'balanced'){
-      renderer.shadowMap.enabled = false;
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-    } else if(quality === 'static'){
-      renderer.shadowMap.enabled = false;
-      renderer.setPixelRatio(1);
-    }
+    // === QUALITY TIERS — static only for genuinely low-capability devices ===
+    var mem = navigator.deviceMemory || 4;
+    var cores = navigator.hardwareConcurrency || 4;
+    var touch = 'ontouchstart' in window;
+    var small = window.innerWidth < 480;
+    var quality = (mem <= 2 || cores <= 2) ? 'static' : ((window.innerWidth < 768 || touch) ? 'balanced' : 'high');
+    var motionScale = 1;
 
     // === LIGHTING — altar/museum treatment ===
     var ambientLight = new THREE.AmbientLight(0x0e0c0a, 0.35);
@@ -1956,43 +2640,32 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     scene.add(haloLight);
 
     // === FLOOR — dark altar base ===
-    var floorGeo = new THREE.PlaneGeometry(30, 30);
-    var floorMat = new THREE.MeshStandardMaterial({ color: 0x060504, roughness: 0.92, metalness: 0.05 });
-    var floor = new THREE.Mesh(floorGeo, floorMat);
+    var floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(30, 30),
+      new THREE.MeshStandardMaterial({ color: 0x060504, roughness: 0.92, metalness: 0.05 })
+    );
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     scene.add(floor);
 
-    var gridSize = 16;
-    var gridDiv = 32;
-    var gridHelper = new THREE.GridHelper(gridSize, gridDiv, 0xff5b1e, 0x110f0c);
+    var gridHelper = new THREE.GridHelper(16, 32, 0xff5b1e, 0x110f0c);
     gridHelper.position.y = 0.005;
     gridHelper.material.opacity = 0.08;
     gridHelper.material.transparent = true;
     scene.add(gridHelper);
 
     // === PEDESTAL — collector base ===
-    var pedestalGeo = new THREE.CylinderGeometry(2.2, 2.4, 0.12, 8);
     var pedestalMat = new THREE.MeshStandardMaterial({
-      color: 0x0c0a08,
-      roughness: 0.4,
-      metalness: 0.6,
-      emissive: 0xff5b1e,
-      emissiveIntensity: 0.015
+      color: 0x0c0a08, roughness: 0.4, metalness: 0.6, emissive: 0xff5b1e, emissiveIntensity: 0.015
     });
-    var pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
+    var pedestal = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.4, 0.12, 8), pedestalMat);
     pedestal.position.y = 0.06;
     pedestal.receiveShadow = true;
     pedestal.castShadow = true;
     scene.add(pedestal);
 
-    var pedestalRimGeo = new THREE.TorusGeometry(2.3, 0.02, 8, 64);
-    var pedestalRimMat = new THREE.MeshBasicMaterial({
-      color: 0xff5b1e,
-      transparent: true,
-      opacity: 0.25
-    });
-    var pedestalRim = new THREE.Mesh(pedestalRimGeo, pedestalRimMat);
+    var pedestalRimMat = new THREE.MeshBasicMaterial({ color: 0xff5b1e, transparent: true, opacity: 0.25 });
+    var pedestalRim = new THREE.Mesh(new THREE.TorusGeometry(2.3, 0.02, 8, 64), pedestalRimMat);
     pedestalRim.rotation.x = -Math.PI / 2;
     pedestalRim.position.y = 0.13;
     scene.add(pedestalRim);
@@ -2001,87 +2674,65 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var inscCanvas = document.createElement('canvas');
     inscCanvas.width = 512; inscCanvas.height = 64;
     var inscCtx = inscCanvas.getContext('2d');
-    inscCtx.fillStyle = 'rgba(0,0,0,0)';
-    inscCtx.fillRect(0, 0, 512, 64);
     inscCtx.font = '600 18px Arial';
     inscCtx.textAlign = 'center';
     inscCtx.textBaseline = 'middle';
     inscCtx.fillStyle = 'rgba(255,91,30,0.25)';
-    inscCtx.fillText('DMF RELIC \u00b7 EDITION 01 \u00b7 THE RECEIVER', 256, 32);
-    var inscTex = new THREE.CanvasTexture(inscCanvas);
-    var inscGeo = new THREE.PlaneGeometry(4.2, 0.35);
-    var inscMat = new THREE.MeshBasicMaterial({
-      map: inscTex,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      side: THREE.DoubleSide
-    });
-    var inscription = new THREE.Mesh(inscGeo, inscMat);
+    inscCtx.fillText('DMF RELIC · EDITION 01 · THE RECEIVER', 256, 32);
+    var inscription = new THREE.Mesh(
+      new THREE.PlaneGeometry(4.2, 0.35),
+      new THREE.MeshBasicMaterial({
+        map: new THREE.CanvasTexture(inscCanvas), transparent: true,
+        blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
+      })
+    );
     inscription.rotation.x = -Math.PI / 2;
     inscription.position.set(0, 0.131, 2.5);
     scene.add(inscription);
 
     // === HALO — back glow ring ===
-    var haloGeo = new THREE.TorusGeometry(3.0, 0.04, 16, 64);
     var haloMat = new THREE.MeshBasicMaterial({
-      color: 0xff5b1e,
-      transparent: true,
-      opacity: 0.08,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false
+      color: 0xff5b1e, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false
     });
-    var halo = new THREE.Mesh(haloGeo, haloMat);
+    var halo = new THREE.Mesh(new THREE.TorusGeometry(3.0, 0.04, 16, 64), haloMat);
     halo.position.set(0, 2.2, -2);
     halo.rotation.y = 0.3;
     scene.add(halo);
 
-    var halo2Geo = new THREE.TorusGeometry(3.6, 0.02, 16, 64);
     var halo2Mat = haloMat.clone();
     halo2Mat.opacity = 0.04;
-    var halo2 = new THREE.Mesh(halo2Geo, halo2Mat);
+    var halo2 = new THREE.Mesh(new THREE.TorusGeometry(3.6, 0.02, 16, 64), halo2Mat);
     halo2.position.set(0, 2.2, -2.2);
     halo2.rotation.y = -0.2;
     scene.add(halo2);
 
     // === VOLUMETRIC LIGHT CONE ===
     var coneH = 8;
-    var coneR = 2.8;
-    var coneGeo = new THREE.ConeGeometry(coneR, coneH, 32, 1, true);
     var coneMat = new THREE.MeshBasicMaterial({
-      color: 0xff8844,
-      transparent: true,
-      opacity: 0.015,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending
+      color: 0xff8844, transparent: true, opacity: 0.015, side: THREE.DoubleSide,
+      depthWrite: false, blending: THREE.AdditiveBlending
     });
-    var cone = new THREE.Mesh(coneGeo, coneMat);
+    var cone = new THREE.Mesh(new THREE.ConeGeometry(2.8, coneH, 32, 1, true), coneMat);
     cone.position.set(4, 7 - coneH / 2, 5);
     cone.lookAt(0, 1, 0);
     cone.rotateX(Math.PI);
     scene.add(cone);
 
-    // === EMBER PARTICLES ===
-    var particleCount = quality === 'high' ? 160 : quality === 'balanced' ? 80 : 30;
-    var pPositions = new Float32Array(particleCount * 3);
-    var pSizes = new Float32Array(particleCount);
-    var pSpeeds = new Float32Array(particleCount);
-    var pPhases = new Float32Array(particleCount);
-
-    for(var i = 0; i < particleCount; i++){
-      pPositions[i*3]   = (Math.random() - 0.5) * 10;
-      pPositions[i*3+1] = Math.random() * 6;
-      pPositions[i*3+2] = (Math.random() - 0.5) * 10;
-      pSizes[i] = 1.5 + Math.random() * 3;
+    // === EMBER PARTICLES — allocated once; tiers change the draw range ===
+    var PARTICLE_MAX = 160;
+    var particleActive = PARTICLE_MAX;
+    var pPositions = new Float32Array(PARTICLE_MAX * 3);
+    var pSpeeds = new Float32Array(PARTICLE_MAX);
+    var pPhases = new Float32Array(PARTICLE_MAX);
+    for (var i = 0; i < PARTICLE_MAX; i++) {
+      pPositions[i * 3] = (Math.random() - 0.5) * 10;
+      pPositions[i * 3 + 1] = Math.random() * 6;
+      pPositions[i * 3 + 2] = (Math.random() - 0.5) * 10;
       pSpeeds[i] = 0.002 + Math.random() * 0.006;
       pPhases[i] = Math.random() * Math.PI * 2;
     }
-
     var pGeom = new THREE.BufferGeometry();
     pGeom.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
-    pGeom.setAttribute('size', new THREE.BufferAttribute(pSizes, 1));
-
     var pCanvas = document.createElement('canvas');
     pCanvas.width = 32; pCanvas.height = 32;
     var pCtx = pCanvas.getContext('2d');
@@ -2091,50 +2742,48 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     grad.addColorStop(1, 'rgba(255,91,30,0)');
     pCtx.fillStyle = grad;
     pCtx.fillRect(0, 0, 32, 32);
-    var pTex = new THREE.CanvasTexture(pCanvas);
-
     var pMat = new THREE.PointsMaterial({
-      map: pTex,
-      size: 0.07,
-      transparent: true,
-      opacity: 0.5,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      sizeAttenuation: true
+      map: new THREE.CanvasTexture(pCanvas), size: 0.07, transparent: true, opacity: 0.5,
+      blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true
     });
     var particles = new THREE.Points(pGeom, pMat);
     scene.add(particles);
 
-    // === GROUND RINGS ===
-    var ringGeo = new THREE.RingGeometry(2.8, 3.0, 64);
+    // === GROUND RINGS + KICK SHOCKWAVE ===
     var ringMat = new THREE.MeshBasicMaterial({
-      color: 0xff5b1e,
-      transparent: true,
-      opacity: 0.05,
-      side: THREE.DoubleSide,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false
+      color: 0xff5b1e, transparent: true, opacity: 0.05, side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending, depthWrite: false
     });
-    var ring = new THREE.Mesh(ringGeo, ringMat);
+    var ring = new THREE.Mesh(new THREE.RingGeometry(2.8, 3.0, 64), ringMat);
     ring.rotation.x = -Math.PI / 2;
     ring.position.y = 0.14;
     scene.add(ring);
 
-    var ring2Geo = new THREE.RingGeometry(4.5, 4.65, 64);
     var ring2Mat = ringMat.clone();
     ring2Mat.opacity = 0.025;
-    var ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+    var ring2 = new THREE.Mesh(new THREE.RingGeometry(4.5, 4.65, 64), ring2Mat);
     ring2.rotation.x = -Math.PI / 2;
     ring2.position.y = 0.01;
     scene.add(ring2);
 
-    // === LIVE SET — procedural performance on the static mesh (GLB has no rig) ===
-    // Anchors are raw GLB object-space coordinates: DJ head/neck, monitor cones.
-    var RELIC_BPM = 124;
-    var liveBeatTime = 0;
-    var relicMotion = {
-      uKick: {value: 0}, uNod: {value: 0}, uSway: {value: 0},
-      uBounce: {value: 0}, uBeatIndex: {value: 0}, uLive: {value: 0}
+    var shockMat = ringMat.clone();
+    shockMat.opacity = 0;
+    var shock = new THREE.Mesh(new THREE.RingGeometry(2.3, 2.36, 96), shockMat);
+    shock.rotation.x = -Math.PI / 2;
+    shock.position.y = 0.135;
+    shock.visible = false;
+    scene.add(shock);
+
+    // === DMFRelicAnimator — shared uniforms for relic + overlays ===
+    // The GLB is a single static mesh with no rig: motion is procedural in the
+    // vertex shader around raw GLB object-space anchors (DJ head/neck, torso, monitor cones).
+    var U = {
+      uNod: { value: 0 }, uSway: { value: 0 }, uBounce: { value: 0 }, uTwist: { value: 0 },
+      uCone: { value: 0 }, uCab: { value: 0 }, uLive: { value: 0 },
+      uKick: { value: 0 }, uOverdrive: { value: 0 }, uIntensity: { value: 1 },
+      uLogoLvl: { value: [0, 0, 0, 0, 0] }, uLogoPeak: { value: [0, 0, 0, 0, 0] }, uLogoGlow: { value: 0 },
+      uSweep: { value: -1 }, uSweepAmt: { value: 0 },
+      uActiveZone: { value: -1 }, uTime: { value: 0 }
     };
     var RELIC_CONES = [
       [-0.644, -0.064, -0.405], [0.652, -0.050, -0.395],
@@ -2142,7 +2791,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       [0.624, -0.280, -0.038], [0.624, -0.400, 0.173]
     ];
     var RELIC_MOTION_GLSL =
-      'uniform float uKick;\nuniform float uNod;\nuniform float uSway;\nuniform float uBounce;\nuniform float uLive;\nvarying vec3 vObjPos;\n' +
+      'uniform float uNod;\nuniform float uSway;\nuniform float uBounce;\nuniform float uTwist;\n' +
+      'uniform float uCone;\nuniform float uCab;\nuniform float uLive;\nvarying vec3 vObjPos;\n' +
       'vec3 relicMotion(vec3 p, vec3 n){\n' +
       '  float hw = 1.0 - smoothstep(0.12, 0.19, distance(p, vec3(0.305, 0.24, -0.2)));\n' +
       '  float a = uNod * uLive * hw;\n' +
@@ -2150,21 +2800,29 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       '  vec3 r = p - piv;\n' +
       '  vec3 o = piv + vec3(r.x, r.y * cos(a) - r.z * sin(a), r.y * sin(a) + r.z * cos(a));\n' +
       '  float bw = max(hw, 1.0 - smoothstep(0.7, 1.0, length((p - vec3(0.31, 0.02, -0.24)) / vec3(0.26, 0.26, 0.18))));\n' +
+      '  float tw = uTwist * bw * uLive;\n' +
+      '  vec2 d = o.xz - vec2(0.31, -0.24);\n' +
+      '  o.xz = vec2(0.31, -0.24) + vec2(d.x * cos(tw) - d.y * sin(tw), d.x * sin(tw) + d.y * cos(tw));\n' +
       '  o += vec3(uSway, -uBounce, 0.0) * bw * uLive;\n' +
       '  float cw = 0.0;\n' +
-      RELIC_CONES.map(function(c){
-        return '  cw += 1.0 - smoothstep(0.03, 0.07, distance(p, vec3(' + c.join(', ') + ')));\n';
+      '  float cab = 0.0;\n' +
+      RELIC_CONES.map(function (c) {
+        var v = 'vec3(' + c.join(', ') + ')';
+        return '  cw += 1.0 - smoothstep(0.03, 0.07, distance(p, ' + v + '));\n' +
+               '  cab += 1.0 - smoothstep(0.1, 0.2, distance(p, ' + v + '));\n';
       }).join('') +
-      '  o += n * min(cw, 1.0) * uKick * 0.018 * uLive;\n' +
+      '  o += n * (min(cw, 1.0) * uCone * 0.02 + min(cab, 1.0) * uCab) * uLive;\n' +
       '  return o;\n' +
       '}\n';
 
-    function injectRelicMotion(shader){
-      shader.uniforms.uKick = relicMotion.uKick;
-      shader.uniforms.uNod = relicMotion.uNod;
-      shader.uniforms.uSway = relicMotion.uSway;
-      shader.uniforms.uBounce = relicMotion.uBounce;
-      shader.uniforms.uLive = relicMotion.uLive;
+    function injectRelicMotion(shader) {
+      shader.uniforms.uNod = U.uNod;
+      shader.uniforms.uSway = U.uSway;
+      shader.uniforms.uBounce = U.uBounce;
+      shader.uniforms.uTwist = U.uTwist;
+      shader.uniforms.uCone = U.uCone;
+      shader.uniforms.uCab = U.uCab;
+      shader.uniforms.uLive = U.uLive;
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\n' + RELIC_MOTION_GLSL)
         .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed = relicMotion(position, normal);\nvObjPos = position;');
@@ -2177,590 +2835,778 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var entranceAngle = 0;
     var wireRef = null;
     var edgeRef = null;
-    var relicShaderRef = null;
-    var modelWorldMinY = 0;
-    var modelWorldMaxY = 3;
-    var modelWorldMinX = -2;
-    var modelWorldMaxX = 2;
-    var modelWorldMinZ = -2;
-    var modelWorldMaxZ = 2;
+    var relicMatRef = null;
+    var baseRoughness = 1;
+    var modelWorldMinY = 0, modelWorldMaxY = 3;
+    var modelWorldMinX = -2, modelWorldMaxX = 2;
+    var modelWorldMinZ = -2, modelWorldMaxZ = 2;
 
-    var loader = new THREE.GLTFLoader();
-    loader.load(
+    new THREE.GLTFLoader().load(
       'assets/models/dmf-studio-optimized.glb',
-      function(gltf){
+      function (gltf) {
         var model = gltf.scene;
         modelRef = model;
 
         var box = new THREE.Box3().setFromObject(model);
         var center = box.getCenter(new THREE.Vector3());
         var size = box.getSize(new THREE.Vector3());
-        var maxDim = Math.max(size.x, size.y, size.z);
-        var s = 4.0 / maxDim;
+        var s = 4.0 / Math.max(size.x, size.y, size.z);
         modelTargetScale = s;
         model.scale.setScalar(0.01);
         model.position.set(-center.x * s, -box.min.y * s + 0.13, -center.z * s);
 
         modelWorldMinY = 0.13;
         modelWorldMaxY = 0.13 + size.y * s;
-        var halfXW = size.x * s / 2;
-        var halfZW = size.z * s / 2;
-        modelWorldMinX = -halfXW;
-        modelWorldMaxX = halfXW;
-        modelWorldMinZ = -halfZW;
-        modelWorldMaxZ = halfZW;
+        modelWorldMinX = -size.x * s / 2;
+        modelWorldMaxX = size.x * s / 2;
+        modelWorldMinZ = -size.z * s / 2;
+        modelWorldMaxZ = size.z * s / 2;
 
-        model.traverse(function(child){
-          if(child.isMesh && child.geometry){
-            var geo = child.geometry;
-            if(!geo.attributes.normal) geo.computeVertexNormals();
+        model.traverse(function (child) {
+          if (!child.isMesh || !child.geometry) return;
+          var geo = child.geometry;
+          if (!geo.attributes.normal) geo.computeVertexNormals();
 
-            var posArr = geo.attributes.position.array;
-            var vCount = posArr.length / 3;
-            var yMin = Infinity, yMax = -Infinity;
-            for(var vi = 0; vi < vCount; vi++){
-              var vy = posArr[vi * 3 + 1];
-              if(vy < yMin) yMin = vy;
-              if(vy > yMax) yMax = vy;
-            }
-            var yRange = yMax - yMin || 1;
-
-            var xMin = Infinity, xMax = -Infinity, zMin = Infinity, zMax = -Infinity;
-            for(var vi = 0; vi < vCount; vi++){
-              var vx = posArr[vi * 3], vz = posArr[vi * 3 + 2];
-              if(vx < xMin) xMin = vx; if(vx > xMax) xMax = vx;
-              if(vz < zMin) zMin = vz; if(vz > zMax) zMax = vz;
-            }
-            var xRange = xMax - xMin || 1;
-            var zRange = zMax - zMin || 1;
-
-            var zoneColors = [
-              [0.55, 0.48, 0.44],
-              [0.68, 0.62, 0.56],
-              [0.72, 0.70, 0.78],
-              [0.82, 0.78, 0.80]
-            ];
-
-            var colors = new Float32Array(posArr.length);
-            var vZoneIdx = new Uint8Array(vCount);
-            for(var vi = 0; vi < vCount; vi++){
-              var ny = (posArr[vi * 3 + 1] - yMin) / yRange;
-              var nx = (posArr[vi * 3] - xMin) / xRange;
-              var nz = (posArr[vi * 3 + 2] - zMin) / zRange;
-              var dist = Math.sqrt((posArr[vi*3]) * (posArr[vi*3]) + (posArr[vi*3+2]) * (posArr[vi*3+2]));
-
-              var zIdx = 3;
-              if(ny < 0.20){ zIdx = 0; }
-              else if(ny < 0.45){ zIdx = 1; }
-              else if(ny < 0.70){
-                var dx2 = Math.abs(nx - 0.5), dz2 = Math.abs(nz - 0.5);
-                zIdx = (dx2 > 0.38 || dz2 > 0.38) ? 1 : 2;
-              } else { zIdx = 3; }
-              vZoneIdx[vi] = zIdx;
-
-              var zc = zoneColors[zIdx];
-              var cr = zc[0], cg = zc[1], cb = zc[2];
-
-              var bn1 = 1.0 - Math.min(1.0, Math.abs(ny - 0.20) / 0.025);
-              var bn2 = 1.0 - Math.min(1.0, Math.abs(ny - 0.45) / 0.025);
-              var bn3 = 1.0 - Math.min(1.0, Math.abs(ny - 0.70) / 0.025);
-              var bnMax = Math.max(bn1, bn2, bn3);
-              cr = Math.min(1.0, cr + bnMax * 0.12);
-              cg = Math.min(1.0, cg + bnMax * 0.04);
-              cb = Math.min(1.0, cb + bnMax * 0.02);
-
-              var ef = Math.max(0, dist - 0.35) / 0.55;
-              ef = Math.min(1, ef) * 0.04;
-              cr = Math.min(1.0, cr + ef * 0.8);
-              cg = Math.min(1.0, cg + ef * 0.2);
-
-              colors[vi * 3] = cr;
-              colors[vi * 3 + 1] = cg;
-              colors[vi * 3 + 2] = cb;
-            }
-
-            geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-            var zoneIdArr = new Float32Array(vCount);
-            var normYArr = new Float32Array(vCount);
-            for(var ai = 0; ai < vCount; ai++){
-              zoneIdArr[ai] = vZoneIdx[ai];
-              normYArr[ai] = (posArr[ai * 3 + 1] - yMin) / yRange;
-            }
-            geo.setAttribute('aZoneId', new THREE.BufferAttribute(zoneIdArr, 1));
-            geo.setAttribute('aNormY', new THREE.BufferAttribute(normYArr, 1));
-
-            var relicMat = child.material.clone();
-            relicMat.vertexColors = true;
-            relicMat.emissive = new THREE.Color(0xff5b1e);
-            relicMat.emissiveIntensity = 0.008;
-            relicMat.envMapIntensity = 0.55;
-            relicMat.onBeforeCompile = function(shader){
-              shader.uniforms.uActiveZone = {value: -1.0};
-              shader.uniforms.uTime = {value: 0.0};
-              shader.uniforms.uIntensity = {value: quality === 'balanced' ? 0.7 : 1.0};
-              injectRelicMotion(shader);
-              shader.uniforms.uBeatIndex = relicMotion.uBeatIndex;
-              shader.vertexShader = shader.vertexShader.replace(
-                '#include <common>',
-                '#include <common>\nattribute float aZoneId;\nattribute float aNormY;\nvarying float vZoneId;\nvarying float vNormY;'
-              );
-              shader.vertexShader = shader.vertexShader.replace(
-                '#include <begin_vertex>',
-                '#include <begin_vertex>\nvZoneId = aZoneId;\nvNormY = aNormY;'
-              );
-              shader.fragmentShader = shader.fragmentShader.replace(
-                '#include <common>',
-                '#include <common>\nuniform float uActiveZone;\nuniform float uTime;\nuniform float uIntensity;\nvarying float vZoneId;\nvarying float vNormY;\n' +
-                'uniform float uKick;\nuniform float uLive;\nuniform float uBeatIndex;\nvarying vec3 vObjPos;\n' +
-                'float relicHash(float n){ return fract(sin(n) * 43758.5453); }'
-              );
-              shader.fragmentShader = shader.fragmentShader.replace(
-                '#include <tonemapping_fragment>',
-                'float logoMask = step(-0.57, vObjPos.z) * step(vObjPos.z, -0.5) *\n' +
-                '  step(-0.31, vObjPos.x) * step(vObjPos.x, 0.31) * step(0.1, vObjPos.y) * step(vObjPos.y, 0.56) *\n' +
-                '  smoothstep(0.08, 0.22, diffuseColor.r - diffuseColor.b) * uLive;\n' +
-                'if(logoMask > 0.0){\n' +
-                '  float col = vObjPos.x < -0.235 ? 0.0 : (vObjPos.x < -0.16 ? 1.0 : (vObjPos.x < 0.15 ? 2.0 : (vObjPos.x < 0.215 ? 3.0 : 4.0)));\n' +
-                '  float lvl = 0.25 + 0.75 * relicHash(col * 12.9898 + uBeatIndex * 78.233);\n' +
-                '  float ly = (vObjPos.y - 0.12) / 0.4;\n' +
-                '  float eq = col == 2.0 ? 1.0 : 1.0 - smoothstep(lvl - 0.04, lvl + 0.04, ly);\n' +
-                '  gl_FragColor.rgb += vec3(1.0, 0.36, 0.08) * eq * (0.2 + 0.8 * uKick) * logoMask * 0.9 * uIntensity;\n' +
-                '}\n' +
-                'if(uActiveZone >= 0.0){\n' +
-                '  float zId = floor(vZoneId + 0.5);\n' +
-                '  float aZ = floor(uActiveZone + 0.5);\n' +
-                '  vec3 zCol;\n' +
-                '  if(aZ < 0.5) zCol = vec3(1.0, 0.35, 0.06);\n' +
-                '  else if(aZ < 1.5) zCol = vec3(0.85, 0.45, 0.12);\n' +
-                '  else if(aZ < 2.5) zCol = vec3(0.12, 0.55, 0.95);\n' +
-                '  else zCol = vec3(1.0, 0.38, 0.0);\n' +
-                '  if(zId == aZ){\n' +
-                '    float pulse = 0.5 + 0.5 * sin(uTime * 3.5 + vNormY * 18.0);\n' +
-                '    gl_FragColor.rgb += zCol * pulse * 0.12 * uIntensity;\n' +
-                '  }\n' +
-                '  if(aZ > 2.5){\n' +
-                '    float wf = fract(uTime * 4.5);\n' +
-                '    float wp = 1.0 - wf;\n' +
-                '    float wd = abs(vNormY - wp);\n' +
-                '    float wave = smoothstep(0.12, 0.0, wd);\n' +
-                '    gl_FragColor.rgb += vec3(1.0, 0.35, 0.06) * wave * 0.2 * uIntensity;\n' +
-                '  }\n' +
-                '}\n' +
-                '#include <tonemapping_fragment>'
-              );
-              relicShaderRef = shader;
-            };
-            relicMat.needsUpdate = true;
-            child.material = relicMat;
-            child.castShadow = true;
-            child.receiveShadow = true;
-
-            var wireMat = new THREE.MeshBasicMaterial({
-              color: 0x4488cc,
-              wireframe: true,
-              transparent: true,
-              opacity: 0.025,
-              blending: THREE.AdditiveBlending,
-              depthWrite: false
-            });
-            wireMat.onBeforeCompile = injectRelicMotion;
-            wireRef = new THREE.Mesh(geo, wireMat);
-            child.parent.add(wireRef);
-
-            var edgeMat = new THREE.MeshBasicMaterial({
-              color: 0xff5b1e,
-              side: THREE.BackSide,
-              transparent: true,
-              opacity: 0.04,
-              blending: THREE.AdditiveBlending,
-              depthWrite: false
-            });
-            edgeMat.onBeforeCompile = injectRelicMotion;
-            edgeRef = new THREE.Mesh(geo, edgeMat);
-            edgeRef.scale.setScalar(1.022);
-            child.parent.add(edgeRef);
+          var posArr = geo.attributes.position.array;
+          var vCount = posArr.length / 3;
+          var yMin = Infinity, yMax = -Infinity, xMin = Infinity, xMax = -Infinity, zMin = Infinity, zMax = -Infinity;
+          for (var vi = 0; vi < vCount; vi++) {
+            var vx = posArr[vi * 3], vy = posArr[vi * 3 + 1], vz = posArr[vi * 3 + 2];
+            if (vy < yMin) yMin = vy; if (vy > yMax) yMax = vy;
+            if (vx < xMin) xMin = vx; if (vx > xMax) xMax = vx;
+            if (vz < zMin) zMin = vz; if (vz > zMax) zMax = vz;
           }
+          var yRange = yMax - yMin || 1, xRange = xMax - xMin || 1, zRange = zMax - zMin || 1;
+
+          var zoneColors = [[0.55, 0.48, 0.44], [0.68, 0.62, 0.56], [0.72, 0.70, 0.78], [0.82, 0.78, 0.80]];
+          var colors = new Float32Array(posArr.length);
+          var zoneIdArr = new Float32Array(vCount);
+          var normYArr = new Float32Array(vCount);
+          for (vi = 0; vi < vCount; vi++) {
+            var ny = (posArr[vi * 3 + 1] - yMin) / yRange;
+            var nx = (posArr[vi * 3] - xMin) / xRange;
+            var nz = (posArr[vi * 3 + 2] - zMin) / zRange;
+            var dist = Math.sqrt(posArr[vi * 3] * posArr[vi * 3] + posArr[vi * 3 + 2] * posArr[vi * 3 + 2]);
+            var zIdx = 3;
+            if (ny < 0.20) zIdx = 0;
+            else if (ny < 0.45) zIdx = 1;
+            else if (ny < 0.70) zIdx = (Math.abs(nx - 0.5) > 0.38 || Math.abs(nz - 0.5) > 0.38) ? 1 : 2;
+            zoneIdArr[vi] = zIdx;
+            normYArr[vi] = ny;
+
+            var zc = zoneColors[zIdx];
+            var bnMax = Math.max(
+              1.0 - Math.min(1.0, Math.abs(ny - 0.20) / 0.025),
+              1.0 - Math.min(1.0, Math.abs(ny - 0.45) / 0.025),
+              1.0 - Math.min(1.0, Math.abs(ny - 0.70) / 0.025)
+            );
+            var ef = Math.min(1, Math.max(0, dist - 0.35) / 0.55) * 0.04;
+            colors[vi * 3] = Math.min(1.0, zc[0] + bnMax * 0.12 + ef * 0.8);
+            colors[vi * 3 + 1] = Math.min(1.0, zc[1] + bnMax * 0.04 + ef * 0.2);
+            colors[vi * 3 + 2] = Math.min(1.0, zc[2] + bnMax * 0.02);
+          }
+          geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+          geo.setAttribute('aZoneId', new THREE.BufferAttribute(zoneIdArr, 1));
+          geo.setAttribute('aNormY', new THREE.BufferAttribute(normYArr, 1));
+
+          var relicMat = child.material.clone();
+          relicMat.vertexColors = true;
+          relicMat.emissive = new THREE.Color(0xff5b1e);
+          relicMat.emissiveIntensity = 0.008;
+          relicMat.envMapIntensity = 0.55;
+          relicMat.onBeforeCompile = function (shader) {
+            injectRelicMotion(shader);
+            shader.uniforms.uActiveZone = U.uActiveZone;
+            shader.uniforms.uTime = U.uTime;
+            shader.uniforms.uIntensity = U.uIntensity;
+            shader.uniforms.uKick = U.uKick;
+            shader.uniforms.uOverdrive = U.uOverdrive;
+            shader.uniforms.uLogoLvl = U.uLogoLvl;
+            shader.uniforms.uLogoPeak = U.uLogoPeak;
+            shader.uniforms.uLogoGlow = U.uLogoGlow;
+            shader.uniforms.uSweep = U.uSweep;
+            shader.uniforms.uSweepAmt = U.uSweepAmt;
+            shader.vertexShader = shader.vertexShader
+              .replace('#include <common>', '#include <common>\nattribute float aZoneId;\nattribute float aNormY;\nvarying float vZoneId;\nvarying float vNormY;')
+              .replace('#include <begin_vertex>', '#include <begin_vertex>\nvZoneId = aZoneId;\nvNormY = aNormY;');
+            shader.fragmentShader = shader.fragmentShader
+              .replace('#include <common>', [
+                '#include <common>',
+                'uniform float uActiveZone;', 'uniform float uTime;', 'uniform float uIntensity;',
+                'uniform float uKick;', 'uniform float uOverdrive;',
+                'uniform float uLogoLvl[5];', 'uniform float uLogoPeak[5];', 'uniform float uLogoGlow;',
+                'uniform float uSweep;', 'uniform float uSweepAmt;', 'uniform float uLive;',
+                'varying float vZoneId;', 'varying float vNormY;', 'varying vec3 vObjPos;'
+              ].join('\n'))
+              .replace('#include <tonemapping_fragment>', [
+                // DMF logo: segmented equalizer with peak hold; the M carries the brightest energy.
+                'float logoMask = step(-0.57, vObjPos.z) * step(vObjPos.z, -0.5) *',
+                '  step(-0.31, vObjPos.x) * step(vObjPos.x, 0.31) * step(0.1, vObjPos.y) * step(vObjPos.y, 0.56) *',
+                '  smoothstep(0.08, 0.22, diffuseColor.r - diffuseColor.b) * uLive;',
+                'if(logoMask > 0.0){',
+                '  float lvl; float pk;',
+                '  if(vObjPos.x < -0.235){ lvl = uLogoLvl[0]; pk = uLogoPeak[0]; }',
+                '  else if(vObjPos.x < -0.16){ lvl = uLogoLvl[1]; pk = uLogoPeak[1]; }',
+                '  else if(vObjPos.x < 0.15){ lvl = uLogoLvl[2]; pk = uLogoPeak[2]; }',
+                '  else if(vObjPos.x < 0.215){ lvl = uLogoLvl[3]; pk = uLogoPeak[3]; }',
+                '  else { lvl = uLogoLvl[4]; pk = uLogoPeak[4]; }',
+                '  float ly = (vObjPos.y - 0.12) / 0.4;',
+                '  float eq = 1.0 - smoothstep(lvl - 0.03, lvl + 0.03, ly);',
+                '  float peakLine = (1.0 - smoothstep(0.0, 0.02, abs(ly - pk))) * step(0.05, pk);',
+                '  float center = (1.0 - smoothstep(0.0, 0.16, abs(vObjPos.x))) * uLogoGlow;',
+                '  float glow = eq * (0.3 + 0.7 * uKick) + peakLine * 0.8 + center;',
+                '  gl_FragColor.rgb += vec3(1.0, 0.36, 0.08) * glow * logoMask * 0.85 * uIntensity * (1.0 + 0.4 * uOverdrive);',
+                '}',
+                // Reflective sweep: warm, multiplicative-first so it reads as light on surfaces, never a white strobe.
+                'if(uSweepAmt > 0.001){',
+                '  float sx = vObjPos.x * 0.5 + 0.5 + vObjPos.y * 0.22;',
+                '  float sb = exp(-pow((sx - uSweep) / 0.07, 2.0));',
+                '  gl_FragColor.rgb += (gl_FragColor.rgb * 0.85 + vec3(0.22, 0.14, 0.08)) * sb * uSweepAmt;',
+                '}',
+                'if(uActiveZone >= 0.0){',
+                '  float zId = floor(vZoneId + 0.5);',
+                '  float aZ = floor(uActiveZone + 0.5);',
+                '  vec3 zCol;',
+                '  if(aZ < 0.5) zCol = vec3(1.0, 0.35, 0.06);',
+                '  else if(aZ < 1.5) zCol = vec3(0.85, 0.45, 0.12);',
+                '  else if(aZ < 2.5) zCol = vec3(0.12, 0.55, 0.95);',
+                '  else zCol = vec3(1.0, 0.38, 0.0);',
+                '  if(zId == aZ){',
+                '    float pulse = 0.5 + 0.5 * sin(uTime * 3.5 + vNormY * 18.0);',
+                '    gl_FragColor.rgb += zCol * pulse * 0.12 * uIntensity;',
+                '  }',
+                '  if(aZ > 2.5){',
+                '    float wf = fract(uTime * 4.5);',
+                '    float wd = abs(vNormY - (1.0 - wf));',
+                '    gl_FragColor.rgb += vec3(1.0, 0.35, 0.06) * smoothstep(0.12, 0.0, wd) * 0.2 * uIntensity;',
+                '  }',
+                '}',
+                '#include <tonemapping_fragment>'
+              ].join('\n'));
+          };
+          relicMat.needsUpdate = true;
+          child.material = relicMat;
+          relicMatRef = relicMat;
+          baseRoughness = relicMat.roughness;
+          child.castShadow = true;
+          child.receiveShadow = true;
+
+          var wireMat = new THREE.MeshBasicMaterial({
+            color: 0x4488cc, wireframe: true, transparent: true, opacity: 0.025,
+            blending: THREE.AdditiveBlending, depthWrite: false
+          });
+          wireMat.onBeforeCompile = injectRelicMotion;
+          wireRef = new THREE.Mesh(geo, wireMat);
+          child.parent.add(wireRef);
+
+          var edgeMat = new THREE.MeshBasicMaterial({
+            color: 0xff5b1e, side: THREE.BackSide, transparent: true, opacity: 0.04,
+            blending: THREE.AdditiveBlending, depthWrite: false
+          });
+          edgeMat.onBeforeCompile = injectRelicMotion;
+          edgeRef = new THREE.Mesh(geo, edgeMat);
+          edgeRef.scale.setScalar(1.022);
+          child.parent.add(edgeRef);
         });
 
         scene.add(model);
-        band.classList.add('is-ready');
+        band.classList.add('is-ready', 'has-scene');
+        applyQuality(quality);
 
-        if(reduceMotion || quality === 'static'){
+        if (reduceMotion || quality === 'static') {
           model.scale.setScalar(s);
-          renderer.render(scene, camera);
+          modelCurrentScale = s;
+          computeShot('A', 4.5, SHOT_DUR.A, cur);
+          renderStatic();
           return;
         }
-        startAnimation();
+        hub.onFrame(tick);
       },
       undefined,
-      function(){ band.classList.add('is-ready'); }
+      function () { band.classList.add('is-ready'); }
     );
 
-    // === CANVAS LABELS — floating edition tags ===
-    function makeLabel(text, fontSize, color){
-      var c = document.createElement('canvas');
-      var ctx = c.getContext('2d');
-      ctx.font = (fontSize || 24) + 'px Arial';
-      var metrics = ctx.measureText(text);
-      c.width = Math.ceil(metrics.width) + 20;
-      c.height = (fontSize || 24) + 16;
-      ctx.font = (fontSize || 24) + 'px Arial';
-      ctx.fillStyle = color || 'rgba(255,91,30,0.4)';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, 10, c.height / 2);
-      var tex = new THREE.CanvasTexture(c);
-      var spriteMat = new THREE.SpriteMaterial({
-        map: tex,
-        transparent: true,
-        opacity: 0.35,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending
-      });
-      return new THREE.Sprite(spriteMat);
+    function applyQuality(tier) {
+      quality = tier;
+      hub.qualityTier = tier;
+      var dpr = window.devicePixelRatio || 1;
+      var shadowsOn = tier === 'high';
+      if (tier === 'high') { renderer.setPixelRatio(Math.min(dpr, 1.75)); particleActive = 160; motionScale = 1; U.uIntensity.value = 1; }
+      else if (tier === 'balanced') { renderer.setPixelRatio(Math.min(dpr, small ? 1.25 : 1.5)); particleActive = 80; motionScale = 0.7; U.uIntensity.value = 0.8; }
+      else { renderer.setPixelRatio(1); particleActive = 40; motionScale = 0.6; U.uIntensity.value = 0.75; }
+      renderer.shadowMap.enabled = shadowsOn;
+      keyLight.castShadow = shadowsOn;
+      pGeom.setDrawRange(0, particleActive);
+      if (wireRef) wireRef.visible = tier === 'high';
+      if (edgeRef) edgeRef.visible = tier !== 'lite';
+      renderer.setSize(w, h);
     }
 
+    // === CANVAS LABELS — floating edition tags ===
+    function makeLabel(text, fontSize, color) {
+      var c = document.createElement('canvas');
+      var ctx = c.getContext('2d');
+      ctx.font = fontSize + 'px Arial';
+      c.width = Math.ceil(ctx.measureText(text).width) + 20;
+      c.height = fontSize + 16;
+      ctx.font = fontSize + 'px Arial';
+      ctx.fillStyle = color;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 10, c.height / 2);
+      return new THREE.Sprite(new THREE.SpriteMaterial({
+        map: new THREE.CanvasTexture(c), transparent: true, opacity: 0.35,
+        depthWrite: false, blending: THREE.AdditiveBlending
+      }));
+    }
     var labelEdition = makeLabel('EDITION 01', 18, 'rgba(255,91,30,0.5)');
     labelEdition.position.set(-3.2, 0.5, 2.5);
     labelEdition.scale.set(1.6, 0.4, 1);
     scene.add(labelEdition);
-
     var labelRelic = makeLabel('DMF RELIC', 16, 'rgba(255,91,30,0.3)');
     labelRelic.position.set(3.5, 4.2, -1);
     labelRelic.scale.set(1.4, 0.35, 1);
     scene.add(labelRelic);
-
     var labelSignal = makeLabel('SIGNAL RECEIVER', 14, 'rgba(100,130,180,0.3)');
     labelSignal.position.set(-2.5, 3.8, -2);
     labelSignal.scale.set(1.8, 0.35, 1);
     scene.add(labelSignal);
 
-    // === CAMERA & INTERACTION ===
-    var mouseX = 0, mouseY = 0;
-    var mouseNDCx = 0, mouseNDCy = 0;
-    var currentRotY = 0, currentRotX = 0;
-    var autoAngle = 0;
-    var baseRadius = Math.sqrt(4*4 + 5*5);
-    var baseY = 2.8;
-    var clock = new THREE.Clock();
+    // === DMFCameraRig — four eased shots, drag override, gentle resume ===
+    // Poses are spherical (azimuth from +z, radius, height) around a look target so blends travel on arcs.
+    function makePose() { return { az: 0, r: 0, y: 0, tx: 0, ty: 0, tz: 0, roll: 0 }; }
+    function copyPose(a, b) { a.az = b.az; a.r = b.r; a.y = b.y; a.tx = b.tx; a.ty = b.ty; a.tz = b.tz; a.roll = b.roll; }
+    function lerpPose(out, a, b, k) {
+      out.az = a.az + (b.az - a.az) * k; out.r = a.r + (b.r - a.r) * k; out.y = a.y + (b.y - a.y) * k;
+      out.tx = a.tx + (b.tx - a.tx) * k; out.ty = a.ty + (b.ty - a.ty) * k; out.tz = a.tz + (b.tz - a.tz) * k;
+      out.roll = a.roll + (b.roll - a.roll) * k;
+    }
+    var SHOT_ORDER = ['A', 'B', 'C'];
+    var SHOT_DUR = { A: 9, B: 8, C: 11, D: 1e9 };
+    function computeShot(id, t, dur, out) {
+      var k = t / dur, e, ms = motionScale;
+      if (id === 'A') {        // ICON — front three-quarter portrait, slow push-in
+        e = ease(k);
+        out.az = 0.58 - 0.08 * e * ms; out.r = 6.3 - 1.1 * e * ms; out.y = 2.5 + 0.12 * e;
+        out.tx = 0.4; out.ty = 1.62; out.tz = -0.1; out.roll = 0;
+      } else if (id === 'B') { // SIGNAL — low angle on desk and monitors
+        e = ease(k);
+        out.az = -0.62 + 0.24 * e * ms; out.r = 4.6 - 0.3 * e * ms; out.y = 0.8 + 0.14 * e;
+        out.tx = -0.5; out.ty = 1.02; out.tz = 0.45; out.roll = 0;
+      } else if (id === 'C') { // RELIC — slow orbital reveal with vertical drift
+        e = ease5(k);
+        out.az = (-0.95 + 1.9 * e) * ms; out.r = 6.8; out.y = 2.55 + 0.55 * Math.sin(Math.PI * clamp(k, 0, 1)) * ms;
+        out.tx = 0; out.ty = 1.35; out.tz = 0; out.roll = 0;
+      } else {                 // OVERDRIVE — fast but smooth push with a roll that corrects to level
+        e = ease5(t / 3.2);
+        out.az = 0.24 - 0.06 * e; out.r = 5.2 - 1.2 * e * ms; out.y = 2.2 - 0.1 * e;
+        out.tx = 0.42; out.ty = 1.72; out.tz = -0.15; out.roll = 0.045 * ms * (1 - ease(t / 2.6));
+      }
+    }
 
+    var cur = makePose(), from = makePose(), shotPose = makePose(), user = makePose();
+    var rig = { mode: 'auto', shot: 'A', shotIdx: 0, t: 0, blend: 1, blendDur: 2.8, lastInput: -1e9, velAz: 0, dragging: false };
+    var RESUME_MS = 5000;
+    computeShot('A', 0, SHOT_DUR.A, cur);
+
+    function cut(next, blendDur) {
+      copyPose(from, cur);
+      rig.shot = next; rig.t = 0; rig.blend = 0; rig.blendDur = blendDur;
+    }
+    function clampUser() {
+      user.az = clamp(user.az, -1.15, 1.15);
+      user.y = clamp(user.y, 0.6, 4.4);
+    }
+
+    function rigUpdate(dt, nowMs) {
+      if (rig.mode === 'user') {
+        if (!rig.dragging) {
+          user.az += rig.velAz * dt;
+          rig.velAz *= Math.exp(-dt * 3);
+          clampUser();
+          if (nowMs - rig.lastInput > RESUME_MS) {
+            rig.mode = 'auto';
+            copyPose(cur, user);
+            rig.shotIdx = 0;
+            cut(hub.state === 'OVERDRIVE' ? 'D' : 'A', 3.4);
+          }
+        }
+        if (rig.mode === 'user') { user.roll = 0; copyPose(cur, user); return; }
+      }
+      var od = hub.state === 'OVERDRIVE';
+      if (od && rig.shot !== 'D') cut('D', 1.6);
+      else if (!od && rig.shot === 'D') { rig.shotIdx = 2; cut('C', 3.0); }
+      rig.t += dt;
+      if (rig.shot !== 'D' && rig.t > SHOT_DUR[rig.shot]) {
+        rig.shotIdx = (rig.shotIdx + 1) % SHOT_ORDER.length;
+        cut(SHOT_ORDER[rig.shotIdx], 2.8);
+      }
+      computeShot(rig.shot, rig.t, SHOT_DUR[rig.shot], shotPose);
+      if (rig.blend < 1) {
+        rig.blend = Math.min(1, rig.blend + dt / rig.blendDur);
+        lerpPose(cur, from, shotPose, ease5(rig.blend));
+      } else copyPose(cur, shotPose);
+    }
+
+    var LOOK = new THREE.Vector3();
+    var parallaxX = 0, parallaxY = 0;
+    var autoAngle = 0;
+    function applyCamera(dolly) {
+      var aspect = w / h;
+      var fit = aspect < 1.1 ? 1 + (1.1 - aspect) * 0.95 : 1;
+      var auto = rig.mode === 'auto';
+      var az = cur.az + (auto ? parallaxX * 0.08 + Math.sin(autoAngle) * 0.05 * motionScale : 0);
+      var r = (cur.r - dolly) * fit;
+      var y = cur.y + (auto ? -parallaxY * 0.22 + Math.sin(autoAngle * 0.8) * 0.08 * motionScale : 0);
+      camera.position.set(Math.sin(az) * r, y, Math.cos(az) * r);
+      LOOK.set(cur.tx, cur.ty, cur.tz);
+      camera.up.set(0, 1, 0);
+      camera.lookAt(LOOK);
+      if (cur.roll) camera.rotateZ(cur.roll);
+    }
+
+    // === INTERACTION — pointer orbit (mouse + touch), hover readout, fullscreen ===
+    var mouseNDC = new THREE.Vector2(0, 0);
+    var mouseInside = false, mouseMoved = false;
     var raycaster = new THREE.Raycaster();
-    var currentZone = '';
-    var relicState = 'dormant';
-    var lastStatePct = -1;
+    var projected = new THREE.Vector3();
     var readoutEl = container.querySelector('.dmf-relic-readout');
     var readoutComp = readoutEl.querySelector('.dmf-relic-readout-component');
     var readoutStatus = readoutEl.querySelector('.dmf-relic-readout-status');
     var readoutLore = readoutEl.querySelector('.dmf-relic-readout-lore');
     var stateEl = container.querySelector('.dmf-relic-state');
+    var currentZone = '';
 
     var zones = [
-      {test: function(nx,ny,nz){ return ny < 0.20; }, en: 'RELIC COMPONENT // PLATFORM BASE', es: 'COMPONENTE RELIC // BASE DE PLATAFORMA', statusEn: 'SIGNAL PATH ACTIVE', statusEs: 'RUTA DE SE\u00d1AL ACTIVA', loreEn: 'Earthside anchor \u2014 terrestrial grounding node', loreEs: 'Anclaje terrestre \u2014 nodo de conexi\u00f3n'},
-      {test: function(nx,ny,nz){ return ny < 0.45 || (ny < 0.70 && (Math.abs(nx-0.5)>0.38 || Math.abs(nz-0.5)>0.38)); }, en: 'RELIC COMPONENT // CORE FRAME', es: 'COMPONENTE RELIC // ESTRUCTURA CENTRAL', statusEn: 'ARCHIVE NODE 03', statusEs: 'NODO DE ARCHIVO 03', loreEn: 'Formula preservation unit \u2014 primary containment', loreEs: 'Unidad de preservaci\u00f3n \u2014 contenci\u00f3n primaria'},
-      {test: function(nx,ny,nz){ return ny < 0.70; }, en: 'RELIC COMPONENT // SIGNAL CONSOLE', es: 'COMPONENTE RELIC // CONSOLA DE SE\u00d1AL', statusEn: 'RECEIVING FREQUENCY', statusEs: 'FRECUENCIA DE RECEPCI\u00d3N', loreEn: 'Terrestrial decoding interface \u2014 signal processing', loreEs: 'Interfaz de decodificaci\u00f3n terrestre'},
-      {test: function(){ return true; }, en: 'RELIC COMPONENT // RECEIVER ARRAY', es: 'COMPONENTE RELIC // MATRIZ RECEPTORA', statusEn: 'TRANSMISSION ACTIVE', statusEs: 'TRANSMISI\u00d3N ACTIVA', loreEn: 'Transmission channel \u2014 formula acquisition array', loreEs: 'Canal de transmisi\u00f3n \u2014 adquisici\u00f3n de f\u00f3rmula'}
+      { test: function (nx, ny, nz) { return ny < 0.20; }, en: 'RELIC COMPONENT // PLATFORM BASE', es: 'COMPONENTE RELIC // BASE DE PLATAFORMA', statusEn: 'SIGNAL PATH ACTIVE', statusEs: 'RUTA DE SEÑAL ACTIVA', loreEn: 'Earthside anchor — terrestrial grounding node', loreEs: 'Anclaje terrestre — nodo de conexión' },
+      { test: function (nx, ny, nz) { return ny < 0.45 || (ny < 0.70 && (Math.abs(nx - 0.5) > 0.38 || Math.abs(nz - 0.5) > 0.38)); }, en: 'RELIC COMPONENT // CORE FRAME', es: 'COMPONENTE RELIC // ESTRUCTURA CENTRAL', statusEn: 'ARCHIVE NODE 03', statusEs: 'NODO DE ARCHIVO 03', loreEn: 'Formula preservation unit — primary containment', loreEs: 'Unidad de preservación — contención primaria' },
+      { test: function (nx, ny, nz) { return ny < 0.70; }, en: 'RELIC COMPONENT // SIGNAL CONSOLE', es: 'COMPONENTE RELIC // CONSOLA DE SEÑAL', statusEn: 'RECEIVING FREQUENCY', statusEs: 'FRECUENCIA DE RECEPCIÓN', loreEn: 'Terrestrial decoding interface — signal processing', loreEs: 'Interfaz de decodificación terrestre' },
+      { test: function () { return true; }, en: 'RELIC COMPONENT // RECEIVER ARRAY', es: 'COMPONENTE RELIC // MATRIZ RECEPTORA', statusEn: 'TRANSMISSION ACTIVE', statusEs: 'TRANSMISIÓN ACTIVA', loreEn: 'Transmission channel — formula acquisition array', loreEs: 'Canal de transmisión — adquisición de fórmula' }
     ];
 
-    function getZone(point){
-      var nx = (point.x - modelWorldMinX) / (modelWorldMaxX - modelWorldMinX);
-      var ny = (point.y - modelWorldMinY) / (modelWorldMaxY - modelWorldMinY);
-      var nz = (point.z - modelWorldMinZ) / (modelWorldMaxZ - modelWorldMinZ);
-      nx = Math.max(0, Math.min(1, nx));
-      ny = Math.max(0, Math.min(1, ny));
-      nz = Math.max(0, Math.min(1, nz));
-      for(var zi = 0; zi < zones.length; zi++){
-        if(zones[zi].test(nx, ny, nz)) return zones[zi];
-      }
-      return zones[zones.length - 1];
+    function getZoneIndex(point) {
+      var nx = clamp((point.x - modelWorldMinX) / (modelWorldMaxX - modelWorldMinX), 0, 1);
+      var ny = clamp((point.y - modelWorldMinY) / (modelWorldMaxY - modelWorldMinY), 0, 1);
+      var nz = clamp((point.z - modelWorldMinZ) / (modelWorldMaxZ - modelWorldMinZ), 0, 1);
+      for (var zi = 0; zi < zones.length; zi++) if (zones[zi].test(nx, ny, nz)) return zi;
+      return zones.length - 1;
     }
 
-    function getLang(){
-      var btn = document.querySelector('.lang-btn');
-      return btn && btn.textContent.trim().toUpperCase() === 'EN' ? 'en' : 'es';
-    }
-
-    function renderRelicState(pct){
-      var lang = getLang();
-      stateEl.classList.remove('is-awakened', 'is-transmitting');
-      if(relicState === 'dormant'){
-        stateEl.textContent = lang === 'es' ? 'INACTIVO' : 'DORMANT';
-      } else if(relicState === 'awakened'){
-        stateEl.classList.add('is-awakened');
-        stateEl.textContent = lang === 'es' ? 'SE\u00d1AL DETECTADA' : 'SIGNAL DETECTED';
-      } else {
-        stateEl.classList.add('is-transmitting');
-        stateEl.innerHTML = (lang === 'es' ? 'TRANSMISI\u00d3N' : 'TRANSMITTING') +
-          '<span class="dmf-relic-state-pct">' +
-          (lang === 'es' ? 'TRANSFERENCIA ' : 'FORMULA TRANSFER ') + pct + '%</span>';
-      }
-    }
-
-    var langBtn2 = document.querySelector('.lang-btn');
-    if(langBtn2 && 'MutationObserver' in window){
-      new MutationObserver(function(){ renderRelicState(lastStatePct < 0 ? 0 : lastStatePct); }).observe(langBtn2,{childList:true,subtree:true,characterData:true});
-    }
-
-    function showReadout(zone){
+    function showReadout(zone) {
       var lang = getLang();
       readoutComp.textContent = lang === 'es' ? zone.es : zone.en;
       readoutStatus.textContent = lang === 'es' ? zone.statusEs : zone.statusEn;
       readoutLore.textContent = lang === 'es' ? zone.loreEs : zone.loreEn;
     }
-
-    function hideReadout(){
+    function hideReadout() {
       readoutEl.classList.remove('is-visible');
       currentZone = '';
     }
 
-    container.addEventListener('mousemove', function(e){
+    var shownState = '';
+    var shownPct = -1;
+    var pctEl = document.createElement('span');
+    pctEl.className = 'dmf-relic-state-pct';
+    function renderRelicState(state, pct, labelChanged) {
+      var lang = getLang();
+      if (labelChanged) {
+        stateEl.classList.remove('is-awakened', 'is-transmitting', 'is-overdrive');
+        if (state === 'DORMANT') stateEl.textContent = lang === 'es' ? 'INACTIVO' : 'DORMANT';
+        else if (state === 'AWAKENED') {
+          stateEl.classList.add('is-awakened');
+          stateEl.textContent = lang === 'es' ? 'SEÑAL DETECTADA' : 'SIGNAL DETECTED';
+        } else if (state === 'OVERDRIVE') {
+          stateEl.classList.add('is-overdrive');
+          stateEl.textContent = 'OVERDRIVE';
+        } else {
+          stateEl.classList.add('is-transmitting');
+          stateEl.textContent = lang === 'es' ? 'TRANSMISIÓN' : 'TRANSMITTING';
+          stateEl.appendChild(pctEl);
+        }
+      }
+      if (state === 'TRANSMITTING') pctEl.textContent = (lang === 'es' ? 'TRANSFERENCIA ' : 'FORMULA TRANSFER ') + pct + '%';
+    }
+    var langBtn2 = document.querySelector('.lang-btn');
+    if (langBtn2 && 'MutationObserver' in window) {
+      new MutationObserver(function () { shownState = ''; }).observe(langBtn2, { childList: true, subtree: true, characterData: true });
+    }
+
+    container.addEventListener('mousemove', function (e) {
       var rect = container.getBoundingClientRect();
-      mouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-      mouseY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-      mouseNDCx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouseNDCy = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      parallaxX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+      parallaxY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+      mouseNDC.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+      mouseInside = true;
+      mouseMoved = true;
     });
-
-    container.addEventListener('mouseleave', function(){
-      mouseX = 0; mouseY = 0;
+    container.addEventListener('mouseleave', function () {
+      parallaxX = 0; parallaxY = 0; mouseInside = false;
       hideReadout();
+      hub.hoverLevel = 0;
     });
 
-    // === FULLSCREEN VIEW ===
+    var fsActive = false;
+    function toggleDrop() {
+      hub.setForceDrop(!hub.forceDrop);
+      band.classList.toggle('is-drop-armed', hub.forceDrop);
+    }
+
+    var lastX = 0, lastY = 0, downX = 0, downY = 0, downT = 0, lastMoveT = 0;
+    container.addEventListener('pointerdown', function (e) {
+      if (e.button > 0 || (e.target.closest && e.target.closest('button, a'))) return;
+      if (rig.mode === 'auto') copyPose(user, cur);
+      rig.mode = 'user';
+      rig.dragging = true;
+      rig.velAz = 0;
+      rig.lastInput = performance.now();
+      lastX = downX = e.clientX; lastY = downY = e.clientY; downT = lastMoveT = rig.lastInput;
+      container.classList.add('is-dragging');
+    });
+    container.addEventListener('pointermove', function (e) {
+      if (!rig.dragging) return;
+      var now = performance.now();
+      var dx = e.clientX - lastX, dy = e.clientY - lastY;
+      lastX = e.clientX; lastY = e.clientY;
+      user.az -= dx * 0.006;
+      if (e.pointerType === 'mouse') user.y += dy * 0.012;
+      clampUser();
+      var edt = Math.max(0.008, (now - lastMoveT) / 1000);
+      rig.velAz = clamp(-dx * 0.006 / edt, -2.5, 2.5);
+      lastMoveT = now;
+      rig.lastInput = now;
+      if (staticMode) { copyPose(cur, user); renderStatic(); }
+    });
+    function endDrag(e) {
+      if (!rig.dragging) return;
+      rig.dragging = false;
+      container.classList.remove('is-dragging');
+      rig.lastInput = performance.now();
+      if (rig.lastInput - lastMoveT > 80) rig.velAz = 0;
+      var tap = Math.abs(e.clientX - downX) < 6 && Math.abs(e.clientY - downY) < 6 && rig.lastInput - downT < 300;
+      if (tap && fsActive && e.pointerType !== 'mouse' && !staticMode) toggleDrop();
+    }
+    container.addEventListener('pointerup', endDrag);
+    container.addEventListener('pointercancel', function (e) { rig.dragging = false; container.classList.remove('is-dragging'); rig.lastInput = performance.now(); });
+
+    // === DMF LIVE SIGNAL — fullscreen performance mode ===
     var closeBtn = container.querySelector('.dmf-signal-fullscreen-close');
     var viewBtn = band.querySelector('.dmf-signal-view3d');
+    var hud = container.querySelector('.dmf-live-hud');
+    var hudState = hud.querySelector('.dmf-live-hud-state');
+    var hudBpm = hud.querySelector('.dmf-live-hud-bpm b');
+    var hudBars = {
+      energy: hud.querySelector('[data-hud="energy"]'),
+      low: hud.querySelector('[data-hud="low"]'),
+      mid: hud.querySelector('[data-hud="mid"]'),
+      high: hud.querySelector('[data-hud="high"]')
+    };
+    var hudLast = 0;
+    var hudShownState = '';
 
-    function enterFullscreen(){
+    function enterFullscreen() {
       container.classList.add('is-fullscreen');
-      onResize();
-      if(container.requestFullscreen) container.requestFullscreen().catch(function(){});
+      fsActive = true;
+      requestResize();
+      if (container.requestFullscreen) container.requestFullscreen().catch(function () {});
     }
-
-    function exitFullscreen(){
+    function exitFullscreen() {
       container.classList.remove('is-fullscreen');
-      if(document.fullscreenElement) document.exitFullscreen().catch(function(){});
-      onResize();
+      fsActive = false;
+      if (hub.forceDrop) toggleDrop();
+      if (document.fullscreenElement) document.exitFullscreen().catch(function () {});
+      requestResize();
+    }
+    if (viewBtn) viewBtn.addEventListener('click', function (e) { e.preventDefault(); enterFullscreen(); });
+    if (closeBtn) closeBtn.addEventListener('click', exitFullscreen);
+    document.addEventListener('fullscreenchange', function () {
+      if (!document.fullscreenElement && fsActive) exitFullscreen();
+      requestResize();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (!fsActive) return;
+      if (e.key === 'Escape') exitFullscreen();
+      else if ((e.code === 'Space' || e.key === ' ') && !staticMode) { e.preventDefault(); toggleDrop(); }
+    });
+
+    function updateHud(s, nowMs) {
+      if (!fsActive || nowMs - hudLast < 66) return;
+      hudLast = nowMs;
+      if (hudShownState !== hub.state) { hudState.textContent = hub.state; hudShownState = hub.state; hud.setAttribute('data-state', hub.state); }
+      hudBpm.textContent = s.bpm;
+      hudBars.energy.style.transform = 'scaleX(' + s.energy.toFixed(3) + ')';
+      hudBars.low.style.transform = 'scaleX(' + s.low.toFixed(3) + ')';
+      hudBars.mid.style.transform = 'scaleX(' + s.mid.toFixed(3) + ')';
+      hudBars.high.style.transform = 'scaleX(' + s.high.toFixed(3) + ')';
     }
 
-    if(viewBtn) viewBtn.addEventListener('click', function(e){
-      e.preventDefault();
-      enterFullscreen();
-    });
-
-    if(closeBtn) closeBtn.addEventListener('click', exitFullscreen);
-
-    document.addEventListener('fullscreenchange', function(){
-      if(!document.fullscreenElement) container.classList.remove('is-fullscreen');
-      onResize();
-    });
-
-    document.addEventListener('keydown', function(e){
-      if(e.key === 'Escape' && container.classList.contains('is-fullscreen')){
-        exitFullscreen();
-      }
-    });
-
+    // === VISIBILITY, RESIZE ===
     var isVisible = true;
-    if('IntersectionObserver' in window){
-      var io = new IntersectionObserver(function(entries){
+    var activationPending = false;
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
         isVisible = entries[0].isIntersecting;
-      }, {threshold: 0.08});
-      io.observe(band);
+        if (isVisible && !band.classList.contains('is-receiving')) {
+          band.classList.add('is-receiving');
+          activationPending = true;
+        }
+      }, { threshold: 0.08 }).observe(band);
     }
 
-    function onResize(){
+    var resizePending = false;
+    function requestResize() { resizePending = true; if (staticMode) renderStatic(); }
+    function doResize() {
+      resizePending = false;
       w = container.clientWidth;
       h = container.clientHeight;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     }
-    window.addEventListener('resize', onResize);
+    window.addEventListener('resize', requestResize);
 
-    function startAnimation(){
-      function animate(){
-        requestAnimationFrame(animate);
-        var dt = Math.min(clock.getDelta(), 0.05);
-        if(!isVisible) return;
-        autoAngle += dt * 0.072;
+    var staticMode = false;
+    function renderStatic() {
+      staticMode = true;
+      if (resizePending) doResize();
+      applyCamera(0);
+      renderer.render(scene, camera);
+    }
 
-        // Live set — beat clock drives head nod, body groove, cone pump, logo EQ
-        liveBeatTime += dt;
-        var beats = liveBeatTime * RELIC_BPM / 60;
-        var beatPhase = beats - Math.floor(beats);
-        var kick = Math.exp(-beatPhase * 7);
-        var nodCurve = 0.5 + 0.5 * Math.cos(2 * Math.PI * (beatPhase - 0.12));
-        relicMotion.uKick.value = kick;
-        relicMotion.uNod.value = 0.13 * nodCurve * nodCurve;
-        relicMotion.uSway.value = 0.006 * Math.sin(Math.PI * beats);
-        relicMotion.uBounce.value = 0.005 * Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * beatPhase), 3);
-        relicMotion.uBeatIndex.value = Math.floor(beats) % 64;
-        relicMotion.uLive.value = modelTargetScale > 0 ? modelCurrentScale / modelTargetScale : 0;
+    // === DMFRelicAnimator — impact physics driven by the shared signal ===
+    var SpringCtor = O.DMFSpring;
+    var headSpring = new SpringCtor(160, 16);
+    var torsoSpring = new SpringCtor(220, 18);
+    var coneSpring = new SpringCtor(900, 26);
+    var orbitSpring = new SpringCtor(4, 4);
+    var lightSpring = new SpringCtor(10, 5);
+    var dollySpring = new SpringCtor(40, 9);
+    orbitSpring.x = 0.072;
+    lightSpring.x = 0.675;
+    var prevKick = 0, prevBar = -1;
+    var liveTime = 0;
+    var sweepPos = -1, sweepActive = false, sweepCooldown = 0;
+    var shockT = 1, shockStrength = 0;
+    var logoHold = [0, 0, 0, 0, 0];
+    var frameCount = 0;
+    var governor = new O.DMFPerformanceGovernor(quality);
+    var wireZoneColors = [0x886633, 0xcc8844, 0x44ddff, 0xff6633];
 
-        // Model entrance
-        if(modelRef && modelCurrentScale < modelTargetScale){
-          modelCurrentScale += (modelTargetScale - modelCurrentScale) * 0.03;
-          if(modelTargetScale - modelCurrentScale < 0.001) modelCurrentScale = modelTargetScale;
-          modelRef.scale.setScalar(modelCurrentScale);
-          entranceAngle += 0.02;
-          modelRef.rotation.y = Math.sin(entranceAngle) * 0.12 * (1 - modelCurrentScale / modelTargetScale);
-        }
+    function kickAt(phase, d) { return Math.exp(-7 * frac(phase - d)); }
 
-        // Camera orbit
-        var targetRotY = Math.sin(autoAngle) * 0.5 + mouseX * 0.3;
-        var targetRotX = mouseY * 0.15;
-        currentRotY += (targetRotY - currentRotY) * 0.02;
-        currentRotX += (targetRotX - currentRotX) * 0.02;
+    function animateRelic(s, dt) {
+      var od = hub.overdriveMix;
+      liveTime += dt;
 
-        var orbitAngle = 0.68 + currentRotY * 0.3;
-        camera.position.x = baseRadius * Math.sin(orbitAngle);
-        camera.position.y = baseY + currentRotX * 0.4 + Math.sin(autoAngle * 0.8) * 0.12;
-        camera.position.z = baseRadius * Math.cos(orbitAngle);
-        camera.lookAt(0, 1.1 + Math.sin(autoAngle * 0.6) * 0.04, 0);
-
-        // Dynamic lighting — museum breathing
-        rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 + kick * 0.25;
-        accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12;
-        fillLight.intensity = 0.3 + Math.sin(autoAngle * 1.0 + 2) * 0.06;
-        underGlow.intensity = 0.15 + Math.sin(autoAngle * 2.8) * 0.08 + kick * 0.3;
-        haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06;
-
-        var hShift = Math.sin(autoAngle * 0.4) * 0.04;
-        screenGlow.color.setHSL(0.62 + hShift, 0.45, 0.35);
-
-        // Volumetric cone
-        coneMat.opacity = 0.012 + Math.sin(autoAngle * 1.3) * 0.005;
-
-        // Embers
-        var pos = pGeom.attributes.position.array;
-        for(var i = 0; i < particleCount; i++){
-          pos[i*3+1] += pSpeeds[i];
-          pos[i*3]   += Math.sin(autoAngle * 1.8 + pPhases[i]) * 0.0015;
-          pos[i*3+2] += Math.cos(autoAngle * 1.3 + pPhases[i]) * 0.0015;
-          if(pos[i*3+1] > 6){
-            pos[i*3+1] = -0.5;
-            pos[i*3]   = (Math.random() - 0.5) * 10;
-            pos[i*3+2] = (Math.random() - 0.5) * 10;
-          }
-        }
-        pGeom.attributes.position.needsUpdate = true;
-        pMat.opacity = 0.4 + Math.sin(autoAngle * 1.6) * 0.12;
-
-        // Rings
-        var ringPulse = 1 + Math.sin(autoAngle * 1.8) * 0.06 + kick * 0.035;
-        ring.scale.set(ringPulse, ringPulse, 1);
-        ringMat.opacity = 0.035 + Math.sin(autoAngle * 1.8) * 0.02 + kick * 0.05;
-
-        var ring2Pulse = 1 + Math.sin(autoAngle * 1.1 + 1) * 0.05;
-        ring2.scale.set(ring2Pulse, ring2Pulse, 1);
-        ring2Mat.opacity = 0.018 + Math.sin(autoAngle * 1.1 + 1) * 0.012;
-
-        // Pedestal rim glow
-        pedestalRimMat.opacity = 0.2 + Math.sin(autoAngle * 2.2) * 0.08 + kick * 0.15;
-
-        // Halo breathing
-        haloMat.opacity = 0.06 + Math.sin(autoAngle * 0.9) * 0.03;
-        halo2Mat.opacity = 0.03 + Math.sin(autoAngle * 0.7 + 1) * 0.015;
-        halo.rotation.z += 0.0003;
-        halo2.rotation.z -= 0.0002;
-
-        // Label opacity pulse
-        labelEdition.material.opacity = 0.25 + Math.sin(autoAngle * 1.4) * 0.1;
-        labelRelic.material.opacity = 0.2 + Math.sin(autoAngle * 1.1 + 2) * 0.08;
-        labelSignal.material.opacity = 0.15 + Math.sin(autoAngle * 0.8 + 1) * 0.06;
-
-        // Grid
-        gridHelper.material.opacity = 0.06 + Math.sin(autoAngle * 1.0) * 0.03;
-
-        // Pedestal emissive pulse
-        pedestalMat.emissiveIntensity = 0.012 + Math.sin(autoAngle * 2.5) * 0.008;
-
-        // Wireframe + edge breathing (base)
-        var wireBaseOp = 0.02 + Math.sin(autoAngle * 1.2) * 0.01;
-        var edgeBaseOp = 0.035 + Math.sin(autoAngle * 1.8) * 0.015;
-
-        // Hover raycasting — cursor-following readout
-        var activeZoneIdx = -1;
-        if(modelRef && mouseNDCx !== 0 && mouseNDCy !== 0){
-          raycaster.setFromCamera({x: mouseNDCx, y: mouseNDCy}, camera);
-          var hits = raycaster.intersectObject(modelRef, true);
-          if(hits.length > 0){
-            var hit = hits[0];
-            var zone = getZone(hit.point);
-            var zoneKey = zone.en;
-            var projected = hit.point.clone().project(camera);
-            var sx = (projected.x * 0.5 + 0.5) * w;
-            var sy = (-projected.y * 0.5 + 0.5) * h;
-            readoutEl.style.left = sx + 'px';
-            readoutEl.style.top = sy + 'px';
-            if(zoneKey !== currentZone){
-              currentZone = zoneKey;
-              showReadout(zone);
-            }
-            if(!readoutEl.classList.contains('is-visible')){
-              readoutEl.classList.add('is-visible');
-            }
-            container.style.cursor = 'crosshair';
-            for(var zi = 0; zi < zones.length; zi++){
-              if(zones[zi].en === zoneKey){ activeZoneIdx = zi; break; }
-            }
-          } else {
-            if(currentZone){ hideReadout(); }
-            container.style.cursor = '';
-          }
-        }
-
-        // GPU reactive anatomy — shader uniform updates (2 uniforms vs ~105K vertices/frame)
-        var wireZoneColors = [0x886633, 0xcc8844, 0x44ddff, 0xff6633];
-        if(relicShaderRef){
-          relicShaderRef.uniforms.uActiveZone.value = activeZoneIdx;
-          relicShaderRef.uniforms.uTime.value = autoAngle;
-        }
-        if(activeZoneIdx >= 0){
-          if(wireRef){
-            wireRef.material.color.setHex(wireZoneColors[activeZoneIdx]);
-            wireBaseOp = 0.055 + Math.sin(autoAngle * 2.5) * 0.02;
-          }
-          if(edgeRef){
-            edgeRef.material.color.setHex(wireZoneColors[activeZoneIdx]);
-            edgeBaseOp = 0.06 + Math.sin(autoAngle * 2.0) * 0.02;
-          }
-        } else {
-          if(wireRef) wireRef.material.color.setHex(0x4488cc);
-          if(edgeRef) edgeRef.material.color.setHex(0xff5b1e);
-        }
-        if(wireRef) wireRef.material.opacity = wireBaseOp;
-        if(edgeRef) edgeRef.material.opacity = edgeBaseOp;
-
-        // Relic signal state — DORMANT / AWAKENED / TRANSMITTING
-        var newState;
-        if(activeZoneIdx === 3) newState = 'transmitting';
-        else if(activeZoneIdx >= 0) newState = 'awakened';
-        else newState = 'dormant';
-        if(newState !== relicState){
-          relicState = newState;
-          lastStatePct = -1;
-          renderRelicState(0);
-        }
-        if(relicState === 'transmitting'){
-          var wPct = Math.floor(((autoAngle * 4.5) % 1.0) * 100);
-          if(wPct !== lastStatePct){
-            lastStatePct = wPct;
-            renderRelicState(wPct);
-          }
-        }
-
-        // Tone mapping
-        renderer.toneMappingExposure = 0.95 + Math.sin(autoAngle * 0.7) * 0.06;
-
-        renderer.render(scene, camera);
+      if (modelRef && modelCurrentScale < modelTargetScale) {
+        modelCurrentScale += (modelTargetScale - modelCurrentScale) * (1 - Math.exp(-dt * 1.8));
+        if (modelTargetScale - modelCurrentScale < 0.001) modelCurrentScale = modelTargetScale;
+        modelRef.scale.setScalar(modelCurrentScale);
+        entranceAngle += dt * 1.2;
+        modelRef.rotation.y = Math.sin(entranceAngle) * 0.12 * (1 - modelCurrentScale / modelTargetScale);
       }
-      animate();
+      U.uLive.value = modelTargetScale > 0 ? modelCurrentScale / modelTargetScale : 0;
+
+      var kickEdge = s.kick > 0.6 && prevKick < 0.35;
+      prevKick = s.kick;
+      var barEdge = s.bar !== prevBar;
+      prevBar = s.bar;
+      if (activationPending) {
+        activationPending = false;
+        kickEdge = true;
+        barEdge = true;
+        sweepCooldown = 0;
+      }
+
+      // Scene orbit with mass: drops raise the target velocity, kicks add impulse, drag settles it.
+      orbitSpring.step(0.072 * (1 + 1.6 * s.dropEnergy), dt);
+      if (kickEdge) orbitSpring.impulse(0.05 * s.energy * motionScale);
+      autoAngle += dt * clamp(orbitSpring.x, 0.02, 0.4);
+
+      // DJ — head accelerates on kicks, torso bounces, counter-rotation against the sway.
+      var beats = s.beatIndex + s.beatPhase;
+      var nodCurve = 0.5 + 0.5 * Math.cos(2 * Math.PI * (s.beatPhase - 0.12));
+      headSpring.step((0.13 + 0.07 * od) * nodCurve * nodCurve * (0.55 + 0.45 * s.energy), dt);
+      if (kickEdge) headSpring.impulse((0.6 + 1.4 * od) * s.kick);
+      U.uNod.value = clamp(headSpring.x, -0.05, 0.24);
+      var groove = Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * s.beatPhase), 3);
+      torsoSpring.step(0.005 * groove * (1 + 0.8 * od), dt);
+      if (kickEdge) torsoSpring.impulse(0.05 * od * s.kick);
+      U.uBounce.value = clamp(torsoSpring.x, -0.004, 0.012);
+      var swayWave = Math.sin(Math.PI * beats);
+      U.uSway.value = (0.006 + 0.004 * od) * swayWave;
+      U.uTwist.value = clamp(-0.02 * (0.4 + 0.6 * od) * swayWave, -0.05, 0.05);
+
+      // Monitors — fast attack, spring return; cabinets buzz only in OVERDRIVE.
+      if (kickEdge) coneSpring.impulse(38 * s.kick * (0.75 + 0.5 * od));
+      coneSpring.step(0, dt);
+      U.uCone.value = clamp(coneSpring.x, -0.45, 1.3);
+      U.uCab.value = od > 0.05 ? Math.sin(liveTime * 2 * Math.PI * 11) * 0.0014 * s.low * od : 0;
+      U.uKick.value = s.kick;
+      U.uOverdrive.value = od;
+
+      // Logo — five segments from the bands, peak hold, then decay.
+      var lv = U.uLogoLvl.value, pk = U.uLogoPeak.value;
+      var targets0 = s.low * 0.9 + s.kick * 0.2;
+      var targets1 = (s.low + s.mid) * 0.5;
+      var targets2 = s.energy;
+      var targets3 = (s.mid + s.high) * 0.5;
+      var targets4 = s.high;
+      for (var c = 0; c < 5; c++) {
+        var tgt = c === 0 ? targets0 : c === 1 ? targets1 : c === 2 ? targets2 : c === 3 ? targets3 : targets4;
+        tgt = clamp(tgt * (0.75 + 0.25 * hash(c * 7 + s.beatIndex)) * (1 + 0.25 * od), 0, 1);
+        lv[c] += (tgt - lv[c]) * (1 - Math.exp(-dt / (tgt > lv[c] ? 0.02 : 0.18)));
+        if (lv[c] >= pk[c]) { pk[c] = lv[c]; logoHold[c] = 0.35; }
+        else if (logoHold[c] > 0) logoHold[c] -= dt;
+        else pk[c] = Math.max(lv[c], pk[c] - 0.6 * dt);
+      }
+      U.uLogoGlow.value = s.energy * (0.25 + 0.5 * s.kick) * (0.6 + 0.4 * od);
+
+      // Reflective sweeps — rate limited (≥1.2 s apart), warm, never strobing.
+      sweepCooldown -= dt;
+      var wantSweep = barEdge && ((od > 0.5) || (hub.state === 'TRANSMITTING' && s.bar % 2 === 0) || sweepCooldown < -8);
+      if (wantSweep && sweepCooldown <= 0) { sweepPos = -0.2; sweepActive = true; sweepCooldown = 1.2; }
+      if (sweepActive) { sweepPos += dt * 1.5; if (sweepPos > 1.4) sweepActive = false; }
+      U.uSweep.value = sweepPos;
+      U.uSweepAmt.value = sweepActive ? (0.3 + 0.25 * od) * U.uIntensity.value : 0;
+      if (relicMatRef) {
+        relicMatRef.roughness = baseRoughness * (1 - 0.22 * s.kick * od);
+        relicMatRef.emissiveIntensity = 0.008 + 0.02 * s.kick * s.energy + 0.015 * od;
+      }
+
+      // Pedestal — kick shockwave travels outward, rings answer with delay.
+      if (kickEdge && s.energy > 0.45) { shockT = 0; shockStrength = s.kick * (0.5 + 0.5 * od); }
+      if (shockT < 0.8) {
+        shockT += dt;
+        var sk = Math.min(1, shockT / 0.8);
+        shock.visible = true;
+        shock.scale.set(1 + sk * 1.5, 1 + sk * 1.5, 1);
+        shockMat.opacity = 0.25 * shockStrength * (1 - sk) * (1 - sk);
+      } else shock.visible = false;
+      var ringPulse = 1 + Math.sin(autoAngle * 1.8) * 0.06 + kickAt(s.beatPhase, 0.08) * 0.035 * (1 + od);
+      ring.scale.set(ringPulse, ringPulse, 1);
+      ringMat.opacity = 0.035 + Math.sin(autoAngle * 1.8) * 0.02 + kickAt(s.beatPhase, 0.08) * 0.05;
+      var ring2Pulse = 1 + Math.sin(autoAngle * 1.1 + 1) * 0.05 + kickAt(s.beatPhase, 0.18) * 0.03 * (1 + od);
+      ring2.scale.set(ring2Pulse, ring2Pulse, 1);
+      ring2Mat.opacity = 0.018 + Math.sin(autoAngle * 1.1 + 1) * 0.012 + kickAt(s.beatPhase, 0.18) * 0.02;
+      pedestalRimMat.opacity = 0.2 + Math.sin(autoAngle * 2.2) * 0.08 + s.kick * 0.15;
+      pedestalMat.emissiveIntensity = 0.012 + Math.sin(autoAngle * 2.5) * 0.008 + s.low * 0.02 * (1 + od);
+
+      // Lights — museum breathing plus a key light that gets pushed around in OVERDRIVE.
+      lightSpring.step(0.675 + 0.25 * Math.sin(autoAngle * 1.3), dt);
+      if (kickEdge && od > 0.3) lightSpring.impulse((s.beatIndex % 2 ? 1 : -1) * 0.9 * od);
+      keyLight.position.set(Math.sin(lightSpring.x) * 6.4, 7, Math.cos(lightSpring.x) * 6.4);
+      rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 + s.kick * 0.25 * (1 + 0.6 * od);
+      accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15;
+      fillLight.intensity = 0.3 + Math.sin(autoAngle + 2) * 0.06;
+      underGlow.intensity = 0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.low * 0.3 * (1 + od);
+      haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1;
+      screenGlow.color.setHSL(0.62 + Math.sin(autoAngle * 0.4) * 0.04, 0.45, 0.35);
+      coneMat.opacity = 0.012 + Math.sin(autoAngle * 1.3) * 0.005 + od * 0.008;
+
+      var speedMul = 1 + s.energy * 1.2 + od * 0.8;
+      var pos = pGeom.attributes.position.array;
+      for (var i = 0; i < particleActive; i++) {
+        pos[i * 3 + 1] += pSpeeds[i] * speedMul * dt * 60;
+        pos[i * 3] += Math.sin(autoAngle * 1.8 + pPhases[i]) * 0.0015;
+        pos[i * 3 + 2] += Math.cos(autoAngle * 1.3 + pPhases[i]) * 0.0015;
+        if (pos[i * 3 + 1] > 6) {
+          pos[i * 3 + 1] = -0.5;
+          pos[i * 3] = (Math.random() - 0.5) * 10;
+          pos[i * 3 + 2] = (Math.random() - 0.5) * 10;
+        }
+      }
+      pGeom.attributes.position.needsUpdate = true;
+      pMat.opacity = 0.4 + Math.sin(autoAngle * 1.6) * 0.12;
+
+      haloMat.opacity = 0.06 + Math.sin(autoAngle * 0.9) * 0.03 + od * 0.04;
+      halo2Mat.opacity = 0.03 + Math.sin(autoAngle * 0.7 + 1) * 0.015;
+      halo.rotation.z += dt * 0.018 * (1 + od);
+      halo2.rotation.z -= dt * 0.012 * (1 + od);
+      labelEdition.material.opacity = 0.25 + Math.sin(autoAngle * 1.4) * 0.1;
+      labelRelic.material.opacity = 0.2 + Math.sin(autoAngle * 1.1 + 2) * 0.08;
+      labelSignal.material.opacity = 0.15 + Math.sin(autoAngle * 0.8 + 1) * 0.06;
+      gridHelper.material.opacity = 0.06 + Math.sin(autoAngle) * 0.03 + s.low * 0.03;
+      renderer.toneMappingExposure = 0.95 + Math.sin(autoAngle * 0.7) * 0.06 + od * 0.06;
+
+      if (kickEdge) dollySpring.impulse(0.9 * s.energy * (0.5 + od) * motionScale);
+      dollySpring.step(od * 0.25 * motionScale, dt);
+      return kickEdge;
+    }
+
+    function hoverZone() {
+      if (!modelRef || !mouseInside || rig.dragging) {
+        if (currentZone) hideReadout();
+        hoverZone.last = -1;
+        return -1;
+      }
+      if (!mouseMoved && frameCount % 3 !== 0) return hoverZone.last;
+      mouseMoved = false;
+      raycaster.setFromCamera(mouseNDC, camera);
+      var hits = raycaster.intersectObject(modelRef, true);
+      if (!hits.length) {
+        if (currentZone) hideReadout();
+        container.style.cursor = '';
+        hoverZone.last = -1;
+        return -1;
+      }
+      var zi = getZoneIndex(hits[0].point);
+      projected.copy(hits[0].point).project(camera);
+      readoutEl.style.left = ((projected.x * 0.5 + 0.5) * w) + 'px';
+      readoutEl.style.top = ((-projected.y * 0.5 + 0.5) * h) + 'px';
+      if (zones[zi].en !== currentZone) { currentZone = zones[zi].en; showReadout(zones[zi]); }
+      if (!readoutEl.classList.contains('is-visible')) readoutEl.classList.add('is-visible');
+      container.style.cursor = 'crosshair';
+      hoverZone.last = zi;
+      return zi;
+    }
+    hoverZone.last = -1;
+
+    function tick(s, dt, raw) {
+      if (!isVisible && !fsActive) return;
+      frameCount++;
+      var downgrade = governor.sample(raw);
+      if (downgrade) applyQuality(downgrade);
+      if (resizePending) doResize();
+
+      animateRelic(s, dt);
+      rigUpdate(dt, performance.now());
+      applyCamera(dollySpring.x);
+
+      var activeZoneIdx = frameCount % 3 === 0 || mouseMoved ? hoverZone() : hoverZone.last;
+      hub.hoverLevel = activeZoneIdx === 3 ? 2 : (activeZoneIdx >= 0 ? 1 : 0);
+      U.uActiveZone.value = activeZoneIdx;
+      U.uTime.value = autoAngle;
+
+      var wireOp = 0.02 + Math.sin(autoAngle * 1.2) * 0.01;
+      var edgeOp = 0.035 + Math.sin(autoAngle * 1.8) * 0.015 + hub.overdriveMix * 0.03;
+      if (activeZoneIdx >= 0) {
+        if (wireRef) { wireRef.material.color.setHex(wireZoneColors[activeZoneIdx]); wireOp = 0.055 + Math.sin(autoAngle * 2.5) * 0.02; }
+        if (edgeRef) { edgeRef.material.color.setHex(wireZoneColors[activeZoneIdx]); edgeOp = 0.06 + Math.sin(autoAngle * 2.0) * 0.02; }
+      } else {
+        if (wireRef) wireRef.material.color.setHex(0x4488cc);
+        if (edgeRef) edgeRef.material.color.setHex(0xff5b1e);
+      }
+      if (wireRef) wireRef.material.opacity = wireOp;
+      if (edgeRef) edgeRef.material.opacity = edgeOp;
+
+      var state = hub.state;
+      var pct = state === 'TRANSMITTING' ? Math.floor(((autoAngle * 4.5) % 1.0) * 50) * 2 : 0;
+      if (state !== shownState || pct !== shownPct) {
+        var labelChanged = state !== shownState;
+        if (labelChanged) band.classList.toggle('is-overdrive', state === 'OVERDRIVE');
+        shownState = state;
+        shownPct = pct;
+        renderRelicState(state, pct, labelChanged);
+      }
+      updateHud(s, performance.now());
+
+      renderer.render(scene, camera);
     }
   }
 
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountDMFSignal, {once:true});
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mountDMFSignal, { once: true });
   else mountDMFSignal();
 })();
+
 </script>
 <!-- DMF_CODEX_BODY -->
 <script>
