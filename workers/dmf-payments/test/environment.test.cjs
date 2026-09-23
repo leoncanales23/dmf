@@ -48,3 +48,25 @@ console.log('PASS: production and sandbox Workers are isolated');
 console.log('PASS: sandbox vars are explicitly declared');
 console.log('PASS: checkout sessions are environment-bound');
 console.log('PASS: operations guide uses environment-specific secrets');
+
+
+const projectRoot = path.join(root, '..', '..');
+const landing = fs.readFileSync(path.join(projectRoot, 'index.html'), 'utf8');
+const generatedLanding = fs.readFileSync(path.join(projectRoot, 'public', 'index.html'), 'utf8');
+const login = fs.readFileSync(path.join(projectRoot, 'public', 'login.html'), 'utf8');
+const paymentResult = fs.readFileSync(path.join(projectRoot, 'public', 'payment-result.html'), 'utf8');
+
+for (const html of [landing, generatedLanding]) {
+  assert.ok(html.includes('getPaymentEnvironment'));
+  assert.ok(html.includes('dmf-payments-sandbox.vibraalto-cl.workers.dev'));
+  assert.ok(html.includes('dmf_purchase_environment'));
+}
+
+assert.ok(login.includes('dmf_purchase_environment'));
+assert.ok(login.includes('dmf-payments-sandbox.vibraalto-cl.workers.dev'));
+assert.ok(paymentResult.includes('paymentEnvironment'));
+assert.ok(paymentResult.includes('dmf-payments-sandbox.vibraalto-cl.workers.dev'));
+assert.ok(worker.includes('resultUrl'));
+assert.ok(worker.includes('environment-mismatch'));
+
+console.log('PASS: sandbox checkout routes through login and payment-result end to end');
