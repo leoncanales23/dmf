@@ -287,9 +287,9 @@ async function handleCreatePreference(request, origin, env) {
       currency_id: product.currency
     }],
     back_urls: {
-      success: backBase + '/payment-result.html?purchaseId=' + purchaseId,
-      failure: backBase + '/payment-result.html?purchaseId=' + purchaseId,
-      pending: backBase + '/payment-result.html?purchaseId=' + purchaseId
+      success: resultUrl,
+      failure: resultUrl,
+      pending: resultUrl
     },
     auto_return: 'approved',
     statement_descriptor: 'DMF ACADEMY',
