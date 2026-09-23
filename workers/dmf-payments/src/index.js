@@ -332,7 +332,8 @@ async function handleCreatePreference(request, origin, env) {
   return json(origin, 200, {
     ok: true,
     init_point: initPoint,
-    purchaseId: purchaseId
+    purchaseId: purchaseId,
+    paymentEnvironment: paymentEnvironment
   });
 }
 
