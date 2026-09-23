@@ -557,6 +557,12 @@ async function handleCheckStatus(request, origin, env) {
     return json(origin, 403, { ok: false, error: 'Access denied' });
   }
 
+  const sessionEnvironment = (f.paymentEnvironment && f.paymentEnvironment.stringValue) || 'production';
+  const workerEnvironment = env.DMF_MP_ENVIRONMENT === 'sandbox' ? 'sandbox' : 'production';
+  if (sessionEnvironment !== workerEnvironment) {
+    return json(origin, 409, { ok: false, error: 'environment-mismatch' });
+  }
+
   return json(origin, 200, {
     ok: true,
     status: (f.paymentStatus && f.paymentStatus.stringValue) || f.status.stringValue,
