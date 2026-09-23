@@ -9,26 +9,47 @@ section with dedicated canvas, HUD overlay, and state machine.
 **Renderer**: Three.js r128 with `MeshStandardMaterial` + `onBeforeCompile`
 shader injection for GPU-side reactive anatomy and cinematic glow.
 
+**DMF Overdrive architecture** (`scripts/build-3d.cjs` inlines, in order):
+- `scripts/overdrive/engine.js` — pure ES5, unit-tested (`test/engine.test.cjs`):
+  `DMFSignalEngine` (synthetic 124 BPM performance with a 32-bar arrangement
+  intro → groove → build → drop, crossfading to real analyser data when a
+  same-origin `<video>/<audio>` plays), `DMFStateMachine`
+  (DORMANT → AWAKENED → TRANSMITTING → OVERDRIVE with hysteresis; OVERDRIVE is
+  earned by sustained drop energy), `DMFSpring` (impulse + drag physics) and
+  `DMFPerformanceGovernor` (one-way HIGH → BALANCED → LITE downgrade from a
+  3 s rolling FPS window; never upgrades, so tiers cannot oscillate).
+- `scripts/overdrive/signal-bus.js` — `window.DMFSignal`: one rAF clock for the
+  whole landing; `DMFAudioReactive` analyser (attack/release smoothing, onset
+  flux, auto-gain); landing bus writing `--dmf-energy/kick/low/high/peak/phase/overdrive`
+  only on visible blocks (~30 Hz); Academy signal path node per bar;
+  `window.__DMF_PERF__` on localhost or `?dmfdebug=1` only.
+- `scripts/overdrive/relic.js` — the Receiver scene, `DMFRelicAnimator`
+  (head spring + torso impulse + counter-twist, cone excursion with spring
+  return, OVERDRIVE cabinet buzz, 5-segment logo EQ with peak hold, warm
+  reflective sweeps ≥1.2 s apart, pedestal shockwave), `DMFCameraRig`
+  (ICON / SIGNAL / RELIC shots on a loop, OVERDRIVE push-in with roll
+  correction, eased spherical blends, drag override with 5 s gentle resume),
+  and the fullscreen **DMF LIVE SIGNAL** HUD (state, BPM, energy, LOW/MID/HIGH;
+  SPACE / tap toggles the drop, ESC exits).
+
 **Interaction**:
-- slow FPS-independent auto-rotation (`dt * 0.072`)
-- manual orbit controls on pointer drag
-- per-vertex zone detection via GPU `aZoneId` attribute
-- DORMANT / AWAKENED / TRANSMITTING state machine
+- pointer orbit (mouse + touch, `touch-action: pan-y` keeps vertical scroll)
+- per-vertex zone detection via GPU `aZoneId`; hover raycast throttled to ~20 Hz
 - bilingual HUD (EN/ES) with `MutationObserver` language sync
-- **Live set** (124 BPM beat clock): the GLB is a single static mesh with no
-  rig, so motion is procedural in the vertex shader using object-space
-  anchors — DJ head nods around a neck pivot, torso sways/bounces, monitor
-  cones pump on the kick, and the DMF logo bars light up like an equalizer.
-  Pedestal rim, rings and under-glow are kick-synced. The same displacement
-  is applied to the wireframe/edge overlays so they stay aligned.
-- `IntersectionObserver` pauses render off-screen; `getDelta()` clamped
-  to 50ms to prevent time jump on re-entry
+- the GLB is a single static mesh with no rig: all motion is procedural in the
+  vertex shader around object-space anchors (DJ head/neck, torso, monitor cones);
+  the wireframe/edge overlays receive the same displacement
+- render pauses off-screen (`IntersectionObserver`); the signal clock keeps
+  feeding the landing
 
 **Performance**:
-- quality tiers: HIGH (desktop) / BALANCED (mobile ≥480px) / STATIC (<480px)
-- `prefers-reduced-motion` disables auto-rotation and the live set
-- Save-Data / 2G connections skip the 3D layer entirely
-- model load failure removes the section cleanly
+- quality tiers: HIGH (desktop) / BALANCED (mobile, touch) / STATIC (≤2 GB RAM or ≤2 cores)
+- DPR caps 1.75 / 1.5 (1.25 under 480 px) / 1; shadows HIGH only; particle
+  draw range 160 / 80 / 40; overlays trimmed on lower tiers
+- `prefers-reduced-motion`: static ICON composition, no clock, no choreography,
+  no flashes; drag still re-renders on demand
+- Save-Data / 2G connections skip the 3D layer and the signal clock entirely
+- model load failure leaves the section with its typographic fallback
 
 **Source**: `dmf-studio-optimized.glb` (105,734 vertices, single mesh)
 processed by `scripts/build-3d.cjs` → injected into `public/index.html`.

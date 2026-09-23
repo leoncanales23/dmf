@@ -371,8 +371,82 @@ ul{list-style:none}
 .concert-particle:nth-child(8){left:50%;top:80%;animation:particleDrift 9s ease-in-out 1.2s infinite}
 @keyframes particleDrift{0%{opacity:0;transform:translateY(0)}20%{opacity:.7}50%{opacity:.3;transform:translateY(-30px)}80%{opacity:.6}100%{opacity:0;transform:translateY(-60px)}}
 
+/* DMF OVERDRIVE — hero composition */
+.hero{overflow-x:clip}
+.hero-copy{position:relative;z-index:1;transform:translate3d(0,var(--hero-copy-y,0px),0)}
+.hero-ghost{position:absolute;z-index:0;left:-1.5vw;top:50%;transform:translate3d(0,calc(-50% + var(--hero-ghost-y,0px)),0);font-family:'Anton',sans-serif;font-size:clamp(150px,29vw,470px);line-height:.8;letter-spacing:.01em;text-transform:uppercase;white-space:nowrap;color:transparent;-webkit-text-stroke:1px rgba(242,237,230,.055);pointer-events:none;-webkit-user-select:none;user-select:none}
+.hero h1 .hero-line{display:block;overflow:hidden;padding-top:.08em;margin-top:-.08em}
+.hero h1 .hero-line>span{display:block}
+.hero-img{z-index:1;transform:translate3d(0,var(--hero-img-y,0px),0)}
+.hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:18px 30px;margin-top:36px}
+.hero-cta{display:inline-flex;align-items:center;gap:14px;padding:18px 30px;background:#ff5b1e;color:#0a0806;font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.1em;text-transform:uppercase;transition:background .2s,transform .2s}
+.hero-cta:hover{background:#ff7a45;color:#0a0806;transform:translateY(-2px)}
+.hero-cta-2{display:inline-flex;align-items:center;gap:10px;padding:6px 0;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:#c9c0b6;border-bottom:1px solid rgba(242,237,230,.18);transition:color .2s,border-color .2s}
+.hero-cta-2:hover{color:#ff5b1e;border-color:#ff5b1e}
+.hero-stats{margin-top:40px}
+.hero-signal{position:absolute;left:0;right:0;bottom:0;height:48px;pointer-events:none;z-index:1}
+.hero-signal-h{position:absolute;left:0;bottom:22px;width:70.5%;height:1px;background:linear-gradient(90deg,rgba(255,91,30,0),rgba(255,91,30,.9) 35%,#ff5b1e);box-shadow:0 0 10px rgba(255,91,30,.45);transform-origin:left center}
+.hero-signal-v{position:absolute;left:70.5%;bottom:0;width:1px;height:23px;background:#ff5b1e;box-shadow:0 0 10px rgba(255,91,30,.45);transform-origin:top center}
+.hero-signal-label{position:absolute;right:calc(29.5% + 18px);bottom:30px;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#8a8178;white-space:nowrap}
+
+/* DMF OVERDRIVE — scroll choreography (only armed when JS + motion allowed) */
+.dmf-choreo .hero .hero-kicker,.dmf-choreo .hero .hero-role,.dmf-choreo .hero .hero-actions,.dmf-choreo .hero .hero-stats>div,.dmf-choreo .hero-signal-label{opacity:0;transform:translateY(14px);transition:opacity .8s ease,transform .9s cubic-bezier(.2,.7,.2,1)}
+.dmf-choreo .hero h1 .hero-line>span{transform:translateY(105%);transition:transform 1.05s cubic-bezier(.7,0,.15,1)}
+.dmf-choreo .hero .hero-img{clip-path:inset(100% 0 0 0);transition:clip-path 1.3s cubic-bezier(.7,0,.15,1) .15s}
+.dmf-choreo .hero .hero-img img{transform:scale(1.12);transition:transform 1.8s cubic-bezier(.2,.7,.2,1) .15s}
+.dmf-choreo .hero-signal-h{transform:scaleX(0);transition:transform 1s cubic-bezier(.7,0,.2,1) .7s}
+.dmf-choreo .hero-signal-v{transform:scaleY(0);transition:transform .5s cubic-bezier(.4,0,.2,1) 1.65s}
+.dmf-choreo .hero.is-in .hero-kicker,.dmf-choreo .hero.is-in .hero-role,.dmf-choreo .hero.is-in .hero-actions,.dmf-choreo .hero.is-in .hero-stats>div,.dmf-choreo .hero.is-in .hero-signal-label{opacity:1;transform:none}
+.dmf-choreo .hero.is-in .hero-role{transition-delay:.42s}
+.dmf-choreo .hero.is-in .hero-actions{transition-delay:.55s}
+.dmf-choreo .hero.is-in .hero-stats>div:nth-child(1){transition-delay:.7s}
+.dmf-choreo .hero.is-in .hero-stats>div:nth-child(2){transition-delay:.8s}
+.dmf-choreo .hero.is-in .hero-stats>div:nth-child(3){transition-delay:.9s}
+.dmf-choreo .hero.is-in .hero-signal-label{transition-delay:1.3s}
+.dmf-choreo .hero.is-in h1 .hero-line>span{transform:none}
+.dmf-choreo .hero.is-in h1 .hero-line:nth-child(2)>span{transition-delay:.12s}
+.dmf-choreo .hero.is-in .hero-img{clip-path:inset(0 0 0 0)}
+.dmf-choreo .hero.is-in .hero-img img{transform:none}
+.dmf-choreo .hero.is-in .hero-signal-h{transform:scaleX(1)}
+.dmf-choreo .hero.is-in .hero-signal-v{transform:scaleY(1)}
+
+.dmf-choreo .section-head .section-num,.dmf-choreo .acad-kicker,.dmf-choreo .acad-tag,.dmf-choreo .acad-sub,.dmf-choreo .acad-badge{opacity:0;transform:translateY(12px);transition:opacity .7s ease,transform .8s cubic-bezier(.2,.7,.2,1)}
+.dmf-choreo .section-title,.dmf-choreo .acad-title,.dmf-choreo .band-text p{clip-path:inset(100% 0 -.1em 0);transform:translateY(.28em);transition:clip-path 1s cubic-bezier(.7,0,.15,1) .08s,transform 1.1s cubic-bezier(.2,.7,.2,1) .08s}
+.dmf-choreo .is-in .section-num,.dmf-choreo .acad-kicker.is-in,.dmf-choreo .acad-tag.is-in,.dmf-choreo .acad-sub.is-in,.dmf-choreo .acad-badge.is-in{opacity:1;transform:none}
+.dmf-choreo .acad-sub.is-in{transition-delay:.18s}
+.dmf-choreo .acad-badge.is-in{transition-delay:.3s}
+.dmf-choreo .is-in .section-title,.dmf-choreo .acad-title.is-in,.dmf-choreo .band.is-in .band-text p{clip-path:inset(-.1em 0 -.1em 0);transform:none}
+.dmf-choreo .band img,.dmf-choreo .fly-card-img img,.dmf-choreo .tips-img img{transform:scale(1.05);transition:transform 1.8s cubic-bezier(.2,.7,.2,1)}
+.dmf-choreo .band.is-in img,.dmf-choreo .fly-card.is-in .fly-card-img img,.dmf-choreo .tips-img.is-in img{transform:none}
+.dmf-choreo .section::before,.dmf-choreo .contact::before{content:'';position:absolute;left:0;top:-1px;width:clamp(80px,16vw,220px);height:1px;background:#ff5b1e;box-shadow:0 0 10px rgba(255,91,30,.5);transform:scaleX(0);transform-origin:left center;transition:transform 1.1s cubic-bezier(.7,0,.2,1) .15s;pointer-events:none}
+.dmf-choreo .section.is-in::before,.dmf-choreo .contact.is-in::before{transform:scaleX(1)}
+.dmf-choreo .section.is-in .section-num{animation:dmfActivate 1.3s ease-out .4s both}
+@keyframes dmfActivate{0%{text-shadow:0 0 0 rgba(255,91,30,0)}30%{text-shadow:0 0 18px rgba(255,91,30,.85)}100%{text-shadow:0 0 0 rgba(255,91,30,0)}}
+
+/* DMF OVERDRIVE — landing signal bus (vars are written only on visible blocks) */
+.nav{box-shadow:0 1px 0 rgba(255,91,30,calc(var(--dmf-peak,0) * .45))}
+.nav-logo{text-shadow:0 0 calc(var(--dmf-peak,0) * 14px) rgba(255,91,30,calc(var(--dmf-peak,0) * .6))}
+.section::after,.contact::after{content:'';position:absolute;left:0;right:0;top:-1px;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,91,30,.9),transparent) no-repeat;background-size:24% 100%;background-position:calc(var(--dmf-phase,0) * 130% - 15%) 0;opacity:calc(var(--dmf-kick,0) * .6)}
+.hero h1,.section-title,.acad-title{color:#f2ede6;color:color-mix(in srgb,#f2ede6,#ffd3bf calc(var(--dmf-energy,0) * 22%))}
+.hero-cta,.acad-cta,.acad-cta-free{box-shadow:0 0 calc(var(--dmf-peak,0) * 26px) rgba(255,91,30,calc(var(--dmf-peak,0) * .5))}
+.tier-card.tier-featured{box-shadow:0 0 calc(40px + var(--dmf-low,0) * 26px) rgba(255,91,30,calc(.12 + var(--dmf-low,0) * .1)),0 20px 60px rgba(0,0,0,.3)}
+.tier-card.tier-featured .tier-cta{box-shadow:0 4px 16px rgba(255,91,30,.25),0 0 calc(var(--dmf-peak,0) * 24px) rgba(255,91,30,calc(var(--dmf-peak,0) * .45))}
+.signal-path::after{content:'';position:absolute;left:19px;top:0;width:2px;height:100%;background:linear-gradient(to bottom,#ffb599,#ff5b1e);box-shadow:0 0 10px rgba(255,91,30,.6);transform-origin:top center;transform:scaleY(var(--dmf-path,0));transition:transform .7s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+.signal-node.is-live::before{background:#ff5b1e;border-color:#ff5b1e;box-shadow:0 0 calc(10px + var(--dmf-kick,0) * 16px) rgba(255,91,30,.55)}
+.signal-node.is-live .signal-node-state{color:#ff5b1e}
+.signal-node.is-live .signal-node-wave{opacity:.7}
+@media(max-width:600px){.signal-path::after{left:11px}}
+
+@media(prefers-reduced-motion:reduce){
+  .section::after,.contact::after{display:none}
+}
+
 /* MOBILE */
 @media(max-width:900px){
+  .hero-signal-h{width:50%}
+  .hero-signal-v{left:50%}
+  .hero-signal-label{right:calc(50% + 18px)}
+  .hero-ghost{top:auto;bottom:16%;transform:translate3d(0,var(--hero-ghost-y,0px),0);font-size:36vw}
   .nav-links .nav-link{display:none}
   .hamburger{display:flex}
   .nav-links.open .nav-link{display:block}
@@ -386,6 +460,9 @@ ul{list-style:none}
   .contact-card{min-width:auto}
 }
 @media(max-width:600px){
+  .scroll-cue{display:none}
+  .hero-signal-label{left:20px;right:auto;font-size:8px;letter-spacing:.24em}
+  .hero-cta{padding:16px 22px;font-size:14px}
   .hero h1{font-size:clamp(48px,16vw,80px)}
   .hero-stats{gap:24px}
   .stat-num{font-size:36px}
@@ -492,13 +569,18 @@ ul{list-style:none}
 
 <!-- HERO -->
 <header id="top" class="hero">
-  <div>
+  <div class="hero-ghost" aria-hidden="true">Signal</div>
+  <div class="hero-copy">
     <div class="hero-kicker">
       <span class="hero-kicker-line"></span>
       <span class="hero-kicker-text">Press Kit — EPK</span>
     </div>
-    <h1>Demian<br>Muller</h1>
+    <h1 aria-label="Demian Muller"><span class="hero-line"><span>Demian</span></span><span class="hero-line"><span>Muller</span></span></h1>
     <p class="hero-role" data-i18n="role">Electronic Artist · DJ · Live Act</p>
+    <div class="hero-actions">
+      <a href="#academy" class="hero-cta"><span data-i18n="heroCta">Enter DMF Academy</span><span aria-hidden="true">→</span></a>
+      <a href="#relic" class="hero-cta-2"><span data-i18n="heroCta2">Receive the signal</span><span aria-hidden="true">↓</span></a>
+    </div>
     <div class="hero-stats">
       <div><div class="stat-num">20+</div><div class="stat-label" data-i18n="statYears">Years touring</div></div>
       <div><div class="stat-num">500+</div><div class="stat-label" data-i18n="statTracks">Tracks & remixes</div></div>
@@ -508,6 +590,11 @@ ul{list-style:none}
   <div class="hero-img">
     <img src="assets/images/jpg_0_19kb.jpg" alt="Demian Muller">
     <div class="hero-img-overlay"></div>
+  </div>
+  <div class="hero-signal" aria-hidden="true">
+    <span class="hero-signal-label" data-i18n="heroSignal">Signal in · physical × digital</span>
+    <span class="hero-signal-h"></span>
+    <span class="hero-signal-v"></span>
   </div>
   <div class="scroll-cue">
     <span data-i18n="scroll">Scroll</span>
@@ -830,6 +917,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       navAcademy:'Academy', navDemos:'Lab', navTips:'Tips',
       role:'Electronic Artist · DJ · Live Act',
       scroll:'Scroll',
+      heroCta:'Enter DMF Academy', heroCta2:'Receive the signal', heroSignal:'Signal in · physical × digital',
       statYears:'Years touring', statTracks:'Tracks & remixes', statAwards:'Beatport contest wins',
       bioTitle:'Biography',
       bioA:'<p>Demian Muller is an electronic music artist, DJ and live act with an international career spanning more than 20 years.</p><p>Since 2008, he has released over 500 tracks and remixes on labels including Cadenza, 8Bit, Get Physical Music, Circus Recordings, Sincopat, CR2 Records and Cluber. His sound moves between house, tech house and minimal, with influences from afro house and organic house, focused on groove, atmosphere and club functionality.</p><p>A 3-time Beatport Remix Contest winner, Demian has collaborated on remixes with artists including John Digweed, Yousef, Djuma Soundsystem, DJ Pierre and Proudly People, among others.</p>',
@@ -914,6 +1002,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       navAcademy:'Academy', navDemos:'Lab', navTips:'Consejos',
       role:'Artista Electrónico · DJ · Live Act',
       scroll:'Desliza',
+      heroCta:'Entrar a DMF Academy', heroCta2:'Recibir la señal', heroSignal:'Señal entrante · físico × digital',
       statYears:'Años de carrera', statTracks:'Tracks y remixes', statAwards:'Premios Beatport',
       bioTitle:'Biografía',
       bioA:'<p>Demian Muller es artista de música electrónica, DJ y live act, con una carrera internacional de más de 20 años.</p><p>Desde 2008 ha publicado más de 500 tracks y remixes en sellos como Cadenza, 8Bit, Get Physical Music, Circus Recordings, Sincopat, CR2 Records y Cluber. Su sonido se mueve entre house, tech house y minimal, con influencias del afro house y el organic house, centrado en el groove, la atmósfera y la funcionalidad de club.</p><p>Ganador tres veces del Beatport Remix Contest, ha colaborado en remixes con artistas como John Digweed, Yousef, Djuma Soundsystem, DJ Pierre y Proudly People, entre otros.</p>',
@@ -1466,6 +1555,41 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   renderTiers();
   renderTips();
   renderDemos();
+})();
+</script>
+<script>
+/* DMF OVERDRIVE — scroll choreography (reveal → tension → activation → release) and hero depth.
+   Native IntersectionObserver + rAF, transforms only. Content stays visible without JS or with reduced motion. */
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !('IntersectionObserver' in window)) return;
+  document.documentElement.classList.add('dmf-choreo');
+
+  var io = new IntersectionObserver(function(entries){
+    for (var i = 0; i < entries.length; i++) {
+      if (entries[i].isIntersecting) {
+        entries[i].target.classList.add('is-in');
+        io.unobserve(entries[i].target);
+      }
+    }
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0 });
+  var els = document.querySelectorAll('.hero, .section, .contact, .band, .section-head, .acad-kicker, .acad-tag, .acad-title, .acad-sub, .acad-badge, .fly-card, .tips-img');
+  for (var i = 0; i < els.length; i++) io.observe(els[i]);
+
+  var hero = document.querySelector('.hero');
+  if (!hero) return;
+  var heroOn = false, ticking = false;
+  function update(){
+    ticking = false;
+    if (!heroOn) return;
+    var y = -hero.getBoundingClientRect().top;
+    hero.style.setProperty('--hero-ghost-y', (y * 0.22).toFixed(1) + 'px');
+    hero.style.setProperty('--hero-copy-y', (y * 0.06).toFixed(1) + 'px');
+    hero.style.setProperty('--hero-img-y', (y * -0.05).toFixed(1) + 'px');
+  }
+  function request(){ if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+  new IntersectionObserver(function(en){ heroOn = en[0].isIntersecting; if (heroOn) request(); }).observe(hero);
+  window.addEventListener('scroll', request, { passive: true });
 })();
 </script>
 </body>
