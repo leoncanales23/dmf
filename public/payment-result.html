@@ -63,9 +63,12 @@ a:hover{color:#ff7a45}
 (function () {
   'use strict';
 
-  var PAYMENTS_URL = window.__DMF_PAYMENTS_URL__ || 'https://dmf-payments.vibraalto-cl.workers.dev';
   var params = new URLSearchParams(window.location.search);
   var purchaseId = params.get('purchaseId');
+  var paymentEnvironment = params.get('paymentEnvironment') === 'sandbox' ? 'sandbox' : 'production';
+  var PAYMENTS_URL = paymentEnvironment === 'sandbox'
+    ? 'https://dmf-payments-sandbox.vibraalto-cl.workers.dev'
+    : (window.__DMF_PAYMENTS_URL__ || 'https://dmf-payments.vibraalto-cl.workers.dev');
 
   var titleEl = document.getElementById('resultTitle');
   var msgEl = document.getElementById('resultMsg');

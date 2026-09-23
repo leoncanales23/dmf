@@ -274,6 +274,9 @@ async function handleCreatePreference(request, origin, env) {
   }, saToken);
 
   const backBase = env.DMF_PUBLIC_URL || 'https://dmf.vibraalto.cl';
+  const paymentEnvironment = env.DMF_MP_ENVIRONMENT === 'sandbox' ? 'sandbox' : 'production';
+  const resultUrl = backBase + '/payment-result.html?purchaseId=' + purchaseId +
+    '&paymentEnvironment=' + paymentEnvironment;
 
   const prefBody = {
     items: [{
@@ -284,9 +287,9 @@ async function handleCreatePreference(request, origin, env) {
       currency_id: product.currency
     }],
     back_urls: {
-      success: backBase + '/payment-result.html?purchaseId=' + purchaseId,
-      failure: backBase + '/payment-result.html?purchaseId=' + purchaseId,
-      pending: backBase + '/payment-result.html?purchaseId=' + purchaseId
+      success: resultUrl,
+      failure: resultUrl,
+      pending: resultUrl
     },
     auto_return: 'approved',
     statement_descriptor: 'DMF ACADEMY',
@@ -329,7 +332,8 @@ async function handleCreatePreference(request, origin, env) {
   return json(origin, 200, {
     ok: true,
     init_point: initPoint,
-    purchaseId: purchaseId
+    purchaseId: purchaseId,
+    paymentEnvironment: paymentEnvironment
   });
 }
 
@@ -551,6 +555,12 @@ async function handleCheckStatus(request, origin, env) {
   const f = session.fields;
   if (!f.uid || f.uid.stringValue !== user.uid) {
     return json(origin, 403, { ok: false, error: 'Access denied' });
+  }
+
+  const sessionEnvironment = (f.paymentEnvironment && f.paymentEnvironment.stringValue) || 'production';
+  const workerEnvironment = env.DMF_MP_ENVIRONMENT === 'sandbox' ? 'sandbox' : 'production';
+  if (sessionEnvironment !== workerEnvironment) {
+    return json(origin, 409, { ok: false, error: 'environment-mismatch' });
   }
 
   return json(origin, 200, {

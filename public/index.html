@@ -1652,13 +1652,28 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     document.getElementById('navLinks').classList.toggle('open');
   };
 
+  function getPaymentEnvironment(){
+    try {
+      return new URLSearchParams(window.location.search).get('payments') === 'sandbox' ? 'sandbox' : 'production';
+    } catch (_) {
+      return 'production';
+    }
+  }
+
+  function getPaymentsUrl(paymentEnvironment){
+    return paymentEnvironment === 'sandbox'
+      ? 'https://dmf-payments-sandbox.vibraalto-cl.workers.dev'
+      : (window.__DMF_PAYMENTS_URL__ || 'https://dmf-payments.vibraalto-cl.workers.dev');
+  }
+
   window.buyWithMP = function(btn){
     var productId = btn.getAttribute('data-product');
     var origText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '⏳';
 
-    var PAYMENTS_URL = window.__DMF_PAYMENTS_URL__ || 'https://dmf-payments.vibraalto-cl.workers.dev';
+    var paymentEnvironment = getPaymentEnvironment();
+    var PAYMENTS_URL = getPaymentsUrl(paymentEnvironment);
 
     function doCheckout(idToken) {
       fetch(PAYMENTS_URL + '/create-preference', {
@@ -1708,7 +1723,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     } else {
       btn.disabled = false;
       btn.innerHTML = origText;
-      try { sessionStorage.setItem('dmf_purchase_intent', productId); } catch(ex) {}
+      try {
+        sessionStorage.setItem('dmf_purchase_intent', productId);
+        sessionStorage.setItem('dmf_purchase_environment', paymentEnvironment);
+      } catch(ex) {}
       window.location.href = '/login';
     }
   };
