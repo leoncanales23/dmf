@@ -529,8 +529,12 @@ Prices and product definitions live only in the Worker. The frontend sends only 
 
 The recommended payment product is **Mercado Pago Checkout Pro** because the DMF
 plans are one-time purchases and payment data remains on Mercado Pago's hosted
-checkout. The account-owner setup checklist, sandbox procedure, and production
-cutover are documented in [`workers/dmf-payments/README.md`](../workers/dmf-payments/README.md).
+checkout. Production and sandbox are deployed as separate Cloudflare Workers:
+`dmf-payments` and `dmf-payments-sandbox`. Their Mercado Pago secrets are never
+shared, and checkout sessions are tagged with `paymentEnvironment` so a webhook
+cannot cross environments. The account-owner setup checklist, sandbox procedure,
+and production cutover are documented in
+[`workers/dmf-payments/README.md`](../workers/dmf-payments/README.md).
 
 ```bash
 cd workers/dmf-payments

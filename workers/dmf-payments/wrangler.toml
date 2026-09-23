@@ -4,8 +4,21 @@ compatibility_date = "2026-09-19"
 account_id = "27a73047e3d2a859af87db771d3569a2"
 workers_dev = true
 
+# Default/top-level Worker is production. Never point it at sandbox credentials.
 [vars]
 DMF_FIREBASE_PROJECT_ID = "dmf-academy"
 DMF_PUBLIC_URL = "https://dmf.vibraalto.cl"
 DMF_WEBHOOK_URL = "https://dmf-payments.vibraalto-cl.workers.dev/webhook/mercadopago"
 DMF_MP_ENVIRONMENT = "production"
+
+# Persistent, isolated sandbox Worker. Wrangler environments have independent
+# vars and secrets; deploy with: npx wrangler deploy --env sandbox
+[env.sandbox]
+name = "dmf-payments-sandbox"
+workers_dev = true
+
+[env.sandbox.vars]
+DMF_FIREBASE_PROJECT_ID = "dmf-academy"
+DMF_PUBLIC_URL = "https://dmf.vibraalto.cl"
+DMF_WEBHOOK_URL = "https://dmf-payments-sandbox.vibraalto-cl.workers.dev/webhook/mercadopago"
+DMF_MP_ENVIRONMENT = "sandbox"

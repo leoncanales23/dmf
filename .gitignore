@@ -5,3 +5,7 @@ node_modules/
 public/assets/models/
 public/academy-env.js
 .dmf-stream-map.local.json
+
+# Local Worker credentials / environment overrides
+.dev.vars*
+.env.*

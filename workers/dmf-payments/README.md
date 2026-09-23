@@ -1,100 +1,163 @@
 # Mercado Pago para DMF Academy
 
-## Solución recomendada
+## Arquitectura
 
-**Checkout Pro** es la opción adecuada para DMF Academy: los cuatro productos son
-compras únicas, el comprador paga en la experiencia alojada por Mercado Pago y DMF
-solo concede acceso después de verificar el pago en el backend. Esto reduce el
-alcance PCI y permite ofrecer los medios de pago que Mercado Pago habilite para la
-cuenta y el país del comprador.
+DMF Academy usa **Mercado Pago Checkout Pro** para compras únicas. El navegador
+nunca recibe el Access Token ni la clave de firma. El Cloudflare Worker crea la
+preferencia, valida el webhook, consulta Payment + Merchant Order y recién entonces
+activa `enrollments/{uid}` en Firestore.
 
-La aplicación de software ya está implementada en este directorio como un
-Cloudflare Worker. El Worker crea la preferencia, recibe el webhook firmado,
-consulta Payment y Merchant Order en Mercado Pago y recién entonces activa
-`enrollments/{uid}` en Firestore.
+La aplicación **DMF Academy** pertenece a la cuenta comercial de VibraAlto que
+recibe los fondos. Las cuentas `TESTUSER...` son compradores de prueba: no deben
+crear ni administrar una aplicación de Mercado Pago.
 
-> La **aplicación de Mercado Pago asociada a la cuenta comercial** no puede crearse
-> desde el repositorio: su titular debe crearla y aceptar los términos desde el
-> panel de Mercado Pago. Nunca compartas las credenciales en un issue, commit o
-> mensaje.
+Los entornos quedan separados de forma permanente:
 
-## 1. Crear la aplicación en Mercado Pago
+| Entorno | Worker | Checkout | Secrets |
+|---|---|---|---|
+| Producción | `dmf-payments` | `init_point` | productivos |
+| Sandbox | `dmf-payments-sandbox` | `sandbox_init_point` | de prueba |
+
+Nunca cambies temporalmente el Worker productivo a sandbox. Wrangler trata los
+secrets y `vars` de entornos nombrados como bindings independientes.
+
+## 1. Aplicación de Mercado Pago
 
 1. Inicia sesión con la cuenta comercial que recibirá los fondos.
-2. En **Mercado Pago Developers → Tus integraciones**, crea una aplicación llamada
+2. En **Mercado Pago Developers → Tus integraciones**, usa la aplicación
    `DMF Academy`.
-3. Selecciona **Pagos online** y **Checkout Pro** (sin plataforma/marketplace).
-4. Completa los datos del negocio y activa las credenciales de producción cuando
-   Mercado Pago lo permita.
-5. Copia el **Access Token** de prueba para sandbox o el de producción para cobros
-   reales. La Public Key no es necesaria para este flujo de redirección.
+3. La integración es **Pagos online → Checkout Pro**.
+4. Mantén separadas las credenciales de prueba y producción.
+5. La Public Key no es necesaria para este flujo de redirección server-side.
 
-No uses credenciales de prueba con `DMF_MP_ENVIRONMENT = "production"`, ni
-credenciales productivas con `"sandbox"`.
+## 2. Workers y variables
 
-## 2. Configurar notificaciones
+El `wrangler.toml` define dos destinos:
 
-En **Webhooks** de la aplicación:
+- `npx wrangler deploy` publica **dmf-payments** con
+  `DMF_MP_ENVIRONMENT="production"`.
+- `npx wrangler deploy --env sandbox` publica
+  **dmf-payments-sandbox** con `DMF_MP_ENVIRONMENT="sandbox"`.
 
-1. registra
-   `https://dmf-payments.vibraalto-cl.workers.dev/webhook/mercadopago`;
-2. habilita el evento **Pagos**;
-3. copia la clave secreta de firma mostrada por Mercado Pago;
-4. configura la misma URL tanto para pruebas como para producción.
+El Worker guarda `paymentEnvironment` en cada `checkoutSession`. Un webhook
+recibido por el Worker equivocado devuelve `environment-mismatch` y no puede
+crear matrícula. Las sesiones antiguas sin ese campo se consideran producción
+para mantener compatibilidad.
 
-La URL también viaja como `notification_url` en cada preferencia. El endpoint
-rechaza firmas inválidas o vencidas y no confía en el estado enviado en el body.
+## 3. Secrets aislados
 
-## 3. Cargar secretos y desplegar
-
-Desde `workers/dmf-payments`:
+Producción:
 
 ```bash
 npx wrangler secret put MP_ACCESS_TOKEN
 npx wrangler secret put MP_WEBHOOK_SECRET
 npx wrangler secret put DMF_FIREBASE_PRIVATE_KEY
 npx wrangler secret put DMF_FIREBASE_WEB_API_KEY
-npx wrangler deploy
+npx wrangler secret list
 ```
 
-`DMF_FIREBASE_PRIVATE_KEY` debe contener el JSON completo de una cuenta de servicio
-del proyecto `dmf-academy`. Los valores no secretos y el modo de checkout están en
-`wrangler.toml`. Para una prueba controlada, cambia temporalmente
-`DMF_MP_ENVIRONMENT` a `sandbox`, usa el Access Token de prueba y vuelve a desplegar.
+Sandbox:
 
-## 4. Prueba de punta a punta
+```bash
+npx wrangler secret put MP_ACCESS_TOKEN --env sandbox
+npx wrangler secret put MP_WEBHOOK_SECRET --env sandbox
+npx wrangler secret put DMF_FIREBASE_PRIVATE_KEY --env sandbox
+npx wrangler secret put DMF_FIREBASE_WEB_API_KEY --env sandbox
+npx wrangler secret list --env sandbox
+```
 
-1. Ejecuta las pruebas del Worker:
+Los secretos de Firebase pueden apuntar al mismo proyecto `dmf-academy`, pero
+deben cargarse explícitamente en ambos Workers porque Cloudflare no hereda secrets
+entre environments. Nunca copies un Access Token o Webhook Secret de PeptiBot a
+DMF Academy.
 
-   ```bash
-   node --test test/*.test.cjs
-   ```
+## 4. Webhooks
 
-2. En sandbox, inicia sesión en DMF con un usuario Firebase de prueba y pulsa un
-   plan. Debe abrirse `sandbox_init_point`.
-3. Completa el checkout con un comprador/tarjeta de prueba provisto por Mercado
-   Pago; no uses cuentas o tarjetas reales en sandbox.
-4. Confirma que el webhook responde `200`, que existe
-   `payments/{paymentId}` y que `enrollments/{uid}.status` termina en `active`.
-5. Confirma que `/payment-result.html?purchaseId=...` cambia a aprobado y que el
-   usuario puede entrar a `/academy`.
-6. Repite un webhook desde el panel: debe responder correctamente sin duplicar la
-   matrícula.
+Configura el evento **Pagos** de la aplicación DMF Academy con el endpoint que
+corresponda al entorno:
 
-Antes de cobrar, restaura `DMF_MP_ENVIRONMENT = "production"`, carga el Access
-Token productivo, despliega y realiza un cobro real de bajo monto con posterior
-reembolso. Verifica además en el panel el descriptor `DMF ACADEMY` y la recepción
-del dinero.
+Producción:
+
+```text
+https://dmf-payments.vibraalto-cl.workers.dev/webhook/mercadopago
+```
+
+Sandbox:
+
+```text
+https://dmf-payments-sandbox.vibraalto-cl.workers.dev/webhook/mercadopago
+```
+
+Cada endpoint debe usar la Secret Signature del entorno correspondiente. El Worker
+rechaza firmas inválidas o vencidas y después verifica el pago contra la API de
+Mercado Pago; no confía en el body del webhook ni en parámetros de retorno del
+navegador.
+
+## 5. Frontend
+
+La landing productiva debe seguir apuntando a:
+
+```text
+https://dmf-payments.vibraalto-cl.workers.dev
+```
+
+No repuntes `dmf.vibraalto.cl` al Worker sandbox. Para un E2E de interfaz de
+sandbox usa una preview/staging build que inyecte:
+
+```bash
+DMF_PAYMENTS_URL=https://dmf-payments-sandbox.vibraalto-cl.workers.dev
+```
+
+El generador `scripts/inject-academy-env.cjs` ya soporta esa variable. Como ambos
+Workers verifican Firebase y usan el mismo Firestore de Academy, la página de
+resultado puede consultar la sesión por `purchaseId`; la autorización sigue
+dependiendo del UID autenticado.
+
+## 6. Despliegue y prueba
+
+Ejecuta primero:
+
+```bash
+node --test test/*.test.cjs
+```
+
+Despliega sandbox sin tocar producción:
+
+```bash
+npx wrangler deploy --env sandbox
+npx wrangler tail --env sandbox --format pretty
+```
+
+Comprueba en sandbox:
+
+1. `create-preference` devuelve un `sandbox_init_point`.
+2. el comprador es una cuenta `TESTUSER...` distinta de la cuenta comercial;
+3. el pago termina `approved`;
+4. el webhook sandbox responde correctamente;
+5. Payment + Merchant Order pertenecen a la preference y `purchaseId` esperados;
+6. `enrollments/{uid}.status` queda `active`;
+7. repetir el webhook no duplica la matrícula.
+
+Para producción:
+
+```bash
+npx wrangler deploy
+npx wrangler tail --format pretty
+```
+
+Realiza un cobro real de bajo monto y, si corresponde al plan de validación,
+reembolsa después de confirmar webhook, enrollment, descriptor y recepción del
+dinero.
 
 ## Operación y diagnóstico
 
-- Los precios se definen únicamente en `src/index.js`; el cliente solo envía el
+- Los precios viven únicamente en `src/index.js`; el cliente envía solo
   `productId`.
-- Cada preferencia usa el UUID de compra como `X-Idempotency-Key`.
-- `production` selecciona exclusivamente `init_point`; `sandbox` selecciona
-  exclusivamente `sandbox_init_point`, evitando enviar compradores reales al
-  entorno de prueba.
-- Una respuesta `401` del webhook suele indicar una clave de firma incorrecta,
-  headers ausentes o una entrega con más de cinco minutos de antigüedad.
-- Una compra aprobada sin matrícula debe investigarse con el `paymentId`, el
-  `purchaseId` y los logs del Worker; nunca registres tokens ni firmas completas.
+- Cada preference usa `purchaseId` como `X-Idempotency-Key`.
+- `production` selecciona exclusivamente `init_point`; `sandbox`,
+  exclusivamente `sandbox_init_point`.
+- Un `401` de webhook apunta a firma, headers o timestamp.
+- `environment-mismatch` indica que una sesión de un entorno llegó al Worker del
+  otro entorno.
+- Una compra aprobada sin matrícula se investiga con `paymentId`, `purchaseId`
+  y `wrangler tail`; nunca registres tokens, secretos o firmas completas.
