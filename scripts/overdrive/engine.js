@@ -70,10 +70,15 @@
   }
 
   // A forced drop lands on the next downbeat, so it stays musical and can be anticipated.
-  DMFSignalEngine.prototype.setForceDrop = function (on) {
+  // minLead (s): if that downbeat is closer than this, it lands on the following one instead,
+  // so an event that needs a run-up (SINGULARITY precompression) always gets it.
+  DMFSignalEngine.prototype.setForceDrop = function (on, minLead) {
     on = !!on;
     if (on && !this.forceDrop) {
-      this.forceArmBar = Math.floor((this.time * this.bpm / 60 + this.beatOffset) / 4);
+      var beats = this.time * this.bpm / 60 + this.beatOffset;
+      var bar = Math.floor(beats / 4);
+      this.forceArmBar = bar + 1;
+      if (minLead > 0 && ((bar + 1) * 4 - beats) * 60 / this.bpm < minLead) this.forceArmBar = bar + 2;
       this.forceActive = false;
     }
     if (!on) this.forceActive = false;
@@ -97,7 +102,7 @@
     var barInCycle = ((bar % CYCLE_BARS) + CYCLE_BARS) % CYCLE_BARS;
     var beatInBar = ((beatIndex % 4) + 4) % 4;
 
-    if (this.forceDrop && !this.forceActive && bar !== this.forceArmBar) this.forceActive = true;
+    if (this.forceDrop && !this.forceActive && bar >= this.forceArmBar) this.forceActive = true;
     var forced = this.forceActive;
 
     var drive, section, isDrop = 0, buildP = 0;
@@ -205,7 +210,7 @@
 
     // Time to the next drop downbeat (clock arrangement or an armed forced drop); -1 when unknown.
     if (audioLed || forced) o.timeToDrop = -1;
-    else if (this.forceDrop) o.timeToDrop = (1 - barPos) * 4 * interval;
+    else if (this.forceDrop) o.timeToDrop = (this.forceArmBar * 4 - beats) * interval;
     else {
       var cycleBeats = CYCLE_BARS * 4;
       var cycleBeat = ((beats % cycleBeats) + cycleBeats) % cycleBeats;

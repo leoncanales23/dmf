@@ -51,6 +51,50 @@ shader injection for GPU-side reactive anatomy and cinematic glow.
 - Dynamic render resolution inside each tier (`DMFRenderScaler`, hysteresis,
   ≥4 s between changes); the governor still only downgrades tiers.
 
+**DMF Hyperdrive V3 — KINETIC SINGULARITY** (`scripts/overdrive/kinetic.js`,
+inlined between the engine and the bus, tested by `test/kinetic.test.cjs`):
+- `DMFKineticBody`: a unit mass with position, velocity, acceleration and
+  jerk-limited target acceleration (spring + damping ratio, `maxA`, `maxJ`,
+  hard min/max). Impulses are short decaying forces, never velocity jumps, so
+  a beat reads acceleration → impact → overshoot → counter-motion → settle.
+  Head, torso, twist, shoulders, cones, cabinets, Receiver depth/scale,
+  pedestal compression, camera travel, lens, roll, lateral arc and the shot
+  pose follower are all kinetic bodies with strict limits.
+- `DMFForceMatrix`: one deterministic audio → motion mapping on the bus
+  (`DMFSignal.forces`). KICK → cones, head, camera, pedestal; LOW → torso,
+  cabinets, floor, depth; MID → shoulders, logo, lateral torque; HIGH →
+  metal, light edges, details; ENERGY → amplitude, camera travel, environment.
+  Each channel is driven by exactly one conditioned band, never raw FFT.
+- `DMFSingularity`: a rare finite event above HYPERDRIVE that needs a
+  predicted drop. PRECOMPRESSION (−700 ms) → IGNITION (−120 ms) → IMPACT →
+  BREAKTHROUGH (+80..220 ms) → PROPAGATION (+250..700 ms) → DECAY (..2.2 s) →
+  RESOLVE (..3.5 s), then exactly back to rest. Every second natural drop earns
+  it; SPACE in Live Signal arms the next drop and moves it to a downbeat
+  ≥720 ms away so the run-up is never cut short. One per drop, ≥12 s cooldown,
+  stands down if the drop is withdrawn. Not available when the analyser leads
+  (no predictable drop); HYPERDRIVE still handles those.
+- `DMFVelocityField`: camera-relative Receiver velocity in view space drives
+  a shader-side anisotropic highlight stretch and a warm trailing-edge bias
+  (no screen blur, zero at rest); reflections answer acceleration, angular
+  velocity and view angle, and fast motion starts a rate-limited sweep.
+- Temporal echo: two ghost copies sharing the geometry and deformation trail
+  the camera-relative motion by 2 and 4 frames during high impacts only
+  (< 220 ms, very low opacity, HIGH tier only, no per-frame allocations).
+- Breakthrough tunnel: three warm rings rush past the lens (HIGH/BALANCED).
+- Camera shot engine V3: ICON / PRESSURE / IMPACT / ORBIT / SINGULARITY /
+  RECOVERY as a kinetic overlay on the existing shots; the shot pose itself is
+  followed through critically damped bodies, so cuts never change velocity
+  abruptly. The camera reacts before a predicted beat.
+- Landing: wave speed scales with impact strength (1800–3400 px/s); headings
+  compress in depth and release, dividers carry a travelling pulse, the Academy
+  timeline lights node by node, pricing resolves, contact takes the last echo.
+- Pointer (fine pointers only): velocity becomes a small force on the camera arc
+  and Receiver torque; touch keeps the audio choreography only.
+- Debug (`?dmfdebug=1` / localhost): `kineticState`, `singularity`,
+  `singularityPhase`, `accel`, `jerk`, `cameraVelocity`, `receiverVelocity`,
+  `reflectionDrive`, `echoLevel`, `forceKick/Low/Mid/High`; the Live Signal
+  HUD shows KINETIC, ACCEL, SINGULARITY, CAM, TIER and FPS.
+
 **Interaction**:
 - pointer orbit (mouse + touch, `touch-action: pan-y` keeps vertical scroll)
 - per-vertex zone detection via GPU `aZoneId`; hover raycast throttled to ~20 Hz

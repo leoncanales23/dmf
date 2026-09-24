@@ -426,11 +426,11 @@ ul{list-style:none}
 .dmf-choreo .band.is-in img,.dmf-choreo .fly-card.is-in .fly-card-img img,.dmf-choreo .tips-img.is-in img{transform:none}
 /* Continuous transitions: each divider draws with the section's scroll-linked entrance (--dmf-enter),
    so the previous block's exit (--dmf-exit) hands the line to the next one. */
-.dmf-choreo .section::before,.dmf-choreo .contact::before{content:'';position:absolute;left:0;top:-1px;width:clamp(80px,16vw,220px);height:1px;background:#ff5b1e;box-shadow:0 0 calc(10px + var(--dmf-wave,0) * 18px) rgba(255,91,30,calc(.5 + var(--dmf-wave,0) * .4));transform:scaleX(calc(var(--dmf-enter,0) * (1 + var(--dmf-wave,0) * .35)));transform-origin:left center;transition:transform .15s linear;pointer-events:none}
-.dmf-choreo .section-head{transform:translate3d(0,calc(var(--dmf-exit,0) * -18px),0);opacity:calc(1 - var(--dmf-exit,0) * .35)}
+.dmf-choreo .section::before,.dmf-choreo .contact::before{content:'';position:absolute;left:0;top:-1px;width:clamp(80px,16vw,220px);height:1px;background:#ff5b1e;background:linear-gradient(90deg,#ff5b1e calc(var(--dmf-front,0) * 130% - 27%),#ffe0d2 calc(var(--dmf-front,0) * 130% - 15%),#ff5b1e calc(var(--dmf-front,0) * 130% - 11%));box-shadow:0 0 calc(10px + var(--dmf-wave,0) * 18px) rgba(255,91,30,calc(.5 + var(--dmf-wave,0) * .4));transform:scaleX(calc(var(--dmf-enter,0) * (1 + var(--dmf-wave,0) * .35)));transform-origin:left center;transition:transform .15s linear;pointer-events:none}
+.dmf-choreo .section-head{transform:perspective(900px) translate3d(0,calc(var(--dmf-exit,0) * -18px),calc(var(--dmf-wave,0) * -26px)) scaleY(calc(1 - var(--dmf-wave,0) * .05));transform-origin:left bottom;transition:transform .06s linear;opacity:calc(1 - var(--dmf-exit,0) * .35)}
 .dmf-choreo .dmf-signal-band.is-receiving .dmf-signal-arrival{animation:none;height:46%;transform-origin:top center;transform:scaleY(var(--dmf-enter,0));opacity:calc((1 - var(--dmf-enter,0)) * 4)}
 .tiers-grid{position:relative}
-.tiers-grid::before{content:'';position:absolute;left:0;right:0;top:-18px;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,#ff5b1e 50%,transparent);box-shadow:0 0 12px rgba(255,91,30,.4);transform:scaleX(var(--dmf-resolve,0));opacity:var(--dmf-resolve,0)}
+.tiers-grid::before{content:'';position:absolute;left:0;right:0;top:-18px;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,#ff5b1e 50%,transparent);box-shadow:0 0 calc(12px + var(--dmf-wave,0) * 26px) rgba(255,91,30,calc(.4 + var(--dmf-wave,0) * .4));transform:scaleX(var(--dmf-resolve,0));opacity:var(--dmf-resolve,0)}
 
 /* Wave events: letters answer one after another, a signal plane passes behind the name,
    titles get a warm travelling highlight and a tiny tracking contraction. Warm, never white. */
@@ -458,7 +458,15 @@ ul{list-style:none}
 .section::after,.contact::after{content:'';position:absolute;left:0;right:0;top:-1px;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,91,30,.9),transparent) no-repeat;background-size:24% 100%;background-position:calc(var(--dmf-phase,0) * 130% - 15%) 0;opacity:calc(var(--dmf-kick,0) * .6)}
 .hero h1,.section-title,.acad-title{color:#f2ede6;color:color-mix(in srgb,#f2ede6,#ffd3bf calc(var(--dmf-energy,0) * 22%))}
 .hero-cta,.acad-cta,.acad-cta-free{box-shadow:0 0 calc(var(--dmf-peak,0) * 26px) rgba(255,91,30,calc(var(--dmf-peak,0) * .5))}
-.tier-card.tier-featured{box-shadow:0 0 calc(40px + var(--dmf-low,0) * 26px) rgba(255,91,30,calc(.12 + var(--dmf-low,0) * .1)),0 20px 60px rgba(0,0,0,.3)}
+.tier-card.tier-featured{box-shadow:0 0 calc(40px + var(--dmf-low,0) * 26px + var(--dmf-wave,0) * 30px) rgba(255,91,30,calc(.12 + var(--dmf-low,0) * .1 + var(--dmf-wave,0) * .12)),0 20px 60px rgba(0,0,0,.3)}
+/* KINETIC SINGULARITY — the page answers the global wave in sequence, then goes quiet:
+   headings compress in depth and release, the pricing grid resolves, the contact cards take the last echo,
+   and the Academy timeline lights node by node as the front reaches each one. */
+.tier-card:not(.tier-featured){box-shadow:0 0 0 1px rgba(255,91,30,calc(var(--dmf-wave,0) * .32))}
+.contact-card{box-shadow:inset 0 0 0 1px rgba(255,91,30,calc(var(--dmf-wave,0) * .7)),0 0 calc(var(--dmf-wave,0) * 30px) rgba(255,91,30,calc(var(--dmf-wave,0) * .3))}
+.signal-node::before{transition:background .3s,border-color .3s,box-shadow .3s,transform .12s cubic-bezier(.2,.7,.2,1)}
+.signal-node.is-wave::before{background:#ffb599;border-color:#ff5b1e;box-shadow:0 0 22px rgba(255,91,30,.7);transform:scale(1.35)}
+.signal-node.is-wave .signal-node-wave{opacity:.9}
 .tier-card.tier-featured .tier-cta{box-shadow:0 4px 16px rgba(255,91,30,.25),0 0 calc(var(--dmf-peak,0) * 24px) rgba(255,91,30,calc(var(--dmf-peak,0) * .45))}
 .signal-path::after{content:'';position:absolute;left:19px;top:0;width:2px;height:100%;background:linear-gradient(to bottom,#ffb599,#ff5b1e);box-shadow:0 0 10px rgba(255,91,30,.6);transform-origin:top center;transform:scaleY(max(var(--dmf-path,0),var(--dmf-path-scroll,0)));transition:transform .7s cubic-bezier(.2,.7,.2,1);pointer-events:none}
 .signal-node.is-live::before{background:#ff5b1e;border-color:#ff5b1e;box-shadow:0 0 calc(10px + var(--dmf-kick,0) * 16px) rgba(255,91,30,.55)}
@@ -591,7 +599,7 @@ ul{list-style:none}
 }
 /* DMF OVERDRIVE — state, arrival from the hero signal line, LIVE SIGNAL HUD */
 .dmf-signal-band.has-scene .dmf-signal-fallback{opacity:0}
-.dmf-signal-band{box-shadow:inset 0 1px 0rgba(255,91,30,calc(var(--dmf-overdrive,0) * .45)),inset 0 -1px 0 rgba(255,91,30,calc(var(--dmf-overdrive,0) * .25))}
+.dmf-signal-band{box-shadow:inset 0 1px 0 rgba(255,91,30,calc(var(--dmf-overdrive,0) * .45)),inset 0 -1px 0 rgba(255,91,30,calc(var(--dmf-overdrive,0) * .25))}
 .dmf-relic-state.is-overdrive{color:#fff1e6;text-shadow:0 0 12px rgba(255,91,30,.75),0 0 2px rgba(255,91,30,.9)}
 .dmf-signal-band.is-overdrive .dmf-signal-corner strong{color:#fff1e6;text-shadow:0 0 14px rgba(255,91,30,.55)}
 .dmf-signal-band.is-overdrive .dmf-signal-vignette{background:radial-gradient(ellipse 60% 52% at 50% 50%,transparent 30%,rgba(4,3,3,.8) 100%);transition:background 1s}
@@ -622,14 +630,24 @@ ul{list-style:none}
 .dmf-live-hud-phase{width:15px;height:15px;align-self:center;transform:rotate(-90deg)}
 .dmf-live-hud-phase circle{fill:none;stroke:rgba(242,237,230,.14);stroke-width:1.5}
 .dmf-live-hud-phase .dmf-live-hud-phase-arc{stroke:#ff5b1e;stroke-dasharray:1;stroke-dashoffset:1}
-.dmf-live-hud-meta{position:absolute;left:76px;top:54px;display:flex;gap:18px;font-size:7px;letter-spacing:.26em;text-transform:uppercase;color:#665f58}
+.dmf-live-hud-meta{position:absolute;left:76px;top:54px;display:flex;flex-wrap:wrap;gap:6px 18px;max-width:calc(100% - 96px);font-size:7px;letter-spacing:.26em;text-transform:uppercase;color:#665f58}
 .dmf-live-hud-meta b{font-weight:600;color:#a89e94;margin-left:6px}
 .dmf-live-hud-hyper{display:inline-block;margin-bottom:10px;padding:4px 9px;border:1px solid rgba(255,91,30,.3);font-size:7px;font-weight:700;letter-spacing:.34em;text-transform:uppercase;color:rgba(255,91,30,.35);transition:color .25s,border-color .25s,background .25s}
 .dmf-live-hud.is-hyperdrive .dmf-live-hud-hyper{color:#0a0806;background:#ff5b1e;border-color:#ff5b1e}
+.dmf-live-hud-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.dmf-live-hud-tags .dmf-live-hud-hyper{margin-bottom:0}
+.dmf-live-hud-sing{display:inline-block;padding:4px 9px;border:1px solid rgba(255,91,30,.2);font-size:7px;font-weight:700;letter-spacing:.34em;text-transform:uppercase;color:rgba(255,91,30,.3);transition:color .25s,border-color .25s,background .25s}
+.dmf-live-hud[data-sing="armed"] .dmf-live-hud-sing{color:#ff5b1e;border-color:#ff5b1e}
+.dmf-live-hud[data-sing="cooldown"] .dmf-live-hud-sing{color:rgba(242,237,230,.22);border-color:rgba(242,237,230,.1)}
+.dmf-live-hud:not([data-sing]) .dmf-live-hud-sing,.dmf-live-hud[data-sing="idle"] .dmf-live-hud-sing{color:rgba(255,91,30,.3)}
+.dmf-live-hud[data-sing="precompression"] .dmf-live-hud-sing,.dmf-live-hud[data-sing="ignition"] .dmf-live-hud-sing,.dmf-live-hud[data-sing="impact"] .dmf-live-hud-sing,.dmf-live-hud[data-sing="breakthrough"] .dmf-live-hud-sing,.dmf-live-hud[data-sing="propagation"] .dmf-live-hud-sing,.dmf-live-hud[data-sing="decay"] .dmf-live-hud-sing,.dmf-live-hud[data-sing="resolve"] .dmf-live-hud-sing{color:#0a0806;background:#ffb599;border-color:#ffb599}
 .dmf-live-hud-impact{display:flex;align-items:center;gap:12px;margin-bottom:14px;font-size:8px;letter-spacing:.24em;text-transform:uppercase;color:#8a8178}
 .dmf-live-hud-impact i{display:block;width:8px;height:8px;border-radius:50%;overflow:visible;background:#ff5b1e;transform:scale(.35);opacity:.25}
 /* HYPERDRIVE: contraction before the hit, warm edge on impact — never a white flash */
-.dmf-signal-visual::before{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;box-shadow:inset 0 0 calc(var(--dmf-hyper-pre,0) * 240px) calc(var(--dmf-hyper-pre,0) * 50px) rgba(4,3,3,.85),inset 0 0 0 1px rgba(255,91,30,calc(var(--dmf-hyper,0) * .55))}
+.dmf-signal-visual::before{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;box-shadow:inset 0 0 calc(max(var(--dmf-hyper-pre,0),var(--dmf-sing-pre,0)) * 240px) calc(max(var(--dmf-hyper-pre,0),var(--dmf-sing-pre,0)) * 50px) rgba(4,3,3,.85),inset 0 0 0 1px rgba(255,91,30,calc(max(var(--dmf-hyper,0),var(--dmf-sing,0)) * .55))}
+/* SINGULARITY: deeper contraction on precompression, warm edge and state glow through the event */
+.dmf-signal-band.is-singularity .dmf-signal-corner strong{color:#ffd3bf;text-shadow:0 0 22px rgba(255,91,30,.8)}
+.dmf-signal-band.is-singularity .dmf-relic-state{color:#ffd3bf}
 .dmf-signal-band.is-hyperdrive .dmf-signal-corner strong{color:#ffd3bf;text-shadow:0 0 18px rgba(255,91,30,.7)}
 /* Relic exit: the pulse leaves from the Receiver and spreads into the next section's divider */
 .dmf-signal-band::before{content:'';position:absolute;z-index:3;left:0;right:0;bottom:0;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,#ff5b1e 45%,#ffb599 70.5%,#ff5b1e 85%,transparent);box-shadow:0 0 12px rgba(255,91,30,.45);transform-origin:70.5% 50%;transform:scaleX(var(--dmf-exit,0))}
@@ -2189,10 +2207,15 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   }
 
   // A forced drop lands on the next downbeat, so it stays musical and can be anticipated.
-  DMFSignalEngine.prototype.setForceDrop = function (on) {
+  // minLead (s): if that downbeat is closer than this, it lands on the following one instead,
+  // so an event that needs a run-up (SINGULARITY precompression) always gets it.
+  DMFSignalEngine.prototype.setForceDrop = function (on, minLead) {
     on = !!on;
     if (on && !this.forceDrop) {
-      this.forceArmBar = Math.floor((this.time * this.bpm / 60 + this.beatOffset) / 4);
+      var beats = this.time * this.bpm / 60 + this.beatOffset;
+      var bar = Math.floor(beats / 4);
+      this.forceArmBar = bar + 1;
+      if (minLead > 0 && ((bar + 1) * 4 - beats) * 60 / this.bpm < minLead) this.forceArmBar = bar + 2;
       this.forceActive = false;
     }
     if (!on) this.forceActive = false;
@@ -2216,7 +2239,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var barInCycle = ((bar % CYCLE_BARS) + CYCLE_BARS) % CYCLE_BARS;
     var beatInBar = ((beatIndex % 4) + 4) % 4;
 
-    if (this.forceDrop && !this.forceActive && bar !== this.forceArmBar) this.forceActive = true;
+    if (this.forceDrop && !this.forceActive && bar >= this.forceArmBar) this.forceActive = true;
     var forced = this.forceActive;
 
     var drive, section, isDrop = 0, buildP = 0;
@@ -2324,7 +2347,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
     // Time to the next drop downbeat (clock arrangement or an armed forced drop); -1 when unknown.
     if (audioLed || forced) o.timeToDrop = -1;
-    else if (this.forceDrop) o.timeToDrop = (1 - barPos) * 4 * interval;
+    else if (this.forceDrop) o.timeToDrop = (this.forceArmBar * 4 - beats) * interval;
     else {
       var cycleBeats = CYCLE_BARS * 4;
       var cycleBeat = ((beats % cycleBeats) + cycleBeats) % cycleBeats;
@@ -2563,12 +2586,295 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
 </script>
 <script>
+/* DMF KINETIC SINGULARITY — pure, deterministic, ES5, no DOM.
+ * Mass, force and acceleration primitives for the Receiver and the landing.
+ * Inlined into public/index.html by scripts/build-3d.cjs after engine.js; required directly by tests. */
+(function (root) {
+  'use strict';
+
+  function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+  function smooth01(t) { t = clamp01(t); return t * t * (3 - 2 * t); }
+  function follow(current, target, attack, release, dt) {
+    var tau = target > current ? attack : release;
+    return current + (target - current) * (1 - Math.exp(-dt / tau));
+  }
+
+  // === DMFKineticBody — a 1D mass with position, velocity, acceleration and target acceleration ===
+  // Unit mass on a spring (k) with damping from a damping ratio (zeta < 1 overshoots once, then settles).
+  // Forces never set velocity directly: impulse() adds a short decaying force, and acceleration can only
+  // change at maxJ per second (jerk limit) and never exceed maxA. So a strong beat reads as
+  // acceleration → impact → overshoot → counter-motion → settle, with no instantaneous jumps.
+  var SUBSTEP = 1 / 120;
+  function DMFKineticBody(k, zeta, opts) {
+    opts = opts || {};
+    this.k = k;
+    this.c = 2 * Math.sqrt(k) * (zeta == null ? 1 : zeta);
+    this.maxA = opts.maxA || 1e9;
+    this.maxJ = opts.maxJ || 1e12;
+    this.min = opts.min != null ? opts.min : -1e9;
+    this.max = opts.max != null ? opts.max : 1e9;
+    this.forceTau = opts.forceTau || 0.03;
+    this.x = 0;
+    this.v = 0;
+    this.a = 0;
+    this.targetA = 0;
+    this.jerk = 0;
+    this.f = 0;
+  }
+  // Adds a force that delivers ~dv of velocity over forceTau (before spring and limits act).
+  DMFKineticBody.prototype.impulse = function (dv) { this.f += dv / this.forceTau; };
+  DMFKineticBody.prototype.reset = function (x) {
+    this.x = x || 0; this.v = 0; this.a = 0; this.targetA = 0; this.jerk = 0; this.f = 0;
+  };
+  DMFKineticBody.prototype.step = function (target, dt) {
+    if (!(dt > 0)) return this.x;
+    var n = dt > SUBSTEP ? Math.ceil(dt / SUBSTEP) : 1;
+    var h = dt / n;
+    var fDecay = Math.exp(-h / this.forceTau);
+    var jLim = this.maxJ * h;
+    for (var i = 0; i < n; i++) {
+      this.targetA = this.k * (target - this.x) - this.c * this.v + this.f;
+      var da = this.targetA - this.a;
+      if (da > jLim) da = jLim;
+      else if (da < -jLim) da = -jLim;
+      var a = this.a + da;
+      if (a > this.maxA) a = this.maxA;
+      else if (a < -this.maxA) a = -this.maxA;
+      this.jerk = (a - this.a) / h;
+      this.a = a;
+      this.v += a * h;
+      this.x += this.v * h;
+      if (this.x > this.max) { this.x = this.max; if (this.v > 0) this.v = 0; if (this.a > 0) this.a = 0; }
+      else if (this.x < this.min) { this.x = this.min; if (this.v < 0) this.v = 0; if (this.a < 0) this.a = 0; }
+      this.f *= fDecay;
+    }
+    return this.x;
+  };
+
+  // === DMFForceMatrix — one deterministic audio → motion mapping ===
+  // Bands are conditioned first (the kick uses the engine's impulse layer; low/mid/high get their own
+  // attack/release followers), then a fixed matrix routes each band to its own channels only.
+  // Nothing downstream reads raw FFT values: consumers apply these as forces on kinetic bodies.
+  var BANDS = ['kick', 'low', 'mid', 'high'];
+  var MATRIX = {
+    cone:     [1, 0, 0, 0],   // KICK: instantaneous speaker cone force
+    head:     [1, 0, 0, 0],   //       DJ head snap
+    camera:   [1, 0, 0, 0],   //       camera impulse
+    pedestal: [1, 0, 0, 0],   //       pedestal radial shock
+    torso:    [0, 1, 0, 0],   // LOW:  torso mass
+    cabinet:  [0, 1, 0, 0],   //       cabinet pressure
+    floor:    [0, 1, 0, 0],   //       floor / grid compression
+    depth:    [0, 1, 0, 0],   //       slow model translation
+    shoulder: [0, 0, 1, 0],   // MID:  shoulders / upper body
+    logo:     [0, 0, 1, 0],   //       logo articulation
+    torque:   [0, 0, 1, 0],   //       scene lateral torque
+    metal:    [0, 0, 0, 1],   // HIGH: metallic reflections
+    edge:     [0, 0, 0, 1],   //       light edge speed
+    detail:   [0, 0, 0, 1]    //       particles / small details
+  };
+  var CHANNELS = [];
+  for (var ch in MATRIX) if (Object.prototype.hasOwnProperty.call(MATRIX, ch)) CHANNELS.push(ch);
+
+  function DMFForceMatrix() {
+    this.band = [0, 0, 0, 0];
+    this.out = { forceKick: 0, forceLow: 0, forceMid: 0, forceHigh: 0, amp: 0, travel: 0, env: 0 };
+    for (var i = 0; i < CHANNELS.length; i++) this.out[CHANNELS[i]] = 0;
+  }
+  DMFForceMatrix.prototype.update = function (s, dt) {
+    var b = this.band;
+    b[0] = clamp01(s.impulse);
+    b[1] = follow(b[1], clamp01(s.low), 0.06, 0.35, dt);
+    b[2] = follow(b[2], clamp01(s.mid), 0.05, 0.3, dt);
+    b[3] = follow(b[3], clamp01(s.high), 0.02, 0.15, dt);
+    var o = this.out;
+    for (var i = 0; i < CHANNELS.length; i++) {
+      var row = MATRIX[CHANNELS[i]];
+      o[CHANNELS[i]] = clamp01(row[0] * b[0] + row[1] * b[1] + row[2] * b[2] + row[3] * b[3]);
+    }
+    o.forceKick = b[0]; o.forceLow = b[1]; o.forceMid = b[2]; o.forceHigh = b[3];
+    // ENERGY: global motion amplitude, camera travel strength, environment intensity.
+    var e = clamp01(s.energy);
+    o.amp = 0.35 + 0.65 * e;
+    o.travel = e * e;
+    o.env = 0.2 + 0.8 * e;
+    return o;
+  };
+
+  // === DMFSingularity — a finite, rare event above HYPERDRIVE ===
+  // It needs a predicted drop (clock arrangement or an armed forced drop) so it can start 700 ms early:
+  // PRECOMPRESSION → IGNITION (-120 ms) → IMPACT (0) → BREAKTHROUGH (+80..220) → PROPAGATION (+250..700)
+  // → DECAY (..2200) → RESOLVE (..3500), then everything is exactly back at rest.
+  // Natural drops earn it every `every`-th drop; SPACE arms the next predicted drop. One per drop
+  // (latched until the drop ends), a cooldown of ≥12 s from impact, and an abort if the drop is withdrawn.
+  var SING_PHASES = [[-0.12, 'precompression'], [0, 'ignition'], [0.08, 'impact'], [0.25, 'breakthrough'],
+    [0.7, 'propagation'], [2.2, 'decay']];
+  function DMFSingularity(opts) {
+    opts = opts || {};
+    this.lead = 0.7;
+    this.duration = 3.5;
+    this.cooldown = Math.max(12, opts.cooldown || 12);
+    this.every = opts.every || 2;
+    this.armed = false;
+    this.active = false;
+    this.phase = 'idle';
+    this.t = 0;
+    this.id = 0;
+    this.hit = false;
+    this.latch = false;
+    this.sinceLast = 1e9;
+    this.drops = 0;
+    this.pre = 0;
+    this.ignition = 0;
+    this.level = 0;
+    this.breakthrough = 0;
+    this.propagation = 0;
+  }
+  DMFSingularity.prototype.canStart = function () {
+    return !this.active && !this.latch && this.sinceLast >= this.cooldown;
+  };
+  DMFSingularity.prototype.arm = function (on) { this.armed = !!on; };
+  DMFSingularity.prototype.clear = function () {
+    this.active = false;
+    this.phase = 'idle';
+    this.pre = 0; this.ignition = 0; this.level = 0; this.breakthrough = 0; this.propagation = 0;
+  };
+  DMFSingularity.prototype.update = function (sig, dt) {
+    this.sinceLast += dt;
+    this.hit = false;
+    if (this.latch && !this.active && sig.dropEnergy < 0.5) this.latch = false;
+    var ttd = sig.timeToDrop;
+
+    if (!this.active) {
+      if (sig.dropHit) this.drops++;
+      var earned = this.armed || this.drops % this.every === this.every - 1;
+      if (earned && ttd > 0 && ttd <= this.lead && this.canStart()) {
+        this.active = true;
+        this.latch = true;
+        this.armed = false;
+        this.t = -ttd;
+        this.id++;
+      } else {
+        this.clear();
+        return this;
+      }
+    }
+
+    if (this.t < 0) {
+      if (sig.dropHit) {
+        this.t = 0;
+        this.hit = true;
+        this.sinceLast = 0;
+        this.drops++;
+      } else if (ttd > 0 && ttd <= this.lead + 0.2) {
+        this.t = -ttd;
+      } else {
+        // The predicted drop was withdrawn (disarmed, or audio took over): stand down without firing.
+        this.latch = false;
+        this.clear();
+        return this;
+      }
+    } else {
+      this.t += dt;
+    }
+
+    var t = this.t;
+    if (t >= this.duration) { this.clear(); return this; }
+    this.phase = 'resolve';
+    for (var i = 0; i < SING_PHASES.length; i++) {
+      if (t < SING_PHASES[i][0]) { this.phase = SING_PHASES[i][1]; break; }
+    }
+    if (t < 0) {
+      this.pre = smooth01((t + this.lead) / (this.lead - 0.12));
+      this.ignition = clamp01((t + 0.12) / 0.12);
+      this.level = 0;
+      this.breakthrough = 0;
+      this.propagation = 0;
+    } else {
+      var rel = 1 - clamp01(t / 0.12);
+      this.pre = rel * rel;
+      this.ignition = 0;
+      var attack = t < 0.03 ? t / 0.03 : Math.exp(-(t - 0.03) * 1.1);
+      this.level = attack * (1 - smooth01((t - 2.2) / (this.duration - 2.2)));
+      this.breakthrough = t > 0.06 && t < 0.24 ? Math.sin(Math.PI * (t - 0.06) / 0.18) : 0;
+      this.propagation = t > 0.25 && t < 0.7 ? Math.sin(Math.PI * (t - 0.25) / 0.45) : 0;
+    }
+    return this;
+  };
+
+  // === DMFVelocityField — motion → shader drives ===
+  // Smooths a relative velocity vector (Receiver minus camera), then derives: a stable unit direction,
+  // a soft-saturated magnitude for anisotropic highlight stretch, acceleration/jerk magnitudes, a
+  // reflection drive from energy + acceleration + angular velocity + view angle, and a short echo level.
+  // Everything decays smoothly to exactly nothing at rest.
+  function DMFVelocityField(opts) {
+    opts = opts || {};
+    this.vRef = opts.vRef || 1.2;
+    this.aRef = opts.aRef || 14;
+    this.wRef = opts.wRef || 2.5;
+    this.vx = 0; this.vy = 0; this.vz = 0;
+    this.dirX = 0; this.dirY = 0; this.dirZ = 1;
+    this.speed = 0;
+    this.accel = 0;
+    this.jerk = 0;
+    this.mag = 0;
+    this.stretch = 0;
+    this.reflect = 0;
+    this.echo = 0;
+  }
+  DMFVelocityField.prototype.update = function (vx, vy, vz, angular, energy, view, echoTrigger, dt) {
+    if (!(dt > 0)) return this;
+    var k = 1 - Math.exp(-dt / 0.03);
+    var px = this.vx, py = this.vy, pz = this.vz;
+    this.vx += (vx - this.vx) * k;
+    this.vy += (vy - this.vy) * k;
+    this.vz += (vz - this.vz) * k;
+    var ax = (this.vx - px) / dt, ay = (this.vy - py) / dt, az = (this.vz - pz) / dt;
+    var accel = Math.sqrt(ax * ax + ay * ay + az * az);
+    var prevAccel = this.accel;
+    this.accel = follow(this.accel, accel, 0.02, 0.12, dt);
+    this.jerk = follow(this.jerk, Math.abs(this.accel - prevAccel) / dt, 0.02, 0.12, dt);
+    var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy + this.vz * this.vz);
+    this.speed = speed;
+    if (speed > 1e-4) { this.dirX = this.vx / speed; this.dirY = this.vy / speed; this.dirZ = this.vz / speed; }
+    this.mag = 1 - Math.exp(-speed / this.vRef);
+    if (this.mag < 1e-4) this.mag = 0;
+    this.stretch = follow(this.stretch, this.mag, 0.03, 0.18, dt);
+    if (this.stretch < 1e-3 && this.mag === 0) this.stretch = 0;
+    var accelN = 1 - Math.exp(-this.accel / this.aRef);
+    var angN = 1 - Math.exp(-Math.abs(angular) / this.wRef);
+    var target = clamp01(accelN * (0.55 + 0.25 * clamp01(energy)) + 0.35 * angN) * (0.55 + 0.45 * clamp01(view));
+    this.reflect = follow(this.reflect, target, 0.03, 0.25, dt);
+    if (this.reflect < 1e-3 && target < 1e-3) this.reflect = 0;
+    // Echo: a short motion memory for high impacts only; gone within ~220 ms of the last trigger.
+    this.echo *= Math.exp(-dt / 0.047);
+    if (echoTrigger > this.echo) this.echo = clamp01(echoTrigger);
+    if (this.echo < 0.01) this.echo = 0;
+    return this;
+  };
+
+  var api = {
+    clamp01: clamp01,
+    smooth01: smooth01,
+    DMFKineticBody: DMFKineticBody,
+    DMFForceMatrix: DMFForceMatrix,
+    FORCE_MATRIX: MATRIX,
+    FORCE_BANDS: BANDS,
+    DMFSingularity: DMFSingularity,
+    DMFVelocityField: DMFVelocityField
+  };
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.DMFKinetic = api;
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
 /* DMF SIGNAL BUS — browser runtime. One clock drives the relic and the landing.
  * Inlined into public/index.html by scripts/build-3d.cjs after engine.js. */
 (function () {
   'use strict';
   var O = window.DMFOverdrive;
-  if (!O || window.DMFSignal) return;
+  var KN = window.DMFKinetic;
+  if (!O || !KN || window.DMFSignal) return;
 
   var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
@@ -2580,10 +2886,18 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   var listeners = [];
 
   var hyper = new O.DMFHyperdrive();
+  // KINETIC SINGULARITY: one force matrix for everything that moves, and the rare finite event above HYPERDRIVE.
+  var forces = new KN.DMFForceMatrix();
+  var sing = new KN.DMFSingularity();
+  var SING_LEAD = 0.72;
 
   var hub = window.DMFSignal = {
     signal: engine.out,
     hyper: hyper,
+    singularity: sing,
+    forces: forces.out,
+    // Written by the relic every frame it renders; read by telemetry and the HUD.
+    kinetic: { state: 'REST', accel: 0, jerk: 0, cameraVelocity: 0, receiverVelocity: 0, reflectionDrive: 0, echoLevel: 0 },
     state: 'DORMANT',
     overdriveMix: 0,
     hoverLevel: 0,
@@ -2596,7 +2910,15 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     renderScale: 1,
     cameraShot: 'ICON',
     // A forced drop lands on the next downbeat; the drop hit is what earns a HYPERDRIVE moment.
-    setForceDrop: function (on) { hub.forceDrop = !!on; engine.setForceDrop(!!on); },
+    // When a SINGULARITY is available it also arms it, and the drop waits for a downbeat ≥720 ms away
+    // so the precompression always gets its full run-up. It never fires immediately.
+    setForceDrop: function (on) {
+      on = !!on;
+      var withSingularity = on && sing.canStart();
+      hub.forceDrop = on;
+      engine.setForceDrop(on, withSingularity ? SING_LEAD : 0);
+      sing.arm(withSingularity);
+    },
     onFrame: function (fn) { listeners.push(fn); },
     attachAudio: attachAudio,
     scan: scan
@@ -2607,7 +2929,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     perf = window.__DMF_PERF__ = {
       fps: 0, qualityTier: 'none', renderScale: 1, source: 'clock', bpm: 124, state: 'DORMANT',
       overdrive: 0, hyperdrive: 'idle', hyperLevel: 0, impact: 0, timeToBeat: 0, cameraShot: 'ICON',
-      low: 0, mid: 0, high: 0, energy: 0, kick: 0, visibleSections: ''
+      low: 0, mid: 0, high: 0, energy: 0, kick: 0, visibleSections: '',
+      kineticState: 'REST', singularity: 'idle', singularityPhase: 'idle', accel: 0, jerk: 0,
+      cameraVelocity: 0, receiverVelocity: 0, reflectionDrive: 0, echoLevel: 0,
+      forceKick: 0, forceLow: 0, forceMid: 0, forceHigh: 0
     };
   }
 
@@ -2696,10 +3021,14 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   // Simulation runs every frame; DOM writes are throttled to ~30 Hz except on an impact,
   // which writes immediately so the page lands on the beat.
   var TARGETS = '.nav, header.hero, .section, .contact, .band, .dmf-signal-band';
+  // The last two are per element: the wave amplitude where the front is, and how far the front has
+  // travelled through the element since it arrived (0..1), for transmission-line effects.
   var VARS = ['--dmf-energy', '--dmf-kick', '--dmf-low', '--dmf-high', '--dmf-peak', '--dmf-phase', '--dmf-overdrive',
-    '--dmf-impulse', '--dmf-hyper', '--dmf-hyper-pre', '--dmf-wave'];
-  var WAVE_VAR = VARS.length - 1;
-  var vals = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    '--dmf-impulse', '--dmf-hyper', '--dmf-hyper-pre', '--dmf-sing', '--dmf-sing-pre', '--dmf-wave', '--dmf-front'];
+  var WAVE_VAR = VARS.length - 2;
+  var FRONT_VAR = VARS.length - 1;
+  var vals = [];
+  for (var vi = 0; vi < VARS.length; vi++) vals.push(0);
   var visible = [];
   var visibleDirty = true;
   var scrollY = window.pageYOffset || 0;
@@ -2715,12 +3044,17 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var el = entries[i].target;
       var idx = visible.indexOf(el);
       cachePos(el, entries[i].boundingClientRect);
-      if (entries[i].isIntersecting) { if (idx < 0) { visible.push(el); visibleDirty = true; } }
+      if (entries[i].isIntersecting) {
+        if (idx < 0) {
+          visible.push(el);
+          visibleDirty = true;
+          if (!el.__dmfVals) { el.__dmfVals = []; for (var c = 0; c < VARS.length; c++) el.__dmfVals.push(-1); }
+        }
+      }
       else if (idx >= 0) {
         visible.splice(idx, 1);
         visibleDirty = true;
-        for (var k = 0; k < VARS.length; k++) el.style.removeProperty(VARS[k]);
-        el.__dmfVals = null;
+        for (var k = 0; k < VARS.length; k++) { el.style.removeProperty(VARS[k]); if (el.__dmfVals) el.__dmfVals[k] = -1; }
       }
     }
   }, { rootMargin: '8% 0px' }) : null;
@@ -2740,17 +3074,22 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
   // === GLOBAL SIGNAL WAVE — one pulse travels through the page from the Receiver outward ===
   // Each block lights when the front reaches its top edge (distance / speed), so sections answer in sequence.
-  var WAVE_SPEED = 2600;
-  var WAVE_WIDTH = 0.12 * WAVE_SPEED;
-  var wave = { t: 9, strength: 0, origin: 0 };
-  function emitWave(strength) {
+  // Propagation speed is tied to impact strength: a SINGULARITY travels fastest, a bar pulse slowest.
+  function waveSpeed(strength) { return 1800 + 1600 * strength; }
+  var wave = { t: 9, strength: 0, origin: 0, speed: waveSpeed(1), width: 0.12 * waveSpeed(1), id: 0 };
+  function emitWave(strength, singularity) {
     wave.origin = relicBand && relicBand.__dmfTop != null
       ? (relicBand.__dmfTop + relicBand.__dmfBottom) / 2
       : scrollY + window.innerHeight * 0.5;
     wave.t = 0;
     wave.strength = strength;
+    wave.speed = waveSpeed(strength);
+    wave.width = 0.12 * wave.speed;
+    wave.id++;
     if (typeof CustomEvent === 'function') {
-      window.dispatchEvent(new CustomEvent('dmf:wave', { detail: { strength: strength, delayFor: waveDelay } }));
+      window.dispatchEvent(new CustomEvent('dmf:wave', {
+        detail: { strength: strength, speed: wave.speed, singularity: !!singularity, delayFor: waveDelay }
+      }));
     }
   }
   // Seconds until the wave front reaches an element's nearest edge (rare: once per wave event).
@@ -2762,16 +3101,22 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       bottom = top + r.height;
     }
     var d = top > wave.origin ? top - wave.origin : (bottom < wave.origin ? wave.origin - bottom : 0);
-    return d / WAVE_SPEED;
+    return d / wave.speed;
   }
+  // Amplitude at an element's near edge; also leaves how far the front has run through it in waveFront.
+  var waveFront = 0;
   function waveAt(el) {
+    waveFront = 0;
     if (wave.strength <= 0) return 0;
     var d;
     if (el.__dmfFixed) d = Math.abs(scrollY - wave.origin);
     else if (el.__dmfTop == null) return 0;
     else d = el.__dmfTop > wave.origin ? el.__dmfTop - wave.origin : (el.__dmfBottom < wave.origin ? wave.origin - el.__dmfBottom : 0);
-    var x = (wave.t * WAVE_SPEED - d) / WAVE_WIDTH;
-    return wave.strength * Math.exp(-x * x) * Math.exp(-wave.t * 0.6);
+    var run = wave.t * wave.speed - d;
+    var x = run / wave.width;
+    var fade = Math.exp(-wave.t * 0.6);
+    if (run > 0 && wave.strength >= 0.5 && x < 6) waveFront = O.clamp01(run / (0.35 * wave.speed));
+    return wave.strength * Math.exp(-x * x) * fade;
   }
 
   var lastWrite = 0;
@@ -2788,10 +3133,14 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     vals[7] = s.impulse;
     vals[8] = hyper.active ? hyper.level : 0;
     vals[9] = hyper.pre;
+    vals[10] = sing.level;
+    vals[11] = sing.pre;
     for (var i = 0; i < visible.length; i++) {
       var el = visible[i];
       vals[WAVE_VAR] = waveAt(el);
-      var cache = el.__dmfVals || (el.__dmfVals = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]);
+      vals[FRONT_VAR] = waveFront;
+      var cache = el.__dmfVals;
+      if (!cache) continue;
       for (var k = 0; k < VARS.length; k++) {
         var v = Math.round(vals[k] * 1000) / 1000;
         if (cache[k] !== v) { cache[k] = v; el.style.setProperty(VARS[k], v); }
@@ -2800,9 +3149,11 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   }
 
   // Academy signal path: one node goes live per bar and the line fills to it.
-  var path = null, pathNodes = null, pathTops = null, pathVisible = false, liveNode = -1;
+  var path = null, pathNodes = null, pathTops = null, pathVisible = false, liveNode = -1, pathH = 1;
+  var nodeWave = null;
   var pathIO = 'IntersectionObserver' in window ? new IntersectionObserver(function (en) {
     pathVisible = en[0].isIntersecting;
+    cachePos(path, en[0].boundingClientRect);
   }) : null;
   var pathMO = 'MutationObserver' in window ? new MutationObserver(function () { pathMeasure(); }) : null;
 
@@ -2817,9 +3168,14 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   function pathMeasure() {
     if (!path) return;
     pathNodes = path.querySelectorAll('.signal-node');
-    var h = path.offsetHeight || 1;
+    var h = pathH = path.offsetHeight || 1;
     pathTops = [];
-    for (var i = 0; i < pathNodes.length; i++) pathTops.push((pathNodes[i].offsetTop + 31) / h);
+    nodeWave = [];
+    for (var i = 0; i < pathNodes.length; i++) {
+      pathTops.push((pathNodes[i].offsetTop + 31) / h);
+      nodeWave.push(0);
+      pathNodes[i].classList.remove('is-wave');
+    }
     liveNode = -1;
   }
   var resizeTimer = 0;
@@ -2828,6 +3184,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     resizeTimer = setTimeout(function () {
       scrollY = window.pageYOffset || 0;
       for (var i = 0; i < visible.length; i++) cachePos(visible[i], visible[i].getBoundingClientRect());
+      if (path) cachePos(path, path.getBoundingClientRect());
       pathMeasure();
     }, 200);
   });
@@ -2842,6 +3199,34 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     path.style.setProperty('--dmf-path', pathTops[idx].toFixed(3));
   }
 
+  // Academy timeline answers the global wave node by node, as the front reaches each one.
+  // nodeWave[i] holds the id of the wave that lit it (positive while lit, negative once released).
+  function waveNodes() {
+    if (!pathVisible || !pathNodes || !nodeWave || path.__dmfTop == null || wave.strength < 0.5) return;
+    for (var i = 0; i < pathNodes.length; i++) {
+      var top = path.__dmfTop + pathTops[i] * pathH;
+      var arrive = Math.abs(top - wave.origin) / wave.speed;
+      if (nodeWave[i] > 0 && nodeWave[i] !== wave.id) {
+        nodeWave[i] = -nodeWave[i];
+        pathNodes[i].classList.remove('is-wave');
+      }
+      if (nodeWave[i] !== wave.id && nodeWave[i] !== -wave.id && wave.t >= arrive) {
+        nodeWave[i] = wave.id;
+        pathNodes[i].classList.add('is-wave');
+      } else if (nodeWave[i] === wave.id && wave.t >= arrive + 0.42) {
+        nodeWave[i] = -wave.id;
+        pathNodes[i].classList.remove('is-wave');
+      }
+    }
+  }
+
+  // Debug only, and only when visibility changes.
+  function sectionNames() {
+    var out = '';
+    for (var v = 0; v < visible.length; v++) out += (v ? ',' : '') + (visible[v].id || visible[v].className.split(' ')[0]);
+    return out;
+  }
+
   // === Frame loop — single rAF for bus, relic, HUD and hero pointer ===
   var last = 0, fpsAcc = 0, fpsFrames = 0, lastHdId = 0, waveBar = -1;
   function frame(now) {
@@ -2854,10 +3239,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     hub.state = machine.update(s, dt, { active: true, hoverLevel: hub.hoverLevel });
     hub.overdriveMix = machine.overdriveMix;
     hyper.update(s, dt);
+    sing.update(s, dt);
+    forces.update(s, dt);
 
     var hdHit = hyper.active && hyper.id !== lastHdId;
     lastHdId = hyper.id;
-    if (hdHit) emitWave(1);
+    if (sing.hit) emitWave(1, true);
+    else if (hdHit) emitWave(0.8);
     else if (s.beatFired && s.beatIndex % 4 === 0 && s.bar !== waveBar) {
       waveBar = s.bar;
       if (machine.overdrive) emitWave(0.55);
@@ -2867,8 +3255,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     if (wave.t > 3) wave.strength = 0;
 
     for (var i = 0; i < listeners.length; i++) listeners[i](s, dt, raw, hub);
-    writeBus(now, s, s.beatFired || hdHit);
+    writeBus(now, s, s.beatFired || hdHit || sing.hit);
     drivePath(s);
+    waveNodes();
     if (raw < 0.25) { fpsAcc += raw; fpsFrames++; }
     if (fpsAcc >= 1) { hub.fps = Math.round(fpsFrames / fpsAcc); fpsAcc = 0; fpsFrames = 0; }
     if (perf) {
@@ -2878,12 +3267,14 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       perf.hyperLevel = hyper.active ? hyper.level : 0;
       perf.impact = s.impulse; perf.timeToBeat = s.timeToBeat; perf.cameraShot = hub.cameraShot;
       perf.low = s.low; perf.mid = s.mid; perf.high = s.high; perf.energy = s.energy; perf.kick = s.kick;
-      if (visibleDirty) {
-        visibleDirty = false;
-        var names = [];
-        for (var v = 0; v < visible.length; v++) names.push(visible[v].id || visible[v].className.split(' ')[0]);
-        perf.visibleSections = names.join(',');
-      }
+      var kn = hub.kinetic, fo = forces.out;
+      perf.kineticState = kn.state; perf.accel = kn.accel; perf.jerk = kn.jerk;
+      perf.cameraVelocity = kn.cameraVelocity; perf.receiverVelocity = kn.receiverVelocity;
+      perf.reflectionDrive = kn.reflectionDrive; perf.echoLevel = kn.echoLevel;
+      perf.singularity = sing.active ? 'active' : (sing.armed ? 'armed' : (sing.sinceLast < sing.cooldown ? 'cooldown' : 'idle'));
+      perf.singularityPhase = sing.phase;
+      perf.forceKick = fo.forceKick; perf.forceLow = fo.forceLow; perf.forceMid = fo.forceMid; perf.forceHigh = fo.forceHigh;
+      if (visibleDirty) { visibleDirty = false; perf.visibleSections = sectionNames(); }
     }
   }
 
@@ -2964,9 +3355,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
               '<svg class="dmf-live-hud-phase" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"></circle><circle class="dmf-live-hud-phase-arc" cx="10" cy="10" r="8" pathLength="1"></circle></svg>',
               '<span class="dmf-live-hud-bpm"><b>' + RELIC_BPM + '</b> BPM</span>',
             '</div>',
-            '<div class="dmf-live-hud-meta"><span>Shot <b data-hud="shot">ICON</b></span><span>Tier <b data-hud="tier">HIGH</b></span></div>',
+            '<div class="dmf-live-hud-meta"><span>Kinetic <b data-hud="kinetic">REST</b></span><span>Accel <b data-hud="accel">0.0</b></span><span>Cam <b data-hud="shot">ICON</b></span><span>Tier <b data-hud="tier">HIGH</b></span><span>FPS <b data-hud="fps">60</b></span></div>',
             '<div class="dmf-live-hud-main">',
-              '<div class="dmf-live-hud-hyper">Hyperdrive</div>',
+              '<div class="dmf-live-hud-tags"><span class="dmf-live-hud-hyper">Hyperdrive</span><span class="dmf-live-hud-sing" data-hud="sing">Singularity</span></div>',
               '<div class="dmf-live-hud-state">DORMANT</div>',
               '<div class="dmf-live-hud-impact"><span>Impact</span><i data-hud="impact"></i></div>',
               '<div class="dmf-live-hud-meter"><span data-dmf-en="Energy" data-dmf-es="Energía">Energy</span><i><em data-hud="energy"></em></i></div>',
@@ -3026,6 +3417,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var THREE = window.THREE;
     if (!THREE || !THREE.GLTFLoader) return;
     var O = window.DMFOverdrive;
+    var KN = window.DMFKinetic;
     var reduceMotion = hub.reduced || !hub.onFrame;
 
     var w = container.clientWidth;
@@ -3229,12 +3621,36 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     shock.visible = false;
     scene.add(shock);
 
+    // === SINGULARITY TUNNEL — three warm rings rush from behind the Receiver past the lens during
+    // BREAKTHROUGH (+60..340 ms). Allocated once, hidden the rest of the time.
+    var tunnelRings = [];
+    var tunnelMat = new THREE.MeshBasicMaterial({
+      color: 0xff6a2a, transparent: true, opacity: 0, side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false
+    });
+    for (var ti = 0; ti < 3; ti++) {
+      var tr = new THREE.Mesh(new THREE.RingGeometry(1.6, 1.635, 96), tunnelMat.clone());
+      tr.visible = false;
+      tr.renderOrder = 5;
+      scene.add(tr);
+      tunnelRings.push(tr);
+    }
+
+    // === TEMPORAL ECHO — two ghost copies of the Receiver share its geometry and deformation and
+    // trail its (camera-relative) motion by a few frames during high impacts only. World matrices are
+    // written in place from a preallocated history ring; nothing is allocated per frame.
+    var ghosts = [];
+    var GHOST_LAG = [2, 4];
+    var GHOST_OPACITY = [0.07, 0.035];
+
     // === DMFRelicAnimator — shared uniforms for relic + overlays ===
     // The GLB is a single static mesh with no rig: motion is procedural in the
     // vertex shader around raw GLB object-space anchors (DJ head/neck, torso, monitor cones).
     var U = {
       uNod: { value: 0 }, uSway: { value: 0 }, uBounce: { value: 0 }, uTwist: { value: 0 },
-      uConeL: { value: 0 }, uConeR: { value: 0 }, uCab: { value: 0 }, uLive: { value: 0 },
+      uConeL: { value: 0 }, uConeR: { value: 0 }, uCabL: { value: 0 }, uCabR: { value: 0 }, uLive: { value: 0 },
+      uShoulder: { value: 0 },
+      uVelView: { value: new THREE.Vector3(0, 0, 1) }, uVelMag: { value: 0 }, uReflectDrive: { value: 0 },
       uDeskT: { value: 9 }, uDeskAmp: { value: 0 },
       uKick: { value: 0 }, uOverdrive: { value: 0 }, uIntensity: { value: 1 },
       uLogoLvl: { value: [0, 0, 0, 0, 0] }, uLogoPeak: { value: [0, 0, 0, 0, 0] }, uLogoGlow: { value: 0 },
@@ -3250,8 +3666,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     function coneMasks(side) {
       return RELIC_CONES.filter(function (c) { return side < 0 ? c[0] < 0 : c[0] > 0; }).map(function (c) {
         var v = 'vec3(' + c.join(', ') + ')';
-        return '  cw' + (side < 0 ? 'L' : 'R') + ' += 1.0 - smoothstep(0.03, 0.07, distance(p, ' + v + '));\n' +
-               '  cab += 1.0 - smoothstep(0.1, 0.2, distance(p, ' + v + '));\n';
+        var sd = side < 0 ? 'L' : 'R';
+        return '  cw' + sd + ' += 1.0 - smoothstep(0.03, 0.07, distance(p, ' + v + '));\n' +
+               '  cab' + sd + ' += 1.0 - smoothstep(0.1, 0.2, distance(p, ' + v + '));\n';
       }).join('');
     }
     // Head/neck, torso and cone anchors are raw GLB object-space coordinates.
@@ -3259,7 +3676,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     // centred on the mixer and masked away from the DJ's body.
     var RELIC_MOTION_GLSL =
       'uniform float uNod;\nuniform float uSway;\nuniform float uBounce;\nuniform float uTwist;\n' +
-      'uniform float uConeL;\nuniform float uConeR;\nuniform float uCab;\nuniform float uLive;\n' +
+      'uniform float uConeL;\nuniform float uConeR;\nuniform float uCabL;\nuniform float uCabR;\nuniform float uLive;\n' +
+      'uniform float uShoulder;\n' +
       'uniform float uDeskT;\nuniform float uDeskAmp;\nvarying vec3 vObjPos;\n' +
       'vec3 relicMotion(vec3 p, vec3 n){\n' +
       '  float hw = 1.0 - smoothstep(0.12, 0.19, distance(p, vec3(0.305, 0.24, -0.2)));\n' +
@@ -3272,9 +3690,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       '  vec2 d = o.xz - vec2(0.31, -0.24);\n' +
       '  o.xz = vec2(0.31, -0.24) + vec2(d.x * cos(tw) - d.y * sin(tw), d.x * sin(tw) + d.y * cos(tw));\n' +
       '  o += vec3(uSway, -uBounce, 0.0) * bw * uLive;\n' +
-      '  float cwL = 0.0;\n  float cwR = 0.0;\n  float cab = 0.0;\n' +
+      // Shoulders (mids): the upper body rolls laterally about the torso centre, above it only.
+      '  float sw = bw * smoothstep(-0.02, 0.12, p.y) * uShoulder * uLive;\n' +
+      '  vec2 sq = o.xy - vec2(0.31, 0.02);\n' +
+      '  o.xy = vec2(0.31, 0.02) + vec2(sq.x * cos(sw) - sq.y * sin(sw), sq.x * sin(sw) + sq.y * cos(sw));\n' +
+      '  float cwL = 0.0;\n  float cwR = 0.0;\n  float cabL = 0.0;\n  float cabR = 0.0;\n' +
       coneMasks(-1) + coneMasks(1) +
-      '  o += n * ((min(cwL, 1.0) * uConeL + min(cwR, 1.0) * uConeR) * 0.02 + min(cab, 1.0) * uCab) * uLive;\n' +
+      '  o += n * ((min(cwL, 1.0) * uConeL + min(cwR, 1.0) * uConeR) * 0.02 + min(cabL, 1.0) * uCabL + min(cabR, 1.0) * uCabR) * uLive;\n' +
       '  float dr = length(p.xz - vec2(0.0, 0.35));\n' +
       '  float dm = (1.0 - bw) * (1.0 - smoothstep(-0.12, -0.04, p.y));\n' +
       '  o.y += dm * exp(-pow((dr - uDeskT * 1.4) / 0.08, 2.0)) * exp(-uDeskT * 3.0) * uDeskAmp * 0.006 * uLive;\n' +
@@ -3288,7 +3710,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       shader.uniforms.uTwist = U.uTwist;
       shader.uniforms.uConeL = U.uConeL;
       shader.uniforms.uConeR = U.uConeR;
-      shader.uniforms.uCab = U.uCab;
+      shader.uniforms.uCabL = U.uCabL;
+      shader.uniforms.uCabR = U.uCabR;
+      shader.uniforms.uShoulder = U.uShoulder;
       shader.uniforms.uLive = U.uLive;
       shader.uniforms.uDeskT = U.uDeskT;
       shader.uniforms.uDeskAmp = U.uDeskAmp;
@@ -3309,6 +3733,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var modelWorldMinY = 0, modelWorldMaxY = 3;
     var modelWorldMinX = -2, modelWorldMaxX = 2;
     var modelWorldMinZ = -2, modelWorldMaxZ = 2;
+    var modelBase = new THREE.Vector3();
 
     new THREE.GLTFLoader().load(
       'assets/models/dmf-studio-optimized.glb',
@@ -3323,6 +3748,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         modelTargetScale = s;
         model.scale.setScalar(0.01);
         model.position.set(-center.x * s, -box.min.y * s + 0.13, -center.z * s);
+        modelBase.copy(model.position);
 
         modelWorldMinY = 0.13;
         modelWorldMaxY = 0.13 + size.y * s;
@@ -3397,6 +3823,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
             shader.uniforms.uLogoWaveAmp = U.uLogoWaveAmp;
             shader.uniforms.uSweep = U.uSweep;
             shader.uniforms.uSweepAmt = U.uSweepAmt;
+            shader.uniforms.uVelView = U.uVelView;
+            shader.uniforms.uVelMag = U.uVelMag;
+            shader.uniforms.uReflectDrive = U.uReflectDrive;
             shader.vertexShader = shader.vertexShader
               .replace('#include <common>', '#include <common>\nattribute float aZoneId;\nattribute float aNormY;\nvarying float vZoneId;\nvarying float vNormY;')
               .replace('#include <begin_vertex>', '#include <begin_vertex>\nvZoneId = aZoneId;\nvNormY = aNormY;');
@@ -3408,6 +3837,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
                 'uniform float uLogoLvl[5];', 'uniform float uLogoPeak[5];', 'uniform float uLogoGlow;',
                 'uniform float uLogoWave;', 'uniform float uLogoWaveAmp;',
                 'uniform float uSweep;', 'uniform float uSweepAmt;', 'uniform float uLive;',
+                'uniform vec3 uVelView;', 'uniform float uVelMag;', 'uniform float uReflectDrive;',
                 'varying float vZoneId;', 'varying float vNormY;', 'varying vec3 vObjPos;'
               ].join('\n'))
               .replace('#include <tonemapping_fragment>', [
@@ -3436,6 +3866,20 @@ if (window.__DMF_FIREBASE_CONFIG__) {
                 '  float sx = vObjPos.x * 0.5 + 0.5 + vObjPos.y * 0.22;',
                 '  float sb = exp(-pow((sx - uSweep) / 0.07, 2.0));',
                 '  gl_FragColor.rgb += (gl_FragColor.rgb * 0.85 + vec3(0.22, 0.14, 0.08)) * sb * uSweepAmt;',
+                '}',
+                // VELOCITY FIELD: under acceleration, highlights on surfaces running across the motion stretch
+                // (brightened anisotropically) and edges trailing the motion carry a warm emissive bias.
+                // View-space velocity from the kinetic rig; zero at rest, so this costs nothing when still.
+                'if(uVelMag > 0.002){',
+                '  vec3 vn = normalize(normal);',
+                '  vec3 vv = normalize(vViewPosition);',
+                '  float rim = 1.0 - abs(dot(vn, vv));',
+                '  float along = dot(vn, uVelView);',
+                '  float across = 1.0 - abs(along);',
+                '  float lum = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));',
+                '  float spec = smoothstep(0.28, 0.85, lum);',
+                '  gl_FragColor.rgb += gl_FragColor.rgb * spec * across * across * (0.35 + 0.65 * uReflectDrive) * uVelMag * 0.9;',
+                '  gl_FragColor.rgb += vec3(1.0, 0.36, 0.08) * max(-along, 0.0) * rim * rim * uVelMag * 0.22 * uIntensity;',
                 '}',
                 'if(uActiveZone >= 0.0){',
                 '  float zId = floor(vZoneId + 0.5);',
@@ -3481,6 +3925,20 @@ if (window.__DMF_FIREBASE_CONFIG__) {
           edgeRef = new THREE.Mesh(geo, edgeMat);
           edgeRef.scale.setScalar(1.022);
           child.parent.add(edgeRef);
+
+          for (var gi = 0; gi < GHOST_LAG.length; gi++) {
+            var ghostMat = new THREE.MeshBasicMaterial({
+              color: 0xff7a3d, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false
+            });
+            ghostMat.onBeforeCompile = injectRelicMotion;
+            var ghost = new THREE.Mesh(geo, ghostMat);
+            ghost.matrixAutoUpdate = false;
+            ghost.visible = false;
+            ghost.frustumCulled = false;
+            ghost.userData.source = child;
+            scene.add(ghost);
+            ghosts.push(ghost);
+          }
         });
 
         scene.add(model);
@@ -3519,6 +3977,11 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       if (tier === 'high') { particleActive = 160; motionScale = 1; U.uIntensity.value = 1; }
       else if (tier === 'balanced') { particleActive = 80; motionScale = 0.7; U.uIntensity.value = 0.8; }
       else { particleActive = 40; motionScale = 0.6; U.uIntensity.value = 0.75; }
+      // Kinetic detail: echoes only on high; velocity-field detail and the tunnel scale down, then off.
+      echoOn = tier === 'high';
+      velDetail = tier === 'high' ? 1 : (tier === 'balanced' ? 0.6 : 0);
+      tunnelOn = tier !== 'lite';
+      if (!echoOn) for (var gk = 0; gk < ghosts.length; gk++) ghosts[gk].visible = false;
       var range = tierRange(tier);
       renderScaler.setRange(range[0], range[1]);
       renderer.shadowMap.enabled = shadowsOn;
@@ -3590,13 +4053,29 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       }
     }
 
-    var cur = makePose(), from = makePose(), shotPose = makePose(), user = makePose();
+    // aim is where the shot choreography wants the camera; cur follows it through critically damped
+    // kinetic bodies, so cuts and blends never change camera velocity abruptly (no teleports, no snaps).
+    var cur = makePose(), aim = makePose(), from = makePose(), shotPose = makePose(), user = makePose();
     var rig = { mode: 'auto', shot: 'A', shotIdx: 0, t: 0, blend: 1, blendDur: 2.8, lastInput: -1e9, velAz: 0, dragging: false };
     var RESUME_MS = 5000;
+    var POSE_KEYS = ['az', 'r', 'y', 'tx', 'ty', 'tz', 'roll'];
+    var poseBodies = {};
+    for (var pk = 0; pk < POSE_KEYS.length; pk++) poseBodies[POSE_KEYS[pk]] = new KN.DMFKineticBody(36, 1, { maxA: 30, maxJ: 400 });
+    function syncPose(p) {
+      for (var i = 0; i < POSE_KEYS.length; i++) poseBodies[POSE_KEYS[i]].reset(p[POSE_KEYS[i]]);
+    }
+    function followPose(dt) {
+      for (var i = 0; i < POSE_KEYS.length; i++) {
+        var key = POSE_KEYS[i];
+        cur[key] = poseBodies[key].step(aim[key], dt);
+      }
+    }
     computeShot('A', 0, SHOT_DUR.A, cur);
+    copyPose(aim, cur);
+    syncPose(cur);
 
     function cut(next, blendDur) {
-      copyPose(from, cur);
+      copyPose(from, aim);
       rig.shot = next; rig.t = 0; rig.blend = 0; rig.blendDur = blendDur;
     }
     function clampUser() {
@@ -3613,11 +4092,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
           if (nowMs - rig.lastInput > RESUME_MS) {
             rig.mode = 'auto';
             copyPose(cur, user);
+            copyPose(aim, user);
+            syncPose(user);
             rig.shotIdx = 0;
             cut(hub.state === 'OVERDRIVE' ? 'D' : 'A', 3.4);
           }
         }
-        if (rig.mode === 'user') { user.roll = 0; copyPose(cur, user); return; }
+        if (rig.mode === 'user') { user.roll = 0; copyPose(cur, user); copyPose(aim, user); syncPose(user); return; }
       }
       var od = hub.state === 'OVERDRIVE';
       if (od && rig.shot !== 'D') cut('D', 1.6);
@@ -3630,20 +4111,23 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       computeShot(rig.shot, rig.t, SHOT_DUR[rig.shot], shotPose);
       if (rig.blend < 1) {
         rig.blend = Math.min(1, rig.blend + dt / rig.blendDur);
-        lerpPose(cur, from, shotPose, ease5(rig.blend));
-      } else copyPose(cur, shotPose);
+        lerpPose(aim, from, shotPose, ease5(rig.blend));
+      } else copyPose(aim, shotPose);
+      followPose(dt);
     }
 
     var LOOK = new THREE.Vector3();
     var parallaxX = 0, parallaxY = 0;
     var autoAngle = 0;
+    // Camera = shot pose + kinetic overlay: dolly travel, lateral ORBIT arc (mids + pointer inertia),
+    // pointer height inertia, impact lens. The pointer never drives the camera directly.
     function applyCamera(dolly) {
       var aspect = w / h;
       var fit = aspect < 1.1 ? 1 + (1.1 - aspect) * 0.95 : 1;
       var auto = rig.mode === 'auto';
-      var az = cur.az + (auto ? parallaxX * 0.08 + Math.sin(autoAngle) * 0.05 * motionScale : 0);
-      var r = (cur.r - dolly + lens.pull) * fit;
-      var y = cur.y + (auto ? -parallaxY * 0.22 + Math.sin(autoAngle * 0.8) * 0.08 * motionScale : 0);
+      var az = cur.az + latK.x + (auto ? Math.sin(autoAngle) * 0.05 * motionScale : 0);
+      var r = (cur.r - dolly) * fit;
+      var y = cur.y + (auto ? parYK.x + Math.sin(autoAngle * 0.8) * 0.08 * motionScale : 0);
       camera.position.set(Math.sin(az) * r, y, Math.cos(az) * r);
       var fov = 34 + lens.fov;
       if (Math.abs(camera.fov - fov) > 0.001) { camera.fov = fov; camera.updateProjectionMatrix(); }
@@ -3695,6 +4179,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var shownState = '';
     var shownPct = -1;
     var shownHd = false;
+    var shownSg = false;
     var pctEl = document.createElement('span');
     pctEl.className = 'dmf-relic-state-pct';
     function renderRelicState(state, pct, labelChanged) {
@@ -3721,16 +4206,25 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       new MutationObserver(function () { shownState = ''; }).observe(langBtn2, { childList: true, subtree: true, characterData: true });
     }
 
+    // Pointer velocity is accumulated here (event time) and spent once per frame as a small force.
+    // Touch and coarse pointers never move anything; the audio choreography is unchanged for them.
+    var finePointer = !!(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
+    var ptrAcc = 0, ptrLastX = -1, ptrSpin = 0;
     container.addEventListener('mousemove', function (e) {
       var rect = container.getBoundingClientRect();
-      parallaxX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-      parallaxY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+      if (finePointer) {
+        var nx = (e.clientX - rect.left) / rect.width;
+        if (ptrLastX >= 0) ptrAcc += nx - ptrLastX;
+        ptrLastX = nx;
+      }
+      parallaxX = finePointer ? ((e.clientX - rect.left) / rect.width - 0.5) * 2 : 0;
+      parallaxY = finePointer ? ((e.clientY - rect.top) / rect.height - 0.5) * 2 : 0;
       mouseNDC.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
       mouseInside = true;
       mouseMoved = true;
     });
     container.addEventListener('mouseleave', function () {
-      parallaxX = 0; parallaxY = 0; mouseInside = false;
+      parallaxX = 0; parallaxY = 0; mouseInside = false; ptrLastX = -1;
       hideReadout();
       hub.hoverLevel = 0;
     });
@@ -3794,11 +4288,19 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var hudImpact = hud.querySelector('[data-hud="impact"]');
     var hudShot = hud.querySelector('[data-hud="shot"]');
     var hudTier = hud.querySelector('[data-hud="tier"]');
+    var hudKinetic = hud.querySelector('[data-hud="kinetic"]');
+    var hudAccel = hud.querySelector('[data-hud="accel"]');
+    var hudFps = hud.querySelector('[data-hud="fps"]');
+    var hudSing = hud.querySelector('[data-hud="sing"]');
     var hudLast = 0;
     var hudShownState = '';
     var hudShownShot = '';
     var hudShownTier = '';
     var hudShownHd = false;
+    var hudShownKinetic = '';
+    var hudShownAccel = '';
+    var hudShownFps = -1;
+    var hudShownSing = '';
 
     function enterFullscreen() {
       container.classList.add('is-fullscreen');
@@ -3840,6 +4342,18 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       if (tier !== hudShownTier) { hudTier.textContent = tier; hudShownTier = tier; }
       var hdOn = !!(hub.hyper && hub.hyper.active);
       if (hdOn !== hudShownHd) { hud.classList.toggle('is-hyperdrive', hdOn); hudShownHd = hdOn; }
+      var kn = hub.kinetic;
+      if (kn.state !== hudShownKinetic) { hudKinetic.textContent = kn.state; hudShownKinetic = kn.state; }
+      var accel = kn.accel.toFixed(1);
+      if (accel !== hudShownAccel) { hudAccel.textContent = accel; hudShownAccel = accel; }
+      if (hub.fps !== hudShownFps) { hudFps.textContent = hub.fps; hudShownFps = hub.fps; }
+      var sg = hub.singularity;
+      var sing = !sg ? 'off' : (sg.active ? sg.phase : (sg.armed ? 'armed' : (sg.sinceLast < sg.cooldown ? 'cooldown' : 'idle')));
+      if (sing !== hudShownSing) {
+        hudShownSing = sing;
+        hudSing.textContent = sing === 'idle' || sing === 'off' ? 'Singularity' : 'Singularity \u00b7 ' + sing;
+        hud.setAttribute('data-sing', sing);
+      }
       hudBars.energy.style.transform = 'scaleX(' + s.energy.toFixed(3) + ')';
       hudBars.low.style.transform = 'scaleX(' + s.low.toFixed(3) + ')';
       hudBars.mid.style.transform = 'scaleX(' + s.mid.toFixed(3) + ')';
@@ -3868,6 +4382,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
+      // A layout change re-frames the camera; it is not motion, so the velocity field restarts from here.
+      camPrevSet = false;
     }
     window.addEventListener('resize', requestResize);
 
@@ -3879,47 +4395,90 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       renderer.render(scene, camera);
     }
 
-    // === DMFRelicAnimator — three response layers ===
-    // IMPULSE (0-90 ms): cones, head snap, wave origins. BODY (90-320 ms): torso, cabinets, lights, logo.
-    // CINEMA (250-1600 ms): camera lens, exposure, environment. Nothing reacts at a single speed.
+    // === DMFRelicAnimator — three response layers on kinetic bodies (KINETIC SINGULARITY) ===
+    // IMPULSE (0-90 ms): cones, head snap, pedestal shock, camera impulse. BODY (90-320 ms): torso,
+    // cabinets, shoulders, logo. CINEMA (250-1600 ms): camera travel, lens, exposure, environment.
+    // Every major transform is a DMFKineticBody (position, velocity, acceleration, jerk-limited target
+    // acceleration) fed by the bus force matrix — never by raw FFT values — with hard limits on each.
     var SpringCtor = O.DMFSpring;
-    var headFast = new SpringCtor(380, 26);    // kick snap with a small rebound
-    var headSlow = new SpringCtor(60, 11);     // delayed counter-motion
-    var torsoSpring = new SpringCtor(70, 10);  // transient compression, delayed recovery
-    var coneL = new SpringCtor(1000, 24);
-    var coneR = new SpringCtor(1000, 24);
-    var cabSpring = new SpringCtor(1400, 10);  // tiny secondary resonance (~6 Hz, light damping)
+    var KB = KN.DMFKineticBody;
+    var headK = new KB(380, 0.67, { maxA: 160, maxJ: 9000, min: -0.06, max: 0.22 });  // kick snap, small rebound
+    var headSlow = new SpringCtor(60, 11);                                               // delayed counter-motion
+    var torsoK = new KB(70, 0.6, { maxA: 1.2, maxJ: 90, min: -0.003, max: 0.015 });     // low-band mass
+    var twistK = new KB(50, 0.7, { maxA: 3, maxJ: 150, min: -0.05, max: 0.05 });        // counter-rotation
+    var shoulderK = new KB(90, 0.55, { maxA: 4, maxJ: 300, min: -0.03, max: 0.03 });    // mids: upper body
+    var coneL = new KB(1000, 0.38, { maxA: 1600, maxJ: 200000, min: -0.45, max: 1.2 });
+    var coneR = new KB(1000, 0.38, { maxA: 1600, maxJ: 200000, min: -0.45, max: 1.2 });
+    var cabL = new KB(1400, 0.13, { maxA: 40, maxJ: 8000, min: -0.02, max: 0.02 });    // ~6 Hz resonance
+    var cabR = new KB(1250, 0.15, { maxA: 40, maxJ: 8000, min: -0.02, max: 0.02 });    // detuned: spatial asymmetry
+    var depthK = new KB(60, 0.75, { maxA: 40, maxJ: 3000, min: -0.06, max: 0.14 });    // Receiver Z drive (world)
+    var scaleK = new KB(90, 0.6, { maxA: 12, maxJ: 900, min: -0.02, max: 0.035 });     // depth/scale impulse
+    var pedK = new KB(220, 0.5, { maxA: 8, maxJ: 900, min: 0, max: 0.14 });            // pedestal compression
     var orbitSpring = new SpringCtor(4, 4);
     var lightSpring = new SpringCtor(10, 5);
-    var dollySpring = new SpringCtor(40, 9);
-    var lensSpring = new SpringCtor(90, 13);   // impact lens (FOV, degrees)
-    var rollSpring = new SpringCtor(60, 9);
+    var dollyK = new KB(40, 0.72, { maxA: 140, maxJ: 6000, min: -0.9, max: 3.6 });     // camera travel (+ forward)
+    var lensSpring = new KB(90, 0.68, { maxA: 1600, maxJ: 90000 });                   // impact lens (FOV degrees)
+    var rollSpring = new KB(60, 0.58, { maxA: 10, maxJ: 800 });
+    var latK = new KB(30, 0.8, { maxA: 1.5, maxJ: 60, min: -0.1, max: 0.1 });         // ORBIT arc + pointer (rad)
+    var parYK = new KB(20, 0.9, { maxA: 2, maxJ: 60 });
     orbitSpring.x = 0.072;
     lightSpring.x = 0.675;
-    var prevBar = -1, lastHdId = 0;
+    var prevBar = -1, lastHdId = 0, hdHitFrame = false;
     var liveTime = 0;
-    var sweepPos = -1, sweepActive = false, sweepCooldown = 0;
+    var sweepPos = -1, sweepActive = false, sweepCooldown = 0, sweepSpeed = 1.5, reflectHigh = false;
     var shockT = 1, shockStrength = 0;
-    var sinceHit = 9, hitStrength = 0;
-    var coneRDelay = -1, coneRAmp = 0;
+    var sinceHit = 9, hitStrength = 0, pressure = 0;
+    var coneRDelay = -1, coneRAmp = 0, cabRAmp = 0;
     var logoHold = [0, 0, 0, 0, 0];
     var frameCount = 0;
     var governor = new O.DMFPerformanceGovernor(quality);
     var renderScaler = new O.DMFRenderScaler(1.35, 1.75);
     var renderScale = 1;
-    var lens = { fov: 0, roll: 0, pull: 0 };
+    var lens = { fov: 0, roll: 0 };
+    var dollyAim = 0;
     var wireZoneColors = [0x886633, 0xcc8844, 0x44ddff, 0xff6633];
     var SHOT_NAMES = { A: 'ICON', B: 'SIGNAL', C: 'RELIC', D: 'OVERDRIVE' };
     var baseFog = scene.fog.density;
+    var echoOn = true, velDetail = 1, tunnelOn = true;
+    var vf = new KN.DMFVelocityField();
+    var HIST = 8, HSTRIDE = 7;
+    var hist = new Float32Array(HIST * HSTRIDE);
+    var histIdx = 0, histCount = 0;
+    var camPrevX = 0, camPrevY = 0, camPrevZ = 0, camPrevSet = false;
+    var FWD = new THREE.Vector3();
 
     // Gaussian bump: how strongly a ring at `delay` seconds from the impact is lit right now.
     function pulseAt(t, delay, width) { var x = (t - delay) / width; return Math.exp(-x * x); }
 
+    // Receiver transform: base + depth drive toward the camera; the pedestal compresses and the
+    // Receiver sinks with it (pedestal top = 0.12 × its y-scale), so it reads heavy, not floaty.
+    function applyReceiverTransform() {
+      var cx = camera.position.x, cz = camera.position.z;
+      var cl = Math.sqrt(cx * cx + cz * cz) || 1;
+      var sink = 0.12 * pedK.x;
+      if (modelRef) {
+        modelRef.position.set(modelBase.x + cx / cl * depthK.x, modelBase.y - sink, modelBase.z + cz / cl * depthK.x);
+        if (modelCurrentScale >= modelTargetScale) modelRef.scale.setScalar(modelTargetScale * (1 + scaleK.x));
+      }
+      pedestal.scale.y = 1 - pedK.x;
+      pedestal.position.y = 0.06 * (1 - pedK.x);
+      pedestalRim.position.y = 0.13 - sink;
+      inscription.position.y = 0.131 - sink;
+      shock.position.y = 0.135 - sink;
+    }
+
     function animateRelic(s, dt) {
       var od = hub.overdriveMix;
       var hd = hub.hyper;
+      var sg = hub.singularity;
+      var f = hub.forces;
+      var ms = motionScale;
       var hdLevel = hd && hd.active ? hd.level : 0;
       var hdPre = hd ? hd.pre : 0;
+      var sPre = sg ? sg.pre : 0, sIgn = sg ? sg.ignition : 0, sLvl = sg ? sg.level : 0, sBrk = sg ? sg.breakthrough : 0;
+      var sHit = !!(sg && sg.hit);
+      // PRECOMPRESSION: the Receiver's groove almost freezes while pressure builds.
+      var freeze = 1 - 0.85 * sPre;
       liveTime += dt;
 
       if (modelRef && modelCurrentScale < modelTargetScale) {
@@ -3936,36 +4495,49 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       prevBar = s.bar;
       var hdHit = !!(hd && hd.active && hd.id !== lastHdId);
       if (hd) lastHdId = hd.id;
+      hdHitFrame = hdHit;
       if (activationPending) {
         activationPending = false;
         hit = Math.max(hit, 0.9);
         barEdge = true;
         sweepCooldown = 0;
       }
-      if (hdHit) hit = 1;
+      if (hdHit || sHit) hit = 1;
 
-      // IMPULSE — cones punch (right side 14 ms later: spatial delay), cabinets recoil, head snaps.
+      // Anticipation: in energetic passages the rig leans back in the ~100 ms before a predicted beat.
+      pressure = s.energy > 0.55 ? clamp(1 - s.timeToBeat / 0.1, 0, 1) * (s.energy - 0.55) / 0.45 * (0.4 + 0.6 * s.dropEnergy) * freeze : 0;
+
+      // IMPULSE — cones punch (right side 14 ms later: spatial delay), cabinets recoil, head snaps,
+      // the pedestal takes the shock. SINGULARITY impacts add their own, larger forces.
       if (hit > 0) {
         sinceHit = 0;
-        hitStrength = hit * (0.6 + 0.4 * s.energy) * (1 + 0.5 * od + hdLevel);
-        var punch = 46 * hit * (0.8 + 0.5 * od + 0.5 * hdLevel);
+        hitStrength = hit * (0.6 + 0.4 * s.energy) * (1 + 0.5 * od + hdLevel + (sHit ? 1.5 : 0));
+        var punch = 46 * hit * (0.8 + 0.5 * od + 0.5 * hdLevel + (sHit ? 0.6 : 0));
         coneL.impulse(punch);
         coneRDelay = 0.014;
         coneRAmp = punch;
-        cabSpring.impulse(-0.35 * hit * (0.6 + 0.4 * od));
-        headFast.impulse((2.6 + 1.6 * od + 1.4 * hdLevel) * hit);
-        orbitSpring.impulse(0.05 * s.energy * motionScale);
+        cabRAmp = -0.35 * hit * (0.6 + 0.4 * od + (sHit ? 0.8 : 0));
+        cabL.impulse(cabRAmp * 1.1);
+        headK.impulse((2.6 + 1.6 * od + 1.4 * hdLevel + (sHit ? 2.4 : 0)) * hit);
+        pedK.impulse((0.25 * f.pedestal * f.amp + (sHit ? 0.6 : 0)) * hit);
+        orbitSpring.impulse(0.05 * s.energy * ms);
+        // Camera impulse per kick, OVERDRIVE only: silence between events matters.
+        if (od > 0.5 && !sHit && !hdHit) dollyK.impulse(0.35 * f.camera * f.travel * ms);
       } else sinceHit += dt;
       if (coneRDelay >= 0) {
         coneRDelay -= dt;
-        if (coneRDelay < 0) coneR.impulse(coneRAmp);
+        if (coneRDelay < 0) { coneR.impulse(coneRAmp); cabR.impulse(cabRAmp); }
       }
-      coneL.step(0, dt);
-      coneR.step(0, dt);
-      cabSpring.step(0, dt);
-      U.uConeL.value = clamp(coneL.x, -0.45, 1.2);
-      U.uConeR.value = clamp(coneR.x, -0.45, 1.2);
-      U.uCab.value = clamp(cabSpring.x, -0.02, 0.02) * 0.25;
+      // IGNITION preloads the cones inward; LOW pressure loads the cabinets (right side detuned).
+      coneL.step(-0.35 * sIgn, dt);
+      coneR.step(-0.35 * sIgn, dt);
+      var cabPress = -0.008 * f.cabinet * f.amp;
+      cabL.step(cabPress, dt);
+      cabR.step(cabPress * 0.85, dt);
+      U.uConeL.value = coneL.x;
+      U.uConeR.value = coneR.x;
+      U.uCabL.value = cabL.x * 0.25;
+      U.uCabR.value = cabR.x * 0.25;
       U.uDeskT.value = sinceHit;
       U.uDeskAmp.value = clamp(hitStrength, 0, 1.6);
       U.uLogoWave.value = sinceHit;
@@ -3973,52 +4545,63 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       U.uKick.value = s.kick;
       U.uOverdrive.value = od;
 
-      // DJ — groove nod, kick snap, delayed counter-motion; torso compresses on the body layer.
+      // DJ — groove nod, kick snap, delayed counter-motion; torso carries the low band with mass;
+      // shoulders answer the mids; the torso counter-rotates on IGNITION.
       var beats = s.beatIndex + s.beatPhase;
-      var nodBase = (0.05 + 0.03 * od) * (0.5 + 0.5 * Math.cos(2 * Math.PI * (s.beatPhase - 0.18))) * s.energy;
-      headFast.step(nodBase, dt);
-      headSlow.step(headFast.x, dt);
-      U.uNod.value = clamp(headFast.x - 0.3 * headSlow.x, -0.06, 0.22);
+      var nodBase = (0.05 + 0.03 * od) * (0.5 + 0.5 * Math.cos(2 * Math.PI * (s.beatPhase - 0.18))) * s.energy * freeze;
+      headK.step(nodBase - 0.03 * pressure, dt);
+      headSlow.step(headK.x, dt);
+      U.uNod.value = clamp(headK.x - 0.3 * headSlow.x, -0.06, 0.22);
       var groove = Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * s.beatPhase), 3);
-      torsoSpring.step(0.004 * groove * (1 + 0.6 * od) + s.body * 0.009 * (1 + od + hdLevel), dt);
-      U.uBounce.value = clamp(torsoSpring.x, -0.003, 0.015);
+      torsoK.step((0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl, dt);
+      U.uBounce.value = torsoK.x;
       var swayWave = Math.sin(Math.PI * beats);
-      U.uSway.value = (0.006 + 0.004 * od) * swayWave;
-      U.uTwist.value = clamp(-0.015 * (0.4 + 0.6 * od) * swayWave - 0.12 * (headFast.x - nodBase), -0.05, 0.05);
+      U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze;
+      twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn, -0.05, 0.05), dt);
+      U.uTwist.value = twistK.x;
+      shoulderK.step(0.022 * f.shoulder * f.amp * swayWave * freeze, dt);
+      U.uShoulder.value = shoulderK.x;
 
-      // Logo — five segments with peak hold; the transient front travels out from the M (shader).
+      // RECEIVER DEPTH DRIVE — low energy pushes it toward the camera; PRECOMPRESSION draws it back and
+      // in; the SINGULARITY impact throws it forward and swells it, then mass and damping bring it home.
+      if (sHit) { depthK.impulse(0.7 * ms); scaleK.impulse(0.35); }
+      depthK.step((0.05 * f.depth * f.amp - 0.03 * sPre) * ms, dt);
+      scaleK.step(-0.012 * sPre, dt);
+      pedK.step(0.05 * f.floor * f.amp + 0.03 * sPre, dt);
+      applyReceiverTransform();
+
+      // Logo — five segments with peak hold; mids articulate the inner bars; PRECOMPRESSION concentrates
+      // the energy into the M, and the impact front explodes outward from it (shader).
       var lv = U.uLogoLvl.value, pk = U.uLogoPeak.value;
       for (var c = 0; c < 5; c++) {
         var tgt = c === 0 ? s.low * 0.9 + s.kick * 0.2 : c === 1 ? (s.low + s.mid) * 0.5 : c === 2 ? s.energy : c === 3 ? (s.mid + s.high) * 0.5 : s.high;
-        tgt = clamp(tgt * (0.75 + 0.25 * hash(c * 7 + s.beatIndex)) * (1 + 0.25 * od + 0.3 * hdLevel), 0, 1);
+        if (c > 0 && c < 4) tgt += 0.2 * f.logo;
+        tgt = clamp(tgt * (0.75 + 0.25 * hash(c * 7 + s.beatIndex)) * (1 + 0.25 * od + 0.3 * hdLevel) * (c === 2 ? 1 + 0.8 * sPre : 1 - 0.7 * sPre), 0, 1);
         lv[c] += (tgt - lv[c]) * (1 - Math.exp(-dt / (tgt > lv[c] ? 0.02 : 0.18)));
         if (lv[c] >= pk[c]) { pk[c] = lv[c]; logoHold[c] = 0.35; }
         else if (logoHold[c] > 0) logoHold[c] -= dt;
         else pk[c] = Math.max(lv[c], pk[c] - 0.6 * dt);
       }
-      U.uLogoGlow.value = s.energy * (0.25 + 0.5 * s.body) * (0.6 + 0.4 * od) + hdLevel * 0.35;
+      U.uLogoGlow.value = s.energy * (0.25 + 0.5 * s.body) * (0.6 + 0.4 * od) + hdLevel * 0.35 + sPre * 0.9 + sLvl * 0.5;
 
-      // Reflective sweeps — rate limited (≥1.2 s apart), warm, never strobing.
+      // Reflective sweeps — rate limited (≥1.2 s apart), warm, never strobing. Fast motion can also
+      // start one (kineticField), sharing the same cooldown.
       sweepCooldown -= dt;
-      var wantSweep = hdHit || (barEdge && ((od > 0.5) || (hub.state === 'TRANSMITTING' && s.bar % 2 === 0) || sweepCooldown < -8));
-      if (wantSweep && sweepCooldown <= 0) { sweepPos = -0.2; sweepActive = true; sweepCooldown = 1.2; }
-      if (sweepActive) { sweepPos += dt * 1.5; if (sweepPos > 1.4) sweepActive = false; }
+      var wantSweep = hdHit || sHit || (barEdge && ((od > 0.5) || (hub.state === 'TRANSMITTING' && s.bar % 2 === 0) || sweepCooldown < -8));
+      if (wantSweep && sweepCooldown <= 0) { sweepPos = -0.2; sweepActive = true; sweepCooldown = 1.2; sweepSpeed = 1.5; }
+      if (sweepActive) { sweepPos += dt * sweepSpeed; if (sweepPos > 1.4) sweepActive = false; }
       U.uSweep.value = sweepPos;
-      U.uSweepAmt.value = sweepActive ? (0.3 + 0.25 * od + 0.15 * hdLevel) * U.uIntensity.value : 0;
-      if (relicMatRef) {
-        relicMatRef.roughness = baseRoughness * (1 - 0.22 * s.body * od);
-        relicMatRef.emissiveIntensity = 0.008 + 0.02 * s.body * s.energy + 0.015 * od + 0.02 * hdLevel;
-      }
+      U.uSweepAmt.value = sweepActive ? (0.3 + 0.25 * od + 0.15 * hdLevel + 0.2 * sLvl) * U.uIntensity.value * (1 - 0.6 * sPre) : 0;
 
       // Pedestal — the kick lands in the centre first, then rim, inner ring, outer ring, floor grid.
       var wv = hitStrength * Math.exp(-sinceHit * 1.6);
-      if (hit > 0 && s.energy > 0.45) { shockT = 0; shockStrength = hit * (0.5 + 0.5 * od + 0.5 * hdLevel); }
+      if (hit > 0 && s.energy > 0.45) { shockT = 0; shockStrength = hit * (0.5 + 0.5 * od + 0.5 * hdLevel + (sHit ? 1.1 : 0)); }
       if (shockT < 0.8) {
         shockT += dt;
         var sk = Math.min(1, shockT / 0.8);
         shock.visible = true;
         shock.scale.set(1 + sk * 1.5, 1 + sk * 1.5, 1);
-        shockMat.opacity = 0.25 * shockStrength * (1 - sk) * (1 - sk);
+        shockMat.opacity = Math.min(0.4, 0.25 * shockStrength) * (1 - sk) * (1 - sk);
       } else shock.visible = false;
       pedestalMat.emissiveIntensity = 0.012 + Math.sin(autoAngle * 2.5) * 0.008 + pulseAt(sinceHit, 0, 0.05) * 0.05 * wv + s.low * 0.01;
       pedestalRimMat.opacity = 0.2 + Math.sin(autoAngle * 2.2) * 0.08 + pulseAt(sinceHit, 0.05, 0.05) * 0.25 * wv;
@@ -4028,26 +4611,26 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var ring2Pulse = 1 + Math.sin(autoAngle * 1.1 + 1) * 0.05 + pulseAt(sinceHit, 0.22, 0.09) * 0.04 * wv;
       ring2.scale.set(ring2Pulse, ring2Pulse, 1);
       ring2Mat.opacity = 0.018 + Math.sin(autoAngle * 1.1 + 1) * 0.012 + pulseAt(sinceHit, 0.22, 0.09) * 0.04 * wv;
-      gridHelper.material.opacity = 0.06 + Math.sin(autoAngle) * 0.03 + pulseAt(sinceHit, 0.32, 0.12) * 0.05 * wv;
+      gridHelper.material.opacity = 0.06 + Math.sin(autoAngle) * 0.03 + pulseAt(sinceHit, 0.32, 0.12) * 0.05 * wv + 0.02 * f.floor;
 
       // Scene orbit with mass; the key light is pushed around by hits in OVERDRIVE / HYPERDRIVE.
-      orbitSpring.step(0.072 * (1 + 1.6 * s.dropEnergy) * (1 - 0.5 * hdPre), dt);
+      orbitSpring.step(0.072 * (1 + 1.6 * s.dropEnergy) * (1 - 0.5 * hdPre) * freeze, dt);
       autoAngle += dt * clamp(orbitSpring.x, 0.02, 0.4);
       lightSpring.step(0.675 + 0.25 * Math.sin(autoAngle * 1.3), dt);
-      if (hit > 0 && (od > 0.3 || hdLevel > 0)) lightSpring.impulse((s.beatIndex % 2 ? 1 : -1) * (0.9 * od + 1.2 * hdLevel));
+      if (hit > 0 && (od > 0.3 || hdLevel > 0 || sHit)) lightSpring.impulse((s.beatIndex % 2 ? 1 : -1) * (0.9 * od + 1.2 * hdLevel + (sHit ? 1.4 : 0)));
       keyLight.position.set(Math.sin(lightSpring.x) * 6.4, 7, Math.cos(lightSpring.x) * 6.4);
 
-      // BODY lights.
-      rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 + s.body * 0.3 * (1 + 0.6 * od) + hdLevel * 0.4;
-      accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15;
+      // BODY lights; HIGH drives the light edges.
+      rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 + s.body * 0.3 * (1 + 0.6 * od) + hdLevel * 0.4 + sLvl * 0.5;
+      accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15 + f.edge * 0.2;
       fillLight.intensity = 0.3 + Math.sin(autoAngle + 2) * 0.06;
-      underGlow.intensity = 0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.body * 0.35 * (1 + od) + hdLevel * 0.3;
-      haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1 + hdLevel * 0.2;
+      underGlow.intensity = 0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.body * 0.35 * (1 + od) + hdLevel * 0.3 + sLvl * 0.4;
+      haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1 + hdLevel * 0.2 + sLvl * 0.25;
       screenGlow.color.setHSL(0.62 + Math.sin(autoAngle * 0.4) * 0.04, 0.45, 0.35);
       coneMat.opacity = 0.012 + Math.sin(autoAngle * 1.3) * 0.005 + od * 0.008 + hdLevel * 0.01;
 
-      // Embers slow down while the scene contracts before a HYPERDRIVE, then surge.
-      var speedMul = (1 + s.energy * 1.2 + od * 0.8 + hdLevel * 1.5) * (1 - 0.6 * hdPre);
+      // Embers slow down while the scene contracts, then surge; HIGH adds small detail speed.
+      var speedMul = (1 + s.energy * 1.2 + od * 0.8 + hdLevel * 1.5 + sLvl * 2 + f.detail * 0.6) * (1 - 0.6 * hdPre) * (1 - 0.8 * sPre);
       var pos = pGeom.attributes.position.array;
       for (var i = 0; i < particleActive; i++) {
         pos[i * 3 + 1] += pSpeeds[i] * speedMul * dt * 60;
@@ -4062,33 +4645,169 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       pGeom.attributes.position.needsUpdate = true;
       pMat.opacity = 0.4 + Math.sin(autoAngle * 1.6) * 0.12;
 
-      haloMat.opacity = 0.06 + Math.sin(autoAngle * 0.9) * 0.03 + od * 0.04 + hdLevel * 0.05;
+      haloMat.opacity = 0.06 + Math.sin(autoAngle * 0.9) * 0.03 + od * 0.04 + hdLevel * 0.05 + sLvl * 0.05;
       halo2Mat.opacity = 0.03 + Math.sin(autoAngle * 0.7 + 1) * 0.015;
-      halo.rotation.z += dt * 0.018 * (1 + od + 2 * hdLevel);
-      halo2.rotation.z -= dt * 0.012 * (1 + od + 2 * hdLevel);
+      halo.rotation.z += dt * 0.018 * (1 + od + 2 * hdLevel + 3 * sLvl) * freeze;
+      halo2.rotation.z -= dt * 0.012 * (1 + od + 2 * hdLevel + 3 * sLvl) * freeze;
       labelEdition.material.opacity = 0.25 + Math.sin(autoAngle * 1.4) * 0.1;
       labelRelic.material.opacity = 0.2 + Math.sin(autoAngle * 1.1 + 2) * 0.08;
       labelSignal.material.opacity = 0.15 + Math.sin(autoAngle * 0.8 + 1) * 0.06;
 
-      // CINEMA — exposure and fog breathe slowly; the environment contracts before a HYPERDRIVE hit.
-      renderer.toneMappingExposure = 0.95 + Math.sin(autoAngle * 0.7) * 0.06 + od * 0.06 + s.cinema * 0.05 + hdLevel * 0.1 - hdPre * 0.08;
-      scene.fog.density = baseFog + hdPre * 0.012 - hdLevel * 0.003;
+      // CINEMA — exposure and fog breathe; the environment darkens and contracts before a big hit.
+      renderer.toneMappingExposure = 0.95 + Math.sin(autoAngle * 0.7) * 0.06 + od * 0.06 + s.cinema * 0.05 + hdLevel * 0.1 - hdPre * 0.08 - sPre * 0.12 + sLvl * 0.08;
+      scene.fog.density = baseFog + hdPre * 0.012 + sPre * 0.014 - hdLevel * 0.003 - sLvl * 0.004;
 
-      // Impact lens: pre-impact pullback + slight FOV expansion, then push, FOV compression, roll, recovery.
-      // Only on meaningful events: HYPERDRIVE hits and OVERDRIVE bar downbeats. Limits: FOV ±3°, roll ±1.5°.
-      lens.pull = hdPre * 0.45 * motionScale;
-      if (hdHit) {
-        dollySpring.impulse(3.2 * motionScale);
-        lensSpring.impulse(-38 * motionScale);
-        rollSpring.impulse((hd.id % 2 ? 1 : -1) * 0.22 * motionScale);
+      // CAMERA SHOT ENGINE V3 — kinetic overlay on the shot pose.
+      // PRESSURE: before a predicted beat/drop the camera eases back and the FOV opens slightly.
+      // IMPACT: a short forward acceleration. SINGULARITY: back on precompression, velocity rising on
+      // ignition, a hard push at impact, a second acceleration through BREAKTHROUGH, then RECOVERY.
+      // Limits: FOV ±3°, roll ±1.5°; no random shake anywhere.
+      if (sHit) {
+        dollyK.impulse(5.5 * ms);
+        lensSpring.impulse(-45 * ms);
+        rollSpring.impulse((sg.id % 2 ? 1 : -1) * 0.26 * ms);
+      } else if (hdHit) {
+        dollyK.impulse(3.2 * ms);
+        lensSpring.impulse(-38 * ms);
+        rollSpring.impulse((hd.id % 2 ? 1 : -1) * 0.22 * ms);
       } else if (hit > 0 && barEdge && od > 0.5) {
-        lensSpring.impulse(-9 * motionScale);
+        lensSpring.impulse(-9 * ms);
       }
-      dollySpring.step(od * 0.25 * motionScale, dt);
-      lensSpring.step(hdPre * 1.2 * motionScale, dt);
+      // The HYPERDRIVE pre-impact pullback lives in the dolly too, so its release is a push with mass,
+      // never a one-frame jump.
+      dollyAim = (od * 0.25 - 0.45 * hdPre - 0.55 * sPre + 0.9 * sIgn + 2.2 * sBrk - 0.08 * pressure) * ms;
+      dollyK.step(dollyAim, dt);
+      lensSpring.step((hdPre * 1.2 + sPre * 1.4) * ms, dt);
       rollSpring.step(0, dt);
       lens.fov = clamp(lensSpring.x, -3, 3);
       lens.roll = clamp(rollSpring.x, -0.026, 0.026);
+      // ORBIT: mids swing a tiny lateral arc; pointer velocity adds inertia, never a direct follow.
+      var auto = rig.mode === 'auto';
+      if (ptrAcc !== 0 && dt > 0) {
+        var pv = clamp(ptrAcc / dt, -4, 4);
+        ptrAcc = 0;
+        if (auto) latK.impulse(-0.006 * pv * ms);
+        twistK.impulse(0.004 * pv * ms);
+        ptrSpin = pv;
+      } else ptrSpin *= Math.exp(-dt * 8);
+      latK.step(auto ? (0.035 * f.torque * f.travel * Math.sin(Math.PI * beats / 2) * freeze + parallaxX * 0.08) * ms : 0, dt);
+      parYK.step(auto ? -parallaxY * 0.22 : 0, dt);
+    }
+
+    // VELOCITY FIELD, reflection acceleration, temporal echo, tunnel and telemetry.
+    // Runs after the camera is placed, so camera-relative velocity is exact for this frame.
+    function kineticField(s, dt) {
+      var sg = hub.singularity;
+      var cp = camera.position;
+      var cvx = 0, cvy = 0, cvz = 0;
+      if (camPrevSet && dt > 0) { cvx = (cp.x - camPrevX) / dt; cvy = (cp.y - camPrevY) / dt; cvz = (cp.z - camPrevZ) / dt; }
+      camPrevX = cp.x; camPrevY = cp.y; camPrevZ = cp.z; camPrevSet = true;
+      var cl = Math.sqrt(cp.x * cp.x + cp.z * cp.z) || 1;
+      var radial = depthK.v + 2 * scaleK.v;
+      var rvx = cp.x / cl * radial, rvy = -0.12 * pedK.v, rvz = cp.z / cl * radial;
+      var rx = rvx - cvx, ry = rvy - cvy, rz = rvz - cvz;
+      // Relative velocity in view space (rotation part of the view matrix) for the shader.
+      var e = camera.matrixWorldInverse.elements;
+      var vx = e[0] * rx + e[4] * ry + e[8] * rz;
+      var vy = e[1] * rx + e[5] * ry + e[9] * rz;
+      var vz = e[2] * rx + e[6] * ry + e[10] * rz;
+      var sp = Math.sqrt(vx * vx + vy * vy + vz * vz);
+      var ang = Math.abs(headK.v) * 0.5 + Math.abs(twistK.v) * 2 + Math.abs(rollSpring.v) * 4 + Math.abs(ptrSpin) * 0.3;
+      var echoTrig = sg && sg.hit ? 1 : (hdHitFrame ? 0.7 : 0);
+      vf.update(vx, vy, vz, ang, s.energy, sp > 1e-4 ? Math.abs(vz) / sp : 0, echoTrig, dt);
+      U.uVelView.value.set(vf.dirX, vf.dirY, vf.dirZ);
+      U.uVelMag.value = vf.stretch * velDetail;
+      U.uReflectDrive.value = vf.reflect;
+
+      // REFLECTION ACCELERATION — metal answers the rate of change, not only energy: sharper and brighter
+      // under acceleration, narrower during PRECOMPRESSION, and fast motion starts a short sweep.
+      var sPre = sg ? sg.pre : 0;
+      if (relicMatRef) {
+        relicMatRef.roughness = baseRoughness * (1 - 0.22 * s.body * hub.overdriveMix) * (1 - 0.25 * vf.reflect) * (1 + 0.3 * sPre);
+        relicMatRef.envMapIntensity = 0.55 * (1 + 0.8 * vf.reflect) * (1 - 0.35 * sPre);
+        relicMatRef.emissiveIntensity = 0.008 + 0.02 * s.body * s.energy + 0.015 * hub.overdriveMix +
+          0.02 * (hub.hyper && hub.hyper.active ? hub.hyper.level : 0) + 0.03 * (sg ? sg.level : 0);
+      }
+      var over = vf.reflect > 0.55;
+      if (over && !reflectHigh && sweepCooldown <= 0) {
+        sweepPos = -0.2; sweepActive = true; sweepCooldown = 1.2; sweepSpeed = 1.5 + 2.5 * vf.reflect;
+      }
+      reflectHigh = over;
+
+      // TEMPORAL ECHO — history of the Receiver's displacement/scale and the camera position.
+      var hb = histIdx * HSTRIDE;
+      hist[hb] = modelRef ? modelRef.position.x - modelBase.x : 0;
+      hist[hb + 1] = modelRef ? modelRef.position.y - modelBase.y : 0;
+      hist[hb + 2] = modelRef ? modelRef.position.z - modelBase.z : 0;
+      hist[hb + 3] = cp.x; hist[hb + 4] = cp.y; hist[hb + 5] = cp.z;
+      hist[hb + 6] = 1 + scaleK.x;
+      var echo = echoOn ? vf.echo : 0;
+      if (echo > 0 && modelRef) modelRef.updateMatrixWorld();
+      for (var g = 0; g < ghosts.length; g++) {
+        var ghost = ghosts[g];
+        var lag = GHOST_LAG[g % GHOST_LAG.length];
+        if (echo <= 0 || histCount <= lag || !modelRef) { if (ghost.visible) ghost.visible = false; continue; }
+        var ob = ((histIdx - lag + HIST) % HIST) * HSTRIDE;
+        // Where the Receiver was, relative to where the camera was: exaggerated a little to stay readable.
+        var ox = (hist[ob] - hist[hb]) * 2.2 + (cp.x - hist[ob + 3]) * 0.6;
+        var oy = (hist[ob + 1] - hist[hb + 1]) * 2.2 + (cp.y - hist[ob + 4]) * 0.6;
+        var oz = (hist[ob + 2] - hist[hb + 2]) * 2.2 + (cp.z - hist[ob + 5]) * 0.6;
+        var r = 1 + (hist[ob + 6] / hist[hb + 6] - 1) * 2.2;
+        var src = ghost.userData.source.matrixWorld.elements;
+        var m = ghost.matrix.elements;
+        var px = modelRef.position.x, py = modelRef.position.y, pz = modelRef.position.z;
+        for (var k = 0; k < 12; k++) m[k] = k % 4 === 3 ? src[k] : src[k] * r;
+        m[12] = px + (src[12] - px) * r + ox;
+        m[13] = py + (src[13] - py) * r + oy;
+        m[14] = pz + (src[14] - pz) * r + oz;
+        m[15] = 1;
+        ghost.matrixWorldNeedsUpdate = true;
+        ghost.material.opacity = GHOST_OPACITY[g % GHOST_OPACITY.length] * echo;
+        if (!ghost.visible) ghost.visible = true;
+      }
+      histIdx = (histIdx + 1) % HIST;
+      if (histCount < HIST) histCount++;
+
+      // BREAKTHROUGH TUNNEL — rings rush from behind the Receiver past the lens (+60..340 ms).
+      var tt = sg && sg.active ? sg.t : -1;
+      var tunnelLive = tunnelOn && tt > 0.06 && tt < 0.34;
+      if (tunnelLive) FWD.set(0, 0, -1).applyQuaternion(camera.quaternion);
+      for (var q = 0; q < tunnelRings.length; q++) {
+        var ringT = tunnelRings[q];
+        var ph = tunnelLive ? clamp((tt - 0.06 - q * 0.05) / 0.2, 0, 1) : 0;
+        if (!tunnelLive || ph <= 0 || ph >= 1) { if (ringT.visible) ringT.visible = false; continue; }
+        var dist = 7.5 - 7 * ease(ph);
+        ringT.position.set(cp.x + FWD.x * dist, cp.y + FWD.y * dist, cp.z + FWD.z * dist);
+        ringT.quaternion.copy(camera.quaternion);
+        ringT.material.opacity = 0.16 * Math.sin(Math.PI * ph) * (1 - q * 0.22) * U.uIntensity.value;
+        ringT.visible = true;
+      }
+
+      // Telemetry (read by the debug surface and the HUD).
+      var kn = hub.kinetic;
+      kn.accel = vf.accel;
+      kn.jerk = vf.jerk;
+      kn.cameraVelocity = Math.sqrt(cvx * cvx + cvy * cvy + cvz * cvz);
+      kn.receiverVelocity = Math.sqrt(rvx * rvx + rvy * rvy + rvz * rvz);
+      kn.reflectionDrive = vf.reflect;
+      kn.echoLevel = echo;
+      var hdPre = hub.hyper ? hub.hyper.pre : 0;
+      kn.state = sg && sg.active ? 'SINGULARITY'
+        : (sinceHit < 0.12 && hitStrength > 0.6 ? 'IMPACT'
+        : (pressure > 0.25 || hdPre > 0.1 ? 'PRESSURE'
+        : (vf.accel > 6 ? 'SURGE'
+        : (Math.abs(dollyK.x - dollyAim) > 0.08 || Math.abs(depthK.v) > 0.05 ? 'RECOVERY' : 'REST'))));
+    }
+
+    function cameraShot() {
+      if (rig.mode === 'user') return 'USER';
+      var sg = hub.singularity;
+      if (sg && sg.active) return sg.t < 0.7 ? 'SINGULARITY' : 'RECOVERY';
+      if ((hub.hyper && hub.hyper.pre > 0.1) || pressure > 0.35) return 'PRESSURE';
+      if (dollyK.v > 0.4) return 'IMPACT';
+      if (dollyK.x - dollyAim > 0.1 && dollyK.v < 0) return 'RECOVERY';
+      if (Math.abs(latK.v) > 0.015 && hub.forces.torque > 0.35) return 'ORBIT';
+      return SHOT_NAMES[rig.shot];
     }
 
     function hoverZone() {
@@ -4129,7 +4848,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
       animateRelic(s, dt);
       rigUpdate(dt, performance.now());
-      applyCamera(dollySpring.x);
+      applyCamera(dollyK.x);
+      camera.updateMatrixWorld();
+      kineticField(s, dt);
 
       var activeZoneIdx = frameCount % 3 === 0 || mouseMoved ? hoverZone() : hoverZone.last;
       hub.hoverLevel = activeZoneIdx === 3 ? 2 : (activeZoneIdx >= 0 ? 1 : 0);
@@ -4157,9 +4878,11 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         shownPct = pct;
         renderRelicState(state, pct, labelChanged);
       }
-      hub.cameraShot = rig.mode === 'user' ? 'USER' : SHOT_NAMES[rig.shot];
+      hub.cameraShot = cameraShot();
       var hdOn = !!(hub.hyper && hub.hyper.active);
       if (hdOn !== shownHd) { shownHd = hdOn; band.classList.toggle('is-hyperdrive', hdOn); }
+      var sgOn = !!(hub.singularity && hub.singularity.active);
+      if (sgOn !== shownSg) { shownSg = sgOn; band.classList.toggle('is-singularity', sgOn); }
       updateHud(s, performance.now());
 
       renderer.render(scene, camera);
