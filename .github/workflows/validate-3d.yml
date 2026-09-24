@@ -80,6 +80,8 @@ jobs:
           grep -q "dmf:wave" public/index.html
           grep -q 'function DMFSingularity(' public/index.html
           grep -q 'function DMFKineticBody(' public/index.html
+          grep -q 'function DMFStageDirector(' public/index.html
+          grep -q 'dmf-stage-layer' public/index.html
           grep -q "classList.add('dmf-choreo')" public/index.html
           grep -q 'DMF_CODEX_HEAD' public/index.html
           grep -q 'dmf-initiation-protocol' public/index.html
@@ -106,6 +108,7 @@ jobs:
           node --check scripts/dev-hyperdrive.cjs
           node scripts/overdrive/test/engine.test.cjs
           node scripts/overdrive/test/kinetic.test.cjs
+          node scripts/overdrive/test/spatial-stage.test.cjs
           node scripts/overdrive/test/landing.test.cjs
           node scripts/overdrive/test/dev-hyperdrive.test.cjs
 

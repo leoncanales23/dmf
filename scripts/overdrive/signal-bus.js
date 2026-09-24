@@ -4,7 +4,8 @@
   'use strict';
   var O = window.DMFOverdrive;
   var KN = window.DMFKinetic;
-  if (!O || !KN || window.DMFSignal) return;
+  var ST = window.DMFStage;
+  if (!O || !KN || !ST || window.DMFSignal) return;
 
   var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
@@ -20,6 +21,9 @@
   var forces = new KN.DMFForceMatrix();
   var sing = new KN.DMFSingularity();
   var SING_LEAD = 0.72;
+  // SPATIAL STAGE: scroll picks the ACT (the destination); the relic turns it into motion.
+  var director = new ST.DMFStageDirector({ compact: window.innerWidth < 768 || 'ontouchstart' in window });
+  var scrollField = new ST.DMFScrollField();
 
   var hub = window.DMFSignal = {
     signal: engine.out,
@@ -28,6 +32,11 @@
     forces: forces.out,
     // Written by the relic every frame it renders; read by telemetry and the HUD.
     kinetic: { state: 'REST', accel: 0, jerk: 0, cameraVelocity: 0, receiverVelocity: 0, reflectionDrive: 0, echoLevel: 0 },
+    // Director state for the relic; the relic writes back what the 3D stage is doing.
+    stage: {
+      director: director, scroll: scrollField, scrollY: 0, vh: window.innerHeight || 800, layout: 0,
+      originY: -1, cameraJourney: 'hold', receiverStageDepth: 0, portalIntensity: 0, spatialVelocity: 0, spatialTier: 'off'
+    },
     state: 'DORMANT',
     overdriveMix: 0,
     hoverLevel: 0,
@@ -55,6 +64,7 @@
   };
 
   var perf = null;
+  hub.perf = null;
   if (debug) {
     perf = window.__DMF_PERF__ = {
       fps: 0, qualityTier: 'none', renderScale: 1, source: 'clock', bpm: 124, state: 'DORMANT',
@@ -62,8 +72,12 @@
       low: 0, mid: 0, high: 0, energy: 0, kick: 0, visibleSections: '',
       kineticState: 'REST', singularity: 'idle', singularityPhase: 'idle', accel: 0, jerk: 0,
       cameraVelocity: 0, receiverVelocity: 0, reflectionDrive: 0, echoLevel: 0,
-      forceKick: 0, forceLow: 0, forceMid: 0, forceHigh: 0
+      forceKick: 0, forceLow: 0, forceMid: 0, forceHigh: 0,
+      stageAct: 'ARRIVAL', stageProgress: 0, stageTransition: 'idle', scrollVelocity: 0, scrollAcceleration: 0,
+      cameraJourney: 'hold', receiverStageDepth: 0, portalIntensity: 0, spatialVelocity: 0, spatialTier: 'off',
+      drawCalls: 0, triangles: 0
     };
+    hub.perf = perf;
   }
 
   if (reduce || saveData) return;
@@ -198,6 +212,7 @@
     }
     relicBand = document.getElementById('relic');
     pathRefresh();
+    stageDirty = true;
   }
 
   function smooth01(e0, e1, x) { var t = O.clamp01((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); }
@@ -207,10 +222,11 @@
   // Propagation speed is tied to impact strength: a SINGULARITY travels fastest, a bar pulse slowest.
   function waveSpeed(strength) { return 1800 + 1600 * strength; }
   var wave = { t: 9, strength: 0, origin: 0, speed: waveSpeed(1), width: 0.12 * waveSpeed(1), id: 0 };
-  function emitWave(strength, singularity) {
-    wave.origin = relicBand && relicBand.__dmfTop != null
-      ? (relicBand.__dmfTop + relicBand.__dmfBottom) / 2
-      : scrollY + window.innerHeight * 0.5;
+  function emitWave(strength, singularity, originDoc) {
+    wave.origin = originDoc != null ? originDoc
+      : (relicBand && relicBand.__dmfTop != null
+        ? (relicBand.__dmfTop + relicBand.__dmfBottom) / 2
+        : scrollY + window.innerHeight * 0.5);
     wave.t = 0;
     wave.strength = strength;
     wave.speed = waveSpeed(strength);
@@ -316,6 +332,7 @@
       for (var i = 0; i < visible.length; i++) cachePos(visible[i], visible[i].getBoundingClientRect());
       if (path) cachePos(path, path.getBoundingClientRect());
       pathMeasure();
+      stageDirty = true;
     }, 200);
   });
 
@@ -350,6 +367,52 @@
     }
   }
 
+  // === SPATIAL STAGE — ACT markers (document tops), measured on load/resize/layout change, never per frame ===
+  var ACT_MARKERS = [['header.hero', 0], ['#relic', 0], ['#bio', 1], ['#releases', 1], ['#sets', 2], ['#platforms', 2],
+    ['#rider', 2], ['#academy', 3], ['#tiersGrid', 4], ['#demos', 4], ['#tips', 4], ['#contact', 5]];
+  var actEls = [[], [], [], [], [], []];
+  var arriving = null;
+  var stageDirty = true;
+  function measureStage() {
+    stageDirty = false;
+    var tops = [], acts = [];
+    for (var a = 0; a < actEls.length; a++) actEls[a].length = 0;
+    for (var i = 0; i < ACT_MARKERS.length; i++) {
+      var el = document.querySelector(ACT_MARKERS[i][0]);
+      if (!el) continue;
+      var top = el.getBoundingClientRect().top + (window.pageYOffset || 0);
+      if (tops.length && top < tops[tops.length - 1]) continue;
+      tops.push(top);
+      acts.push(ACT_MARKERS[i][1]);
+      if (ACT_MARKERS[i][1] > 0) actEls[ACT_MARKERS[i][1]].push(el);
+    }
+    director.setMarkers(tops, acts, document.documentElement.scrollHeight);
+    hub.stage.vh = window.innerHeight || hub.stage.vh;
+    hub.stage.layout++;
+  }
+  if ('ResizeObserver' in window) {
+    new ResizeObserver(function () { stageDirty = true; }).observe(document.body);
+  }
+
+  // One clock: conditioned scroll velocity and the ACT director; on a TRANSIT the arriving ACT's
+  // sections get their one-shot arrival choreography and a wave leaves from where the Receiver is.
+  function stageTick(dt) {
+    var st = hub.stage;
+    st.scrollY = scrollY;
+    scrollField.update(scrollY, dt);
+    director.update(scrollY, st.vh, dt, sing.active);
+    var tr = director.transit;
+    if (director.transitStarted) {
+      if (arriving) for (var i = 0; i < arriving.length; i++) arriving[i].classList.remove('is-stage-arrive');
+      arriving = actEls[tr.to];
+      for (var j = 0; j < arriving.length; j++) arriving[j].classList.add('is-stage-arrive');
+      emitWave(0.5, false, st.originY >= 0 ? scrollY + st.originY : null);
+    } else if (arriving && !tr.active) {
+      for (var k = 0; k < arriving.length; k++) arriving[k].classList.remove('is-stage-arrive');
+      arriving = null;
+    }
+  }
+
   // Debug only, and only when visibility changes.
   function sectionNames() {
     var out = '';
@@ -371,6 +434,8 @@
     hyper.update(s, dt);
     sing.update(s, dt);
     forces.update(s, dt);
+    if (stageDirty) measureStage();
+    stageTick(dt);
 
     var hdHit = hyper.active && hyper.id !== lastHdId;
     lastHdId = hyper.id;
@@ -404,6 +469,12 @@
       perf.singularity = sing.active ? 'active' : (sing.armed ? 'armed' : (sing.sinceLast < sing.cooldown ? 'cooldown' : 'idle'));
       perf.singularityPhase = sing.phase;
       perf.forceKick = fo.forceKick; perf.forceLow = fo.forceLow; perf.forceMid = fo.forceMid; perf.forceHigh = fo.forceHigh;
+      var sgs = hub.stage;
+      perf.stageAct = director.actName(); perf.stageProgress = director.progress;
+      perf.stageTransition = director.transit.active ? director.transit.phase : 'idle';
+      perf.scrollVelocity = scrollField.velocity; perf.scrollAcceleration = scrollField.acceleration;
+      perf.cameraJourney = sgs.cameraJourney; perf.receiverStageDepth = sgs.receiverStageDepth;
+      perf.portalIntensity = sgs.portalIntensity; perf.spatialVelocity = sgs.spatialVelocity; perf.spatialTier = sgs.spatialTier;
       if (visibleDirty) { visibleDirty = false; perf.visibleSections = sectionNames(); }
     }
   }
@@ -416,6 +487,7 @@
     if (nav) nav.__dmfFixed = true;
     scan();
     setTimeout(scan, 1500);
+    window.addEventListener('load', function () { stageDirty = true; });
     requestAnimationFrame(frame);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });

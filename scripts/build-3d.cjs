@@ -147,6 +147,13 @@ const headInjection = `${HEAD_MARKER}
 .dmf-live-hud-impact i{display:block;width:8px;height:8px;border-radius:50%;overflow:visible;background:#ff5b1e;transform:scale(.35);opacity:.25}
 /* HYPERDRIVE: contraction before the hit, warm edge on impact — never a white flash */
 .dmf-signal-visual::before{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;box-shadow:inset 0 0 calc(max(var(--dmf-hyper-pre,0),var(--dmf-sing-pre,0)) * 240px) calc(max(var(--dmf-hyper-pre,0),var(--dmf-sing-pre,0)) * 50px) rgba(4,3,3,.85),inset 0 0 0 1px rgba(255,91,30,calc(max(var(--dmf-hyper,0),var(--dmf-sing,0)) * .55))}
+/* SPATIAL STAGE (V4): the one canvas lives in a fixed layer behind the page; the relic band becomes a
+   transparent window onto it. Fullscreen LIVE SIGNAL, LITE and reduced motion keep the canvas in the band. */
+.dmf-stage-layer{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;overflow:hidden;contain:strict;-webkit-mask-image:linear-gradient(to bottom,transparent calc(var(--dmf-stage-top,0px) - 90px),#000 var(--dmf-stage-top,0px),#000 var(--dmf-stage-bottom,100vh),transparent calc(var(--dmf-stage-bottom,100vh) + 90px));mask-image:linear-gradient(to bottom,transparent calc(var(--dmf-stage-top,0px) - 90px),#000 var(--dmf-stage-top,0px),#000 var(--dmf-stage-bottom,100vh),transparent calc(var(--dmf-stage-bottom,100vh) + 90px))}
+.dmf-stage-layer canvas{position:absolute;inset:0;display:block;width:100%!important;height:100%!important}
+.dmf-signal-band.is-staged,.dmf-signal-band.is-staged .dmf-signal-visual:not(.is-fullscreen){background:transparent}
+.dmf-signal-band.is-staged .dmf-signal-copy{position:relative;z-index:1;background:linear-gradient(90deg,#060505 78%,rgba(6,5,5,0))}
+@media(max-width:900px){.dmf-signal-band.is-staged .dmf-signal-copy{background:linear-gradient(180deg,#060505 85%,rgba(6,5,5,0))}}
 /* SINGULARITY: deeper contraction on precompression, warm edge and state glow through the event */
 .dmf-signal-band.is-singularity .dmf-signal-corner strong{color:#ffd3bf;text-shadow:0 0 22px rgba(255,91,30,.8)}
 .dmf-signal-band.is-singularity .dmf-relic-state{color:#ffd3bf}
@@ -176,6 +183,7 @@ const bodyInjection = [
   BODY_MARKER,
   inlineModule('engine.js'),
   inlineModule('kinetic.js'),
+  inlineModule('spatial-stage.js'),
   inlineModule('signal-bus.js'),
   inlineModule('relic.js')
 ].join('\n');

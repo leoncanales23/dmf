@@ -90,10 +90,53 @@ inlined between the engine and the bus, tested by `test/kinetic.test.cjs`):
   timeline lights node by node, pricing resolves, contact takes the last echo.
 - Pointer (fine pointers only): velocity becomes a small force on the camera arc
   and Receiver torque; touch keeps the audio choreography only.
+- V4 builds on all of this — see **Spatial Stage** below.
 - Debug (`?dmfdebug=1` / localhost): `kineticState`, `singularity`,
   `singularityPhase`, `accel`, `jerk`, `cameraVelocity`, `receiverVelocity`,
   `reflectionDrive`, `echoLevel`, `forceKick/Low/Mid/High`; the Live Signal
   HUD shows KINETIC, ACCEL, SINGULARITY, CAM, TIER and FPS.
+
+**DMF Hyperdrive V4 — SPATIAL STAGE / CONTINUITY ENGINE**
+(`scripts/overdrive/spatial-stage.js`, inlined after `kinetic.js`, tested by
+`test/spatial-stage.test.cjs`). Scroll picks the destination, audio supplies
+force, kinetic bodies supply the motion.
+- One renderer for the whole landing. On HIGH/BALANCED the canvas moves once
+  into a fixed `.dmf-stage-layer` behind the page (`z-index:-1`) and the relic
+  band turns transparent; `camera.setViewOffset` anchors the composition.
+  Fullscreen LIVE SIGNAL, LITE and reduced motion keep the V3 band layout; the
+  renderer is never recreated.
+- ACTs: ARRIVAL (hero + relic), SIGNAL (bio, releases), TRANSMISSION (sets,
+  platforms, rider), ACADEMY, OFFER (pricing, demos, tips), CONTACT. Markers
+  are document tops measured on load / resize / body `ResizeObserver`, never
+  per frame. The ACT under a 50 % focus line must hold 280 ms before it is
+  committed (no storms); a TRANSIT fires on a commit outside a 1.2 s cooldown.
+- `DMFStagePose` per ACT (wide and compact sets): dock position and frame
+  size, camera journey (orbit, dolly, height, target, FOV), Receiver yaw,
+  scale and advance, key-light emphasis and stage presence behind the text.
+  ARRIVAL locks the composition to the band (scroll-linked, exact); `w` blends
+  band → dock, so leaving the band is one continuous followed move.
+- `DMFStageFollower`: every pose key is a jerk-limited `DMFKineticBody` with
+  hard limits; keys snap exactly once settled, so the stage rests exactly.
+- `DMFTransit` (≈800 ms): preload → open → travel → pass → settle, envelope
+  capped at 0.6 (below SINGULARITY); anticipation against the travel
+  direction, depth opening, a small pass push. Arriving sections get a one-shot
+  `.is-stage-arrive` choreography and a wave leaves from the Receiver.
+- SINGULARITY holds the stage (no commits); when it ends the director commits
+  whatever ACT is current then.
+- `DMFScrollField`: conditioned scroll velocity (normalized, low-pass,
+  acceleration- and jerk-limited, exactly zero at rest) — slight lens stretch,
+  portal reveal and highlight stretch; never raw wheel deltas.
+- Portal architecture (`DMFPortalField` + three `InstancedMesh`es): receding
+  transmission rings, side light frames, floor transmission lines. Reveals with
+  motion, hidden (zero cost) at rest. KICK: floor propagation + compression;
+  LOW: depth pressure; MID: lateral sway + Receiver torque; HIGH: a highlight
+  travelling down the frames. HIGH full, BALANCED half, LITE none.
+- Compact (phones): centred upper-third docking, gentler camera, quieter
+  presence, 60 % TRANSIT amplitude; native scroll, no pointer effects.
+- Debug: `stageAct`, `stageProgress`, `stageTransition`, `scrollVelocity`,
+  `scrollAcceleration`, `cameraJourney`, `receiverStageDepth`,
+  `portalIntensity`, `spatialVelocity`, `spatialTier`, `drawCalls`,
+  `triangles`; the HUD adds the current ACT.
 
 **Interaction**:
 - pointer orbit (mouse + touch, `touch-action: pan-y` keeps vertical scroll)

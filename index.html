@@ -467,6 +467,21 @@ ul{list-style:none}
 .signal-node::before{transition:background .3s,border-color .3s,box-shadow .3s,transform .12s cubic-bezier(.2,.7,.2,1)}
 .signal-node.is-wave::before{background:#ffb599;border-color:#ff5b1e;box-shadow:0 0 22px rgba(255,91,30,.7);transform:scale(1.35)}
 .signal-node.is-wave .signal-node-wave{opacity:.9}
+/* SPATIAL STAGE (V4) — when a TRANSIT reaches an ACT, its sections arrive into the stage once and settle:
+   headings gain depth, metadata locks into focus, cards come forward in perspective in sequence
+   (pricing as one resolved scene, contact as the final echo). Nothing loops; text is still afterwards. */
+.is-stage-arrive .section-head,.is-stage-arrive .acad-title{animation:dmfArriveHead .9s cubic-bezier(.2,.7,.2,1) both}
+.is-stage-arrive .section-num,.is-stage-arrive .acad-kicker,.is-stage-arrive .acad-tag{animation:dmfArriveFocus .8s cubic-bezier(.2,.7,.2,1) .08s both}
+.is-stage-arrive .fly-card,.is-stage-arrive .signal-node,.is-stage-arrive.tiers-grid .tier-card,.is-stage-arrive .contact-card{animation:dmfArriveCard .85s cubic-bezier(.2,.7,.2,1) both}
+.is-stage-arrive .fly-card:nth-child(2),.is-stage-arrive .signal-node:nth-child(2),.is-stage-arrive.tiers-grid .tier-card:nth-child(2),.is-stage-arrive .contact-card:nth-child(2){animation-delay:.07s}
+.is-stage-arrive .fly-card:nth-child(3),.is-stage-arrive .signal-node:nth-child(3),.is-stage-arrive.tiers-grid .tier-card:nth-child(3),.is-stage-arrive .contact-card:nth-child(3){animation-delay:.14s}
+.is-stage-arrive .fly-card:nth-child(n+4),.is-stage-arrive .signal-node:nth-child(n+4),.is-stage-arrive.tiers-grid .tier-card:nth-child(n+4),.is-stage-arrive .contact-card:nth-child(n+4){animation-delay:.21s}
+.contact.is-stage-arrive .contact-card{animation-name:dmfArriveEcho}
+@keyframes dmfArriveHead{0%{transform:perspective(900px) translateZ(-70px);opacity:.5}100%{transform:none;opacity:1}}
+@keyframes dmfArriveFocus{0%{transform:translateX(-10px);opacity:.25}100%{transform:none;opacity:1}}
+@keyframes dmfArriveCard{0%{transform:perspective(1000px) rotateX(6deg) translateZ(-48px);opacity:.55}100%{transform:none;opacity:1}}
+@keyframes dmfArriveEcho{0%{transform:perspective(1000px) translateZ(-36px);opacity:.55;box-shadow:0 0 0 rgba(255,91,30,0)}45%{box-shadow:0 0 34px rgba(255,91,30,.32)}100%{transform:none;opacity:1;box-shadow:0 0 0 rgba(255,91,30,0)}}
+@media(prefers-reduced-motion:reduce){.is-stage-arrive,.is-stage-arrive *{animation:none!important}}
 .tier-card.tier-featured .tier-cta{box-shadow:0 4px 16px rgba(255,91,30,.25),0 0 calc(var(--dmf-peak,0) * 24px) rgba(255,91,30,calc(var(--dmf-peak,0) * .45))}
 .signal-path::after{content:'';position:absolute;left:19px;top:0;width:2px;height:100%;background:linear-gradient(to bottom,#ffb599,#ff5b1e);box-shadow:0 0 10px rgba(255,91,30,.6);transform-origin:top center;transform:scaleY(max(var(--dmf-path,0),var(--dmf-path-scroll,0)));transition:transform .7s cubic-bezier(.2,.7,.2,1);pointer-events:none}
 .signal-node.is-live::before{background:#ff5b1e;border-color:#ff5b1e;box-shadow:0 0 calc(10px + var(--dmf-kick,0) * 16px) rgba(255,91,30,.55)}
