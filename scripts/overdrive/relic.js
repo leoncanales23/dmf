@@ -54,9 +54,16 @@
           '<div class="dmf-signal-edition-tag" aria-hidden="true" data-dmf-en="Collector Artifact · DMF Universe" data-dmf-es="Artefacto Coleccionable · Universo DMF">Collector Artifact · DMF Universe</div>',
           '<div class="dmf-relic-readout" aria-hidden="true"><div class="dmf-relic-readout-component"></div><div class="dmf-relic-readout-status"></div><div class="dmf-relic-readout-lore"></div></div>',
           '<div class="dmf-live-hud" aria-hidden="true">',
-            '<div class="dmf-live-hud-top"><span class="dmf-live-hud-title">DMF Live Signal</span><span class="dmf-live-hud-bpm"><b>' + RELIC_BPM + '</b> BPM</span></div>',
+            '<div class="dmf-live-hud-top">',
+              '<span class="dmf-live-hud-title">DMF Live Signal</span>',
+              '<svg class="dmf-live-hud-phase" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"></circle><circle class="dmf-live-hud-phase-arc" cx="10" cy="10" r="8" pathLength="1"></circle></svg>',
+              '<span class="dmf-live-hud-bpm"><b>' + RELIC_BPM + '</b> BPM</span>',
+            '</div>',
+            '<div class="dmf-live-hud-meta"><span>Shot <b data-hud="shot">ICON</b></span><span>Tier <b data-hud="tier">HIGH</b></span></div>',
             '<div class="dmf-live-hud-main">',
+              '<div class="dmf-live-hud-hyper">Hyperdrive</div>',
               '<div class="dmf-live-hud-state">DORMANT</div>',
+              '<div class="dmf-live-hud-impact"><span>Impact</span><i data-hud="impact"></i></div>',
               '<div class="dmf-live-hud-meter"><span data-dmf-en="Energy" data-dmf-es="Energía">Energy</span><i><em data-hud="energy"></em></i></div>',
               '<div class="dmf-live-hud-bands">',
                 '<div><span>Low</span><i><em data-hud="low"></em></i></div>',
@@ -322,9 +329,11 @@
     // vertex shader around raw GLB object-space anchors (DJ head/neck, torso, monitor cones).
     var U = {
       uNod: { value: 0 }, uSway: { value: 0 }, uBounce: { value: 0 }, uTwist: { value: 0 },
-      uCone: { value: 0 }, uCab: { value: 0 }, uLive: { value: 0 },
+      uConeL: { value: 0 }, uConeR: { value: 0 }, uCab: { value: 0 }, uLive: { value: 0 },
+      uDeskT: { value: 9 }, uDeskAmp: { value: 0 },
       uKick: { value: 0 }, uOverdrive: { value: 0 }, uIntensity: { value: 1 },
       uLogoLvl: { value: [0, 0, 0, 0, 0] }, uLogoPeak: { value: [0, 0, 0, 0, 0] }, uLogoGlow: { value: 0 },
+      uLogoWave: { value: 9 }, uLogoWaveAmp: { value: 0 },
       uSweep: { value: -1 }, uSweepAmt: { value: 0 },
       uActiveZone: { value: -1 }, uTime: { value: 0 }
     };
@@ -333,9 +342,20 @@
       [-0.630, -0.270, -0.040], [-0.620, -0.400, 0.165],
       [0.624, -0.280, -0.038], [0.624, -0.400, 0.173]
     ];
+    function coneMasks(side) {
+      return RELIC_CONES.filter(function (c) { return side < 0 ? c[0] < 0 : c[0] > 0; }).map(function (c) {
+        var v = 'vec3(' + c.join(', ') + ')';
+        return '  cw' + (side < 0 ? 'L' : 'R') + ' += 1.0 - smoothstep(0.03, 0.07, distance(p, ' + v + '));\n' +
+               '  cab += 1.0 - smoothstep(0.1, 0.2, distance(p, ' + v + '));\n';
+      }).join('');
+    }
+    // Head/neck, torso and cone anchors are raw GLB object-space coordinates.
+    // Desk wave: a radial ripple across the lower geometry (desk, cases, pedestal-side monitors),
+    // centred on the mixer and masked away from the DJ's body.
     var RELIC_MOTION_GLSL =
       'uniform float uNod;\nuniform float uSway;\nuniform float uBounce;\nuniform float uTwist;\n' +
-      'uniform float uCone;\nuniform float uCab;\nuniform float uLive;\nvarying vec3 vObjPos;\n' +
+      'uniform float uConeL;\nuniform float uConeR;\nuniform float uCab;\nuniform float uLive;\n' +
+      'uniform float uDeskT;\nuniform float uDeskAmp;\nvarying vec3 vObjPos;\n' +
       'vec3 relicMotion(vec3 p, vec3 n){\n' +
       '  float hw = 1.0 - smoothstep(0.12, 0.19, distance(p, vec3(0.305, 0.24, -0.2)));\n' +
       '  float a = uNod * uLive * hw;\n' +
@@ -347,14 +367,12 @@
       '  vec2 d = o.xz - vec2(0.31, -0.24);\n' +
       '  o.xz = vec2(0.31, -0.24) + vec2(d.x * cos(tw) - d.y * sin(tw), d.x * sin(tw) + d.y * cos(tw));\n' +
       '  o += vec3(uSway, -uBounce, 0.0) * bw * uLive;\n' +
-      '  float cw = 0.0;\n' +
-      '  float cab = 0.0;\n' +
-      RELIC_CONES.map(function (c) {
-        var v = 'vec3(' + c.join(', ') + ')';
-        return '  cw += 1.0 - smoothstep(0.03, 0.07, distance(p, ' + v + '));\n' +
-               '  cab += 1.0 - smoothstep(0.1, 0.2, distance(p, ' + v + '));\n';
-      }).join('') +
-      '  o += n * (min(cw, 1.0) * uCone * 0.02 + min(cab, 1.0) * uCab) * uLive;\n' +
+      '  float cwL = 0.0;\n  float cwR = 0.0;\n  float cab = 0.0;\n' +
+      coneMasks(-1) + coneMasks(1) +
+      '  o += n * ((min(cwL, 1.0) * uConeL + min(cwR, 1.0) * uConeR) * 0.02 + min(cab, 1.0) * uCab) * uLive;\n' +
+      '  float dr = length(p.xz - vec2(0.0, 0.35));\n' +
+      '  float dm = (1.0 - bw) * (1.0 - smoothstep(-0.12, -0.04, p.y));\n' +
+      '  o.y += dm * exp(-pow((dr - uDeskT * 1.4) / 0.08, 2.0)) * exp(-uDeskT * 3.0) * uDeskAmp * 0.006 * uLive;\n' +
       '  return o;\n' +
       '}\n';
 
@@ -363,9 +381,12 @@
       shader.uniforms.uSway = U.uSway;
       shader.uniforms.uBounce = U.uBounce;
       shader.uniforms.uTwist = U.uTwist;
-      shader.uniforms.uCone = U.uCone;
+      shader.uniforms.uConeL = U.uConeL;
+      shader.uniforms.uConeR = U.uConeR;
       shader.uniforms.uCab = U.uCab;
       shader.uniforms.uLive = U.uLive;
+      shader.uniforms.uDeskT = U.uDeskT;
+      shader.uniforms.uDeskAmp = U.uDeskAmp;
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\n' + RELIC_MOTION_GLSL)
         .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed = relicMotion(position, normal);\nvObjPos = position;');
@@ -467,6 +488,8 @@
             shader.uniforms.uLogoLvl = U.uLogoLvl;
             shader.uniforms.uLogoPeak = U.uLogoPeak;
             shader.uniforms.uLogoGlow = U.uLogoGlow;
+            shader.uniforms.uLogoWave = U.uLogoWave;
+            shader.uniforms.uLogoWaveAmp = U.uLogoWaveAmp;
             shader.uniforms.uSweep = U.uSweep;
             shader.uniforms.uSweepAmt = U.uSweepAmt;
             shader.vertexShader = shader.vertexShader
@@ -478,6 +501,7 @@
                 'uniform float uActiveZone;', 'uniform float uTime;', 'uniform float uIntensity;',
                 'uniform float uKick;', 'uniform float uOverdrive;',
                 'uniform float uLogoLvl[5];', 'uniform float uLogoPeak[5];', 'uniform float uLogoGlow;',
+                'uniform float uLogoWave;', 'uniform float uLogoWaveAmp;',
                 'uniform float uSweep;', 'uniform float uSweepAmt;', 'uniform float uLive;',
                 'varying float vZoneId;', 'varying float vNormY;', 'varying vec3 vObjPos;'
               ].join('\n'))
@@ -497,7 +521,9 @@
                 '  float eq = 1.0 - smoothstep(lvl - 0.03, lvl + 0.03, ly);',
                 '  float peakLine = (1.0 - smoothstep(0.0, 0.02, abs(ly - pk))) * step(0.05, pk);',
                 '  float center = (1.0 - smoothstep(0.0, 0.16, abs(vObjPos.x))) * uLogoGlow;',
-                '  float glow = eq * (0.3 + 0.7 * uKick) + peakLine * 0.8 + center;',
+                // Transient travels from the centre of the M outward through the bars.
+                '  float front = exp(-pow((abs(vObjPos.x) - uLogoWave * 1.1) / 0.035, 2.0)) * exp(-uLogoWave * 3.5) * uLogoWaveAmp;',
+                '  float glow = eq * (0.3 + 0.7 * uKick) + peakLine * 0.8 + center + front * 0.9;',
                 '  gl_FragColor.rgb += vec3(1.0, 0.36, 0.08) * glow * logoMask * 0.85 * uIntensity * (1.0 + 0.4 * uOverdrive);',
                 '}',
                 // Reflective sweep: warm, multiplicative-first so it reads as light on surfaces, never a white strobe.
@@ -569,20 +595,33 @@
       function () { band.classList.add('is-ready'); }
     );
 
+    // Tier ranges for dynamic render resolution; the scaler moves inside them, the governor moves between them.
+    function tierRange(tier) {
+      if (tier === 'high') return [1.35, 1.75];
+      if (tier === 'balanced') return [1, small ? 1.25 : 1.5];
+      return [1, 1];
+    }
+    function applyPixelRatio() {
+      renderScale = Math.min(window.devicePixelRatio || 1, renderScaler.scale);
+      renderer.setPixelRatio(renderScale);
+      renderer.setSize(w, h);
+      hub.renderScale = renderScale;
+    }
     function applyQuality(tier) {
       quality = tier;
       hub.qualityTier = tier;
-      var dpr = window.devicePixelRatio || 1;
       var shadowsOn = tier === 'high';
-      if (tier === 'high') { renderer.setPixelRatio(Math.min(dpr, 1.75)); particleActive = 160; motionScale = 1; U.uIntensity.value = 1; }
-      else if (tier === 'balanced') { renderer.setPixelRatio(Math.min(dpr, small ? 1.25 : 1.5)); particleActive = 80; motionScale = 0.7; U.uIntensity.value = 0.8; }
-      else { renderer.setPixelRatio(1); particleActive = 40; motionScale = 0.6; U.uIntensity.value = 0.75; }
+      if (tier === 'high') { particleActive = 160; motionScale = 1; U.uIntensity.value = 1; }
+      else if (tier === 'balanced') { particleActive = 80; motionScale = 0.7; U.uIntensity.value = 0.8; }
+      else { particleActive = 40; motionScale = 0.6; U.uIntensity.value = 0.75; }
+      var range = tierRange(tier);
+      renderScaler.setRange(range[0], range[1]);
       renderer.shadowMap.enabled = shadowsOn;
       keyLight.castShadow = shadowsOn;
       pGeom.setDrawRange(0, particleActive);
       if (wireRef) wireRef.visible = tier === 'high';
       if (edgeRef) edgeRef.visible = tier !== 'lite';
-      renderer.setSize(w, h);
+      applyPixelRatio();
     }
 
     // === CANVAS LABELS — floating edition tags ===
@@ -698,13 +737,16 @@
       var fit = aspect < 1.1 ? 1 + (1.1 - aspect) * 0.95 : 1;
       var auto = rig.mode === 'auto';
       var az = cur.az + (auto ? parallaxX * 0.08 + Math.sin(autoAngle) * 0.05 * motionScale : 0);
-      var r = (cur.r - dolly) * fit;
+      var r = (cur.r - dolly + lens.pull) * fit;
       var y = cur.y + (auto ? -parallaxY * 0.22 + Math.sin(autoAngle * 0.8) * 0.08 * motionScale : 0);
       camera.position.set(Math.sin(az) * r, y, Math.cos(az) * r);
+      var fov = 34 + lens.fov;
+      if (Math.abs(camera.fov - fov) > 0.001) { camera.fov = fov; camera.updateProjectionMatrix(); }
       LOOK.set(cur.tx, cur.ty, cur.tz);
       camera.up.set(0, 1, 0);
       camera.lookAt(LOOK);
-      if (cur.roll) camera.rotateZ(cur.roll);
+      var roll = cur.roll + lens.roll;
+      if (roll) camera.rotateZ(roll);
     }
 
     // === INTERACTION — pointer orbit (mouse + touch), hover readout, fullscreen ===
@@ -747,6 +789,7 @@
 
     var shownState = '';
     var shownPct = -1;
+    var shownHd = false;
     var pctEl = document.createElement('span');
     pctEl.className = 'dmf-relic-state-pct';
     function renderRelicState(state, pct, labelChanged) {
@@ -842,8 +885,15 @@
       mid: hud.querySelector('[data-hud="mid"]'),
       high: hud.querySelector('[data-hud="high"]')
     };
+    var hudPhase = hud.querySelector('.dmf-live-hud-phase-arc');
+    var hudImpact = hud.querySelector('[data-hud="impact"]');
+    var hudShot = hud.querySelector('[data-hud="shot"]');
+    var hudTier = hud.querySelector('[data-hud="tier"]');
     var hudLast = 0;
     var hudShownState = '';
+    var hudShownShot = '';
+    var hudShownTier = '';
+    var hudShownHd = false;
 
     function enterFullscreen() {
       container.classList.add('is-fullscreen');
@@ -870,11 +920,21 @@
       else if ((e.code === 'Space' || e.key === ' ') && !staticMode) { e.preventDefault(); toggleDrop(); }
     });
 
+    // HUD writes only while fullscreen, ~30 Hz, transforms and short text only.
     function updateHud(s, nowMs) {
-      if (!fsActive || nowMs - hudLast < 66) return;
+      if (!fsActive || nowMs - hudLast < 33) return;
       hudLast = nowMs;
       if (hudShownState !== hub.state) { hudState.textContent = hub.state; hudShownState = hub.state; hud.setAttribute('data-state', hub.state); }
       hudBpm.textContent = s.bpm;
+      hudPhase.style.strokeDashoffset = (1 - s.beatPhase).toFixed(3);
+      hudImpact.style.transform = 'scale(' + (0.35 + s.impulse * 1.3).toFixed(3) + ')';
+      hudImpact.style.opacity = (0.25 + s.impulse * 0.75).toFixed(3);
+      var shot = hub.cameraShot || 'ICON';
+      if (shot !== hudShownShot) { hudShot.textContent = shot; hudShownShot = shot; }
+      var tier = quality.toUpperCase() + ' ' + renderScale.toFixed(2) + '\u00d7';
+      if (tier !== hudShownTier) { hudTier.textContent = tier; hudShownTier = tier; }
+      var hdOn = !!(hub.hyper && hub.hyper.active);
+      if (hdOn !== hudShownHd) { hud.classList.toggle('is-hyperdrive', hdOn); hudShownHd = hdOn; }
       hudBars.energy.style.transform = 'scaleX(' + s.energy.toFixed(3) + ')';
       hudBars.low.style.transform = 'scaleX(' + s.low.toFixed(3) + ')';
       hudBars.mid.style.transform = 'scaleX(' + s.mid.toFixed(3) + ')';
@@ -914,29 +974,47 @@
       renderer.render(scene, camera);
     }
 
-    // === DMFRelicAnimator — impact physics driven by the shared signal ===
+    // === DMFRelicAnimator — three response layers ===
+    // IMPULSE (0-90 ms): cones, head snap, wave origins. BODY (90-320 ms): torso, cabinets, lights, logo.
+    // CINEMA (250-1600 ms): camera lens, exposure, environment. Nothing reacts at a single speed.
     var SpringCtor = O.DMFSpring;
-    var headSpring = new SpringCtor(160, 16);
-    var torsoSpring = new SpringCtor(220, 18);
-    var coneSpring = new SpringCtor(900, 26);
+    var headFast = new SpringCtor(380, 26);    // kick snap with a small rebound
+    var headSlow = new SpringCtor(60, 11);     // delayed counter-motion
+    var torsoSpring = new SpringCtor(70, 10);  // transient compression, delayed recovery
+    var coneL = new SpringCtor(1000, 24);
+    var coneR = new SpringCtor(1000, 24);
+    var cabSpring = new SpringCtor(1400, 10);  // tiny secondary resonance (~6 Hz, light damping)
     var orbitSpring = new SpringCtor(4, 4);
     var lightSpring = new SpringCtor(10, 5);
     var dollySpring = new SpringCtor(40, 9);
+    var lensSpring = new SpringCtor(90, 13);   // impact lens (FOV, degrees)
+    var rollSpring = new SpringCtor(60, 9);
     orbitSpring.x = 0.072;
     lightSpring.x = 0.675;
-    var prevKick = 0, prevBar = -1;
+    var prevBar = -1, lastHdId = 0;
     var liveTime = 0;
     var sweepPos = -1, sweepActive = false, sweepCooldown = 0;
     var shockT = 1, shockStrength = 0;
+    var sinceHit = 9, hitStrength = 0;
+    var coneRDelay = -1, coneRAmp = 0;
     var logoHold = [0, 0, 0, 0, 0];
     var frameCount = 0;
     var governor = new O.DMFPerformanceGovernor(quality);
+    var renderScaler = new O.DMFRenderScaler(1.35, 1.75);
+    var renderScale = 1;
+    var lens = { fov: 0, roll: 0, pull: 0 };
     var wireZoneColors = [0x886633, 0xcc8844, 0x44ddff, 0xff6633];
+    var SHOT_NAMES = { A: 'ICON', B: 'SIGNAL', C: 'RELIC', D: 'OVERDRIVE' };
+    var baseFog = scene.fog.density;
 
-    function kickAt(phase, d) { return Math.exp(-7 * frac(phase - d)); }
+    // Gaussian bump: how strongly a ring at `delay` seconds from the impact is lit right now.
+    function pulseAt(t, delay, width) { var x = (t - delay) / width; return Math.exp(-x * x); }
 
     function animateRelic(s, dt) {
       var od = hub.overdriveMix;
+      var hd = hub.hyper;
+      var hdLevel = hd && hd.active ? hd.level : 0;
+      var hdPre = hd ? hd.pre : 0;
       liveTime += dt;
 
       if (modelRef && modelCurrentScale < modelTargetScale) {
@@ -948,75 +1026,88 @@
       }
       U.uLive.value = modelTargetScale > 0 ? modelCurrentScale / modelTargetScale : 0;
 
-      var kickEdge = s.kick > 0.6 && prevKick < 0.35;
-      prevKick = s.kick;
+      var hit = s.beatFired ? s.impulse : 0;
       var barEdge = s.bar !== prevBar;
       prevBar = s.bar;
+      var hdHit = !!(hd && hd.active && hd.id !== lastHdId);
+      if (hd) lastHdId = hd.id;
       if (activationPending) {
         activationPending = false;
-        kickEdge = true;
+        hit = Math.max(hit, 0.9);
         barEdge = true;
         sweepCooldown = 0;
       }
+      if (hdHit) hit = 1;
 
-      // Scene orbit with mass: drops raise the target velocity, kicks add impulse, drag settles it.
-      orbitSpring.step(0.072 * (1 + 1.6 * s.dropEnergy), dt);
-      if (kickEdge) orbitSpring.impulse(0.05 * s.energy * motionScale);
-      autoAngle += dt * clamp(orbitSpring.x, 0.02, 0.4);
-
-      // DJ — head accelerates on kicks, torso bounces, counter-rotation against the sway.
-      var beats = s.beatIndex + s.beatPhase;
-      var nodCurve = 0.5 + 0.5 * Math.cos(2 * Math.PI * (s.beatPhase - 0.12));
-      headSpring.step((0.13 + 0.07 * od) * nodCurve * nodCurve * (0.55 + 0.45 * s.energy), dt);
-      if (kickEdge) headSpring.impulse((0.6 + 1.4 * od) * s.kick);
-      U.uNod.value = clamp(headSpring.x, -0.05, 0.24);
-      var groove = Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * s.beatPhase), 3);
-      torsoSpring.step(0.005 * groove * (1 + 0.8 * od), dt);
-      if (kickEdge) torsoSpring.impulse(0.05 * od * s.kick);
-      U.uBounce.value = clamp(torsoSpring.x, -0.004, 0.012);
-      var swayWave = Math.sin(Math.PI * beats);
-      U.uSway.value = (0.006 + 0.004 * od) * swayWave;
-      U.uTwist.value = clamp(-0.02 * (0.4 + 0.6 * od) * swayWave, -0.05, 0.05);
-
-      // Monitors — fast attack, spring return; cabinets buzz only in OVERDRIVE.
-      if (kickEdge) coneSpring.impulse(38 * s.kick * (0.75 + 0.5 * od));
-      coneSpring.step(0, dt);
-      U.uCone.value = clamp(coneSpring.x, -0.45, 1.3);
-      U.uCab.value = od > 0.05 ? Math.sin(liveTime * 2 * Math.PI * 11) * 0.0014 * s.low * od : 0;
+      // IMPULSE — cones punch (right side 14 ms later: spatial delay), cabinets recoil, head snaps.
+      if (hit > 0) {
+        sinceHit = 0;
+        hitStrength = hit * (0.6 + 0.4 * s.energy) * (1 + 0.5 * od + hdLevel);
+        var punch = 46 * hit * (0.8 + 0.5 * od + 0.5 * hdLevel);
+        coneL.impulse(punch);
+        coneRDelay = 0.014;
+        coneRAmp = punch;
+        cabSpring.impulse(-0.35 * hit * (0.6 + 0.4 * od));
+        headFast.impulse((2.6 + 1.6 * od + 1.4 * hdLevel) * hit);
+        orbitSpring.impulse(0.05 * s.energy * motionScale);
+      } else sinceHit += dt;
+      if (coneRDelay >= 0) {
+        coneRDelay -= dt;
+        if (coneRDelay < 0) coneR.impulse(coneRAmp);
+      }
+      coneL.step(0, dt);
+      coneR.step(0, dt);
+      cabSpring.step(0, dt);
+      U.uConeL.value = clamp(coneL.x, -0.45, 1.2);
+      U.uConeR.value = clamp(coneR.x, -0.45, 1.2);
+      U.uCab.value = clamp(cabSpring.x, -0.02, 0.02) * 0.25;
+      U.uDeskT.value = sinceHit;
+      U.uDeskAmp.value = clamp(hitStrength, 0, 1.6);
+      U.uLogoWave.value = sinceHit;
+      U.uLogoWaveAmp.value = clamp(hitStrength * 0.8, 0, 1.4);
       U.uKick.value = s.kick;
       U.uOverdrive.value = od;
 
-      // Logo — five segments from the bands, peak hold, then decay.
+      // DJ — groove nod, kick snap, delayed counter-motion; torso compresses on the body layer.
+      var beats = s.beatIndex + s.beatPhase;
+      var nodBase = (0.05 + 0.03 * od) * (0.5 + 0.5 * Math.cos(2 * Math.PI * (s.beatPhase - 0.18))) * s.energy;
+      headFast.step(nodBase, dt);
+      headSlow.step(headFast.x, dt);
+      U.uNod.value = clamp(headFast.x - 0.3 * headSlow.x, -0.06, 0.22);
+      var groove = Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * s.beatPhase), 3);
+      torsoSpring.step(0.004 * groove * (1 + 0.6 * od) + s.body * 0.009 * (1 + od + hdLevel), dt);
+      U.uBounce.value = clamp(torsoSpring.x, -0.003, 0.015);
+      var swayWave = Math.sin(Math.PI * beats);
+      U.uSway.value = (0.006 + 0.004 * od) * swayWave;
+      U.uTwist.value = clamp(-0.015 * (0.4 + 0.6 * od) * swayWave - 0.12 * (headFast.x - nodBase), -0.05, 0.05);
+
+      // Logo — five segments with peak hold; the transient front travels out from the M (shader).
       var lv = U.uLogoLvl.value, pk = U.uLogoPeak.value;
-      var targets0 = s.low * 0.9 + s.kick * 0.2;
-      var targets1 = (s.low + s.mid) * 0.5;
-      var targets2 = s.energy;
-      var targets3 = (s.mid + s.high) * 0.5;
-      var targets4 = s.high;
       for (var c = 0; c < 5; c++) {
-        var tgt = c === 0 ? targets0 : c === 1 ? targets1 : c === 2 ? targets2 : c === 3 ? targets3 : targets4;
-        tgt = clamp(tgt * (0.75 + 0.25 * hash(c * 7 + s.beatIndex)) * (1 + 0.25 * od), 0, 1);
+        var tgt = c === 0 ? s.low * 0.9 + s.kick * 0.2 : c === 1 ? (s.low + s.mid) * 0.5 : c === 2 ? s.energy : c === 3 ? (s.mid + s.high) * 0.5 : s.high;
+        tgt = clamp(tgt * (0.75 + 0.25 * hash(c * 7 + s.beatIndex)) * (1 + 0.25 * od + 0.3 * hdLevel), 0, 1);
         lv[c] += (tgt - lv[c]) * (1 - Math.exp(-dt / (tgt > lv[c] ? 0.02 : 0.18)));
         if (lv[c] >= pk[c]) { pk[c] = lv[c]; logoHold[c] = 0.35; }
         else if (logoHold[c] > 0) logoHold[c] -= dt;
         else pk[c] = Math.max(lv[c], pk[c] - 0.6 * dt);
       }
-      U.uLogoGlow.value = s.energy * (0.25 + 0.5 * s.kick) * (0.6 + 0.4 * od);
+      U.uLogoGlow.value = s.energy * (0.25 + 0.5 * s.body) * (0.6 + 0.4 * od) + hdLevel * 0.35;
 
       // Reflective sweeps — rate limited (≥1.2 s apart), warm, never strobing.
       sweepCooldown -= dt;
-      var wantSweep = barEdge && ((od > 0.5) || (hub.state === 'TRANSMITTING' && s.bar % 2 === 0) || sweepCooldown < -8);
+      var wantSweep = hdHit || (barEdge && ((od > 0.5) || (hub.state === 'TRANSMITTING' && s.bar % 2 === 0) || sweepCooldown < -8));
       if (wantSweep && sweepCooldown <= 0) { sweepPos = -0.2; sweepActive = true; sweepCooldown = 1.2; }
       if (sweepActive) { sweepPos += dt * 1.5; if (sweepPos > 1.4) sweepActive = false; }
       U.uSweep.value = sweepPos;
-      U.uSweepAmt.value = sweepActive ? (0.3 + 0.25 * od) * U.uIntensity.value : 0;
+      U.uSweepAmt.value = sweepActive ? (0.3 + 0.25 * od + 0.15 * hdLevel) * U.uIntensity.value : 0;
       if (relicMatRef) {
-        relicMatRef.roughness = baseRoughness * (1 - 0.22 * s.kick * od);
-        relicMatRef.emissiveIntensity = 0.008 + 0.02 * s.kick * s.energy + 0.015 * od;
+        relicMatRef.roughness = baseRoughness * (1 - 0.22 * s.body * od);
+        relicMatRef.emissiveIntensity = 0.008 + 0.02 * s.body * s.energy + 0.015 * od + 0.02 * hdLevel;
       }
 
-      // Pedestal — kick shockwave travels outward, rings answer with delay.
-      if (kickEdge && s.energy > 0.45) { shockT = 0; shockStrength = s.kick * (0.5 + 0.5 * od); }
+      // Pedestal — the kick lands in the centre first, then rim, inner ring, outer ring, floor grid.
+      var wv = hitStrength * Math.exp(-sinceHit * 1.6);
+      if (hit > 0 && s.energy > 0.45) { shockT = 0; shockStrength = hit * (0.5 + 0.5 * od + 0.5 * hdLevel); }
       if (shockT < 0.8) {
         shockT += dt;
         var sk = Math.min(1, shockT / 0.8);
@@ -1024,28 +1115,34 @@
         shock.scale.set(1 + sk * 1.5, 1 + sk * 1.5, 1);
         shockMat.opacity = 0.25 * shockStrength * (1 - sk) * (1 - sk);
       } else shock.visible = false;
-      var ringPulse = 1 + Math.sin(autoAngle * 1.8) * 0.06 + kickAt(s.beatPhase, 0.08) * 0.035 * (1 + od);
+      pedestalMat.emissiveIntensity = 0.012 + Math.sin(autoAngle * 2.5) * 0.008 + pulseAt(sinceHit, 0, 0.05) * 0.05 * wv + s.low * 0.01;
+      pedestalRimMat.opacity = 0.2 + Math.sin(autoAngle * 2.2) * 0.08 + pulseAt(sinceHit, 0.05, 0.05) * 0.25 * wv;
+      var ringPulse = 1 + Math.sin(autoAngle * 1.8) * 0.06 + pulseAt(sinceHit, 0.12, 0.07) * 0.05 * wv;
       ring.scale.set(ringPulse, ringPulse, 1);
-      ringMat.opacity = 0.035 + Math.sin(autoAngle * 1.8) * 0.02 + kickAt(s.beatPhase, 0.08) * 0.05;
-      var ring2Pulse = 1 + Math.sin(autoAngle * 1.1 + 1) * 0.05 + kickAt(s.beatPhase, 0.18) * 0.03 * (1 + od);
+      ringMat.opacity = 0.035 + Math.sin(autoAngle * 1.8) * 0.02 + pulseAt(sinceHit, 0.12, 0.07) * 0.08 * wv;
+      var ring2Pulse = 1 + Math.sin(autoAngle * 1.1 + 1) * 0.05 + pulseAt(sinceHit, 0.22, 0.09) * 0.04 * wv;
       ring2.scale.set(ring2Pulse, ring2Pulse, 1);
-      ring2Mat.opacity = 0.018 + Math.sin(autoAngle * 1.1 + 1) * 0.012 + kickAt(s.beatPhase, 0.18) * 0.02;
-      pedestalRimMat.opacity = 0.2 + Math.sin(autoAngle * 2.2) * 0.08 + s.kick * 0.15;
-      pedestalMat.emissiveIntensity = 0.012 + Math.sin(autoAngle * 2.5) * 0.008 + s.low * 0.02 * (1 + od);
+      ring2Mat.opacity = 0.018 + Math.sin(autoAngle * 1.1 + 1) * 0.012 + pulseAt(sinceHit, 0.22, 0.09) * 0.04 * wv;
+      gridHelper.material.opacity = 0.06 + Math.sin(autoAngle) * 0.03 + pulseAt(sinceHit, 0.32, 0.12) * 0.05 * wv;
 
-      // Lights — museum breathing plus a key light that gets pushed around in OVERDRIVE.
+      // Scene orbit with mass; the key light is pushed around by hits in OVERDRIVE / HYPERDRIVE.
+      orbitSpring.step(0.072 * (1 + 1.6 * s.dropEnergy) * (1 - 0.5 * hdPre), dt);
+      autoAngle += dt * clamp(orbitSpring.x, 0.02, 0.4);
       lightSpring.step(0.675 + 0.25 * Math.sin(autoAngle * 1.3), dt);
-      if (kickEdge && od > 0.3) lightSpring.impulse((s.beatIndex % 2 ? 1 : -1) * 0.9 * od);
+      if (hit > 0 && (od > 0.3 || hdLevel > 0)) lightSpring.impulse((s.beatIndex % 2 ? 1 : -1) * (0.9 * od + 1.2 * hdLevel));
       keyLight.position.set(Math.sin(lightSpring.x) * 6.4, 7, Math.cos(lightSpring.x) * 6.4);
-      rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 + s.kick * 0.25 * (1 + 0.6 * od);
+
+      // BODY lights.
+      rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 + s.body * 0.3 * (1 + 0.6 * od) + hdLevel * 0.4;
       accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15;
       fillLight.intensity = 0.3 + Math.sin(autoAngle + 2) * 0.06;
-      underGlow.intensity = 0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.low * 0.3 * (1 + od);
-      haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1;
+      underGlow.intensity = 0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.body * 0.35 * (1 + od) + hdLevel * 0.3;
+      haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1 + hdLevel * 0.2;
       screenGlow.color.setHSL(0.62 + Math.sin(autoAngle * 0.4) * 0.04, 0.45, 0.35);
-      coneMat.opacity = 0.012 + Math.sin(autoAngle * 1.3) * 0.005 + od * 0.008;
+      coneMat.opacity = 0.012 + Math.sin(autoAngle * 1.3) * 0.005 + od * 0.008 + hdLevel * 0.01;
 
-      var speedMul = 1 + s.energy * 1.2 + od * 0.8;
+      // Embers slow down while the scene contracts before a HYPERDRIVE, then surge.
+      var speedMul = (1 + s.energy * 1.2 + od * 0.8 + hdLevel * 1.5) * (1 - 0.6 * hdPre);
       var pos = pGeom.attributes.position.array;
       for (var i = 0; i < particleActive; i++) {
         pos[i * 3 + 1] += pSpeeds[i] * speedMul * dt * 60;
@@ -1060,19 +1157,33 @@
       pGeom.attributes.position.needsUpdate = true;
       pMat.opacity = 0.4 + Math.sin(autoAngle * 1.6) * 0.12;
 
-      haloMat.opacity = 0.06 + Math.sin(autoAngle * 0.9) * 0.03 + od * 0.04;
+      haloMat.opacity = 0.06 + Math.sin(autoAngle * 0.9) * 0.03 + od * 0.04 + hdLevel * 0.05;
       halo2Mat.opacity = 0.03 + Math.sin(autoAngle * 0.7 + 1) * 0.015;
-      halo.rotation.z += dt * 0.018 * (1 + od);
-      halo2.rotation.z -= dt * 0.012 * (1 + od);
+      halo.rotation.z += dt * 0.018 * (1 + od + 2 * hdLevel);
+      halo2.rotation.z -= dt * 0.012 * (1 + od + 2 * hdLevel);
       labelEdition.material.opacity = 0.25 + Math.sin(autoAngle * 1.4) * 0.1;
       labelRelic.material.opacity = 0.2 + Math.sin(autoAngle * 1.1 + 2) * 0.08;
       labelSignal.material.opacity = 0.15 + Math.sin(autoAngle * 0.8 + 1) * 0.06;
-      gridHelper.material.opacity = 0.06 + Math.sin(autoAngle) * 0.03 + s.low * 0.03;
-      renderer.toneMappingExposure = 0.95 + Math.sin(autoAngle * 0.7) * 0.06 + od * 0.06;
 
-      if (kickEdge) dollySpring.impulse(0.9 * s.energy * (0.5 + od) * motionScale);
+      // CINEMA — exposure and fog breathe slowly; the environment contracts before a HYPERDRIVE hit.
+      renderer.toneMappingExposure = 0.95 + Math.sin(autoAngle * 0.7) * 0.06 + od * 0.06 + s.cinema * 0.05 + hdLevel * 0.1 - hdPre * 0.08;
+      scene.fog.density = baseFog + hdPre * 0.012 - hdLevel * 0.003;
+
+      // Impact lens: pre-impact pullback + slight FOV expansion, then push, FOV compression, roll, recovery.
+      // Only on meaningful events: HYPERDRIVE hits and OVERDRIVE bar downbeats. Limits: FOV ±3°, roll ±1.5°.
+      lens.pull = hdPre * 0.45 * motionScale;
+      if (hdHit) {
+        dollySpring.impulse(3.2 * motionScale);
+        lensSpring.impulse(-38 * motionScale);
+        rollSpring.impulse((hd.id % 2 ? 1 : -1) * 0.22 * motionScale);
+      } else if (hit > 0 && barEdge && od > 0.5) {
+        lensSpring.impulse(-9 * motionScale);
+      }
       dollySpring.step(od * 0.25 * motionScale, dt);
-      return kickEdge;
+      lensSpring.step(hdPre * 1.2 * motionScale, dt);
+      rollSpring.step(0, dt);
+      lens.fov = clamp(lensSpring.x, -3, 3);
+      lens.roll = clamp(rollSpring.x, -0.026, 0.026);
     }
 
     function hoverZone() {
@@ -1108,6 +1219,7 @@
       frameCount++;
       var downgrade = governor.sample(raw);
       if (downgrade) applyQuality(downgrade);
+      else if (renderScaler.sample(raw) !== null) applyPixelRatio();
       if (resizePending) doResize();
 
       animateRelic(s, dt);
@@ -1140,6 +1252,9 @@
         shownPct = pct;
         renderRelicState(state, pct, labelChanged);
       }
+      hub.cameraShot = rig.mode === 'user' ? 'USER' : SHOT_NAMES[rig.shot];
+      var hdOn = !!(hub.hyper && hub.hyper.active);
+      if (hdOn !== shownHd) { shownHd = hdOn; band.classList.toggle('is-hyperdrive', hdOn); }
       updateHud(s, performance.now());
 
       renderer.render(scene, camera);

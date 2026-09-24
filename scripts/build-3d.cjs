@@ -129,8 +129,23 @@ const headInjection = `${HEAD_MARKER}
 .dmf-live-hud-bands em{background:rgba(242,237,230,.7)}
 .dmf-live-hud-hint{position:absolute;right:clamp(20px,3vw,40px);bottom:clamp(24px,4vw,44px);display:flex;flex-direction:column;align-items:flex-end;gap:7px;font-size:8px;letter-spacing:.26em;text-transform:uppercase;color:#665f58}
 .dmf-signal-band.is-drop-armed .dmf-live-hud-drop{color:#ff5b1e}
+.dmf-live-hud-phase{width:15px;height:15px;align-self:center;transform:rotate(-90deg)}
+.dmf-live-hud-phase circle{fill:none;stroke:rgba(242,237,230,.14);stroke-width:1.5}
+.dmf-live-hud-phase .dmf-live-hud-phase-arc{stroke:#ff5b1e;stroke-dasharray:1;stroke-dashoffset:1}
+.dmf-live-hud-meta{position:absolute;left:76px;top:54px;display:flex;gap:18px;font-size:7px;letter-spacing:.26em;text-transform:uppercase;color:#665f58}
+.dmf-live-hud-meta b{font-weight:600;color:#a89e94;margin-left:6px}
+.dmf-live-hud-hyper{display:inline-block;margin-bottom:10px;padding:4px 9px;border:1px solid rgba(255,91,30,.3);font-size:7px;font-weight:700;letter-spacing:.34em;text-transform:uppercase;color:rgba(255,91,30,.35);transition:color .25s,border-color .25s,background .25s}
+.dmf-live-hud.is-hyperdrive .dmf-live-hud-hyper{color:#0a0806;background:#ff5b1e;border-color:#ff5b1e}
+.dmf-live-hud-impact{display:flex;align-items:center;gap:12px;margin-bottom:14px;font-size:8px;letter-spacing:.24em;text-transform:uppercase;color:#8a8178}
+.dmf-live-hud-impact i{display:block;width:8px;height:8px;border-radius:50%;overflow:visible;background:#ff5b1e;transform:scale(.35);opacity:.25}
+/* HYPERDRIVE: contraction before the hit, warm edge on impact — never a white flash */
+.dmf-signal-visual::before{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;box-shadow:inset 0 0 calc(var(--dmf-hyper-pre,0) * 240px) calc(var(--dmf-hyper-pre,0) * 50px) rgba(4,3,3,.85),inset 0 0 0 1px rgba(255,91,30,calc(var(--dmf-hyper,0) * .55))}
+.dmf-signal-band.is-hyperdrive .dmf-signal-corner strong{color:#ffd3bf;text-shadow:0 0 18px rgba(255,91,30,.7)}
+/* Relic exit: the pulse leaves from the Receiver and spreads into the next section's divider */
+.dmf-signal-band::before{content:'';position:absolute;z-index:3;left:0;right:0;bottom:0;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,#ff5b1e 45%,#ffb599 70.5%,#ff5b1e 85%,transparent);box-shadow:0 0 12px rgba(255,91,30,.45);transform-origin:70.5% 50%;transform:scaleX(var(--dmf-exit,0))}
 @media(max-width:560px){
   .dmf-live-hud-top{left:70px;top:30px;flex-direction:column;gap:4px}
+  .dmf-live-hud-meta{left:70px;top:74px}
   .dmf-live-hud-hint{right:20px;top:30px;bottom:auto}
 }
 @media(prefers-reduced-motion:reduce){

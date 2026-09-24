@@ -32,6 +32,25 @@ shader injection for GPU-side reactive anatomy and cinematic glow.
   and the fullscreen **DMF LIVE SIGNAL** HUD (state, BPM, energy, LOW/MID/HIGH;
   SPACE / tap toggles the drop, ESC exits).
 
+**DMF Hyperdrive V2 — perceptual motion architecture**:
+- Three response layers from the engine: IMPULSE (0-90 ms: cones, head snap,
+  wave origins), BODY (90-320 ms: torso compression, cabinets, lights, logo)
+  and CINEMA (250-1600 ms: impact lens, exposure, environment).
+- Beat predictor: `timeToBeat`, `nextBeat`, `timeToDrop`; analyser mode fires
+  the visual impulse ~50 ms before the predicted beat (audio is never delayed).
+- `DMFHyperdrive`: a finite 3 s event (pre → hit → push → wave → spread →
+  decay) earned from a drop downbeat or a forced drop in Live Signal; one entry
+  per drop, 8 s cooldown, clean exit.
+- Relic: left/right monitors 14 ms apart, cabinet resonance, radial desk wave,
+  pedestal wave centre → rim → rings → grid, logo transient from the M outward,
+  impact lens (FOV ≤ ±3°, roll ≤ ±1.5°, pre-impact pullback).
+- Landing: one global wave travels from the Receiver at 2600 px/s using cached
+  document positions; scroll-linked `--dmf-enter/--dmf-exit` make each block's
+  exit hand the signal line to the next; hero depth field, per-letter wave,
+  signal plane; pointer depth on fine pointers only.
+- Dynamic render resolution inside each tier (`DMFRenderScaler`, hysteresis,
+  ≥4 s between changes); the governor still only downgrades tiers.
+
 **Interaction**:
 - pointer orbit (mouse + touch, `touch-action: pan-y` keeps vertical scroll)
 - per-vertex zone detection via GPU `aZoneId`; hover raycast throttled to ~20 Hz
