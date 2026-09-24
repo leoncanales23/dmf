@@ -101,7 +101,7 @@ const headInjection = `${HEAD_MARKER}
 }
 /* DMF OVERDRIVE — state, arrival from the hero signal line, LIVE SIGNAL HUD */
 .dmf-signal-band.has-scene .dmf-signal-fallback{opacity:0}
-.dmf-signal-band{box-shadow:inset 0 1px 0rgba(255,91,30,calc(var(--dmf-overdrive,0) * .45)),inset 0 -1px 0 rgba(255,91,30,calc(var(--dmf-overdrive,0) * .25))}
+.dmf-signal-band{box-shadow:inset 0 1px 0 rgba(255,91,30,calc(var(--dmf-overdrive,0) * .45)),inset 0 -1px 0 rgba(255,91,30,calc(var(--dmf-overdrive,0) * .25))}
 .dmf-relic-state.is-overdrive{color:#fff1e6;text-shadow:0 0 12px rgba(255,91,30,.75),0 0 2px rgba(255,91,30,.9)}
 .dmf-signal-band.is-overdrive .dmf-signal-corner strong{color:#fff1e6;text-shadow:0 0 14px rgba(255,91,30,.55)}
 .dmf-signal-band.is-overdrive .dmf-signal-vignette{background:radial-gradient(ellipse 60% 52% at 50% 50%,transparent 30%,rgba(4,3,3,.8) 100%);transition:background 1s}
@@ -132,14 +132,24 @@ const headInjection = `${HEAD_MARKER}
 .dmf-live-hud-phase{width:15px;height:15px;align-self:center;transform:rotate(-90deg)}
 .dmf-live-hud-phase circle{fill:none;stroke:rgba(242,237,230,.14);stroke-width:1.5}
 .dmf-live-hud-phase .dmf-live-hud-phase-arc{stroke:#ff5b1e;stroke-dasharray:1;stroke-dashoffset:1}
-.dmf-live-hud-meta{position:absolute;left:76px;top:54px;display:flex;gap:18px;font-size:7px;letter-spacing:.26em;text-transform:uppercase;color:#665f58}
+.dmf-live-hud-meta{position:absolute;left:76px;top:54px;display:flex;flex-wrap:wrap;gap:6px 18px;max-width:calc(100% - 96px);font-size:7px;letter-spacing:.26em;text-transform:uppercase;color:#665f58}
 .dmf-live-hud-meta b{font-weight:600;color:#a89e94;margin-left:6px}
 .dmf-live-hud-hyper{display:inline-block;margin-bottom:10px;padding:4px 9px;border:1px solid rgba(255,91,30,.3);font-size:7px;font-weight:700;letter-spacing:.34em;text-transform:uppercase;color:rgba(255,91,30,.35);transition:color .25s,border-color .25s,background .25s}
 .dmf-live-hud.is-hyperdrive .dmf-live-hud-hyper{color:#0a0806;background:#ff5b1e;border-color:#ff5b1e}
+.dmf-live-hud-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.dmf-live-hud-tags .dmf-live-hud-hyper{margin-bottom:0}
+.dmf-live-hud-sing{display:inline-block;padding:4px 9px;border:1px solid rgba(255,91,30,.2);font-size:7px;font-weight:700;letter-spacing:.34em;text-transform:uppercase;color:rgba(255,91,30,.3);transition:color .25s,border-color .25s,background .25s}
+.dmf-live-hud[data-sing="armed"] .dmf-live-hud-sing{color:#ff5b1e;border-color:#ff5b1e}
+.dmf-live-hud[data-sing="cooldown"] .dmf-live-hud-sing{color:rgba(242,237,230,.22);border-color:rgba(242,237,230,.1)}
+.dmf-live-hud:not([data-sing]) .dmf-live-hud-sing,.dmf-live-hud[data-sing="idle"] .dmf-live-hud-sing{color:rgba(255,91,30,.3)}
+.dmf-live-hud[data-sing="precompression"] .dmf-live-hud-sing,.dmf-live-hud[data-sing="ignition"] .dmf-live-hud-sing,.dmf-live-hud[data-sing="impact"] .dmf-live-hud-sing,.dmf-live-hud[data-sing="breakthrough"] .dmf-live-hud-sing,.dmf-live-hud[data-sing="propagation"] .dmf-live-hud-sing,.dmf-live-hud[data-sing="decay"] .dmf-live-hud-sing,.dmf-live-hud[data-sing="resolve"] .dmf-live-hud-sing{color:#0a0806;background:#ffb599;border-color:#ffb599}
 .dmf-live-hud-impact{display:flex;align-items:center;gap:12px;margin-bottom:14px;font-size:8px;letter-spacing:.24em;text-transform:uppercase;color:#8a8178}
 .dmf-live-hud-impact i{display:block;width:8px;height:8px;border-radius:50%;overflow:visible;background:#ff5b1e;transform:scale(.35);opacity:.25}
 /* HYPERDRIVE: contraction before the hit, warm edge on impact — never a white flash */
-.dmf-signal-visual::before{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;box-shadow:inset 0 0 calc(var(--dmf-hyper-pre,0) * 240px) calc(var(--dmf-hyper-pre,0) * 50px) rgba(4,3,3,.85),inset 0 0 0 1px rgba(255,91,30,calc(var(--dmf-hyper,0) * .55))}
+.dmf-signal-visual::before{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;box-shadow:inset 0 0 calc(max(var(--dmf-hyper-pre,0),var(--dmf-sing-pre,0)) * 240px) calc(max(var(--dmf-hyper-pre,0),var(--dmf-sing-pre,0)) * 50px) rgba(4,3,3,.85),inset 0 0 0 1px rgba(255,91,30,calc(max(var(--dmf-hyper,0),var(--dmf-sing,0)) * .55))}
+/* SINGULARITY: deeper contraction on precompression, warm edge and state glow through the event */
+.dmf-signal-band.is-singularity .dmf-signal-corner strong{color:#ffd3bf;text-shadow:0 0 22px rgba(255,91,30,.8)}
+.dmf-signal-band.is-singularity .dmf-relic-state{color:#ffd3bf}
 .dmf-signal-band.is-hyperdrive .dmf-signal-corner strong{color:#ffd3bf;text-shadow:0 0 18px rgba(255,91,30,.7)}
 /* Relic exit: the pulse leaves from the Receiver and spreads into the next section's divider */
 .dmf-signal-band::before{content:'';position:absolute;z-index:3;left:0;right:0;bottom:0;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,#ff5b1e 45%,#ffb599 70.5%,#ff5b1e 85%,transparent);box-shadow:0 0 12px rgba(255,91,30,.45);transform-origin:70.5% 50%;transform:scaleX(var(--dmf-exit,0))}
@@ -165,6 +175,7 @@ function inlineModule(name) {
 const bodyInjection = [
   BODY_MARKER,
   inlineModule('engine.js'),
+  inlineModule('kinetic.js'),
   inlineModule('signal-bus.js'),
   inlineModule('relic.js')
 ].join('\n');
