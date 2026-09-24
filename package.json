@@ -9,7 +9,7 @@
     "build:hyperdrive": "node scripts/dev-hyperdrive.cjs --build-only",
     "dev:hyperdrive": "node scripts/dev-hyperdrive.cjs",
     "dev:hyperdrive:once": "node scripts/dev-hyperdrive.cjs --no-watch",
-    "test:hyperdrive": "node scripts/overdrive/test/engine.test.cjs && node scripts/overdrive/test/kinetic.test.cjs && node scripts/overdrive/test/landing.test.cjs && node scripts/overdrive/test/dev-hyperdrive.test.cjs"
+    "test:hyperdrive": "node scripts/overdrive/test/engine.test.cjs && node scripts/overdrive/test/kinetic.test.cjs && node scripts/overdrive/test/spatial-stage.test.cjs && node scripts/overdrive/test/landing.test.cjs && node scripts/overdrive/test/dev-hyperdrive.test.cjs"
   },
   "dependencies": {
     "express": "^4.21.0",
