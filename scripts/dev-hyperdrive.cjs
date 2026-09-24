@@ -14,10 +14,10 @@
 
 const fs = require('fs');
 const path = require('path');
-const { spawn, spawnSync } = require('child_process');
+const http = require('http');
+const { spawnSync } = require('child_process');
 
 const root = path.resolve(__dirname, '..');
-process.chdir(root);
 
 const args = process.argv.slice(2);
 const buildOnly = args.includes('--build-only');
@@ -26,11 +26,6 @@ const noWatch = args.includes('--no-watch') || buildOnly;
 function argValue(flag, fallback) {
   const i = args.indexOf(flag);
   return i >= 0 && args[i + 1] ? args[i + 1] : fallback;
-}
-
-const port = Number(argValue('--port', process.env.HYPERDRIVE_PORT || process.env.PORT || '8080'));
-if (!Number.isInteger(port) || port < 1 || port > 65535) {
-  throw new Error('Invalid --port value: ' + port);
 }
 
 const publicDir = path.join(root, 'public');
@@ -198,72 +193,162 @@ function changed(a, b) {
   return false;
 }
 
-let server = null;
-function startServer() {
-  const env = {
-    ...process.env,
-    PORT: String(port),
-    BASE_URL: process.env.BASE_URL || ('http://localhost:' + port)
-  };
+// Serves public/ exactly like Firebase Hosting does in production: static
+// files first, then the firebase.json rewrites, never the repository root
+// (server.js puts express.static('.') first, which answers / with the unbuilt
+// source index.html and exposes the whole repo).
+const MIME = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.md': 'text/markdown; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.pdf': 'application/pdf',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
+  '.glb': 'model/gltf-binary',
+  '.stl': 'model/stl',
+  '.3mf': 'model/3mf'
+};
 
-  server = spawn(process.execPath, ['server.js'], {
-    cwd: root,
-    env,
-    stdio: 'inherit'
-  });
+const REWRITES = [
+  [/^\/login\/?$/, 'login.html'],
+  [/^\/academy(\/.*)?$/, 'academy.html'],
+  [/^\/payment-result\/?$/, 'payment-result.html']
+];
 
-  server.on('exit', (code, signal) => {
-    if (signal) {
-      log('server stopped by ' + signal);
+function staticFile(dir, pathname) {
+  const parts = pathname.split('/').filter(Boolean);
+  if (parts.some((p) => p.startsWith('.'))) return null; // firebase.json ignores **/.*
+  const file = path.resolve(dir, '.' + path.sep + parts.join(path.sep));
+  if (file !== dir && !file.startsWith(dir + path.sep)) return null;
+  try {
+    const stat = fs.statSync(file);
+    if (stat.isFile()) return file;
+    if (stat.isDirectory() && fs.statSync(path.join(file, 'index.html')).isFile()) {
+      return path.join(file, 'index.html');
+    }
+  } catch (err) {
+    return null;
+  }
+  return null;
+}
+
+function resolveRequest(dir, url) {
+  let pathname;
+  try {
+    pathname = decodeURIComponent(new URL(url, 'http://localhost').pathname);
+  } catch (err) {
+    return null;
+  }
+  if (pathname.includes('\0')) return null;
+  const direct = staticFile(dir, pathname);
+  if (direct) return direct;
+  if (pathname.startsWith('/api/')) return null; // Cloud Functions are not emulated here
+  for (const [pattern, target] of REWRITES) {
+    if (pattern.test(pathname)) return staticFile(dir, '/' + target);
+  }
+  return staticFile(dir, '/index.html');
+}
+
+function createDevServer(dir) {
+  const base = path.resolve(dir);
+  return http.createServer((req, res) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      res.writeHead(405, { Allow: 'GET, HEAD' });
+      res.end();
       return;
     }
-    if (code !== 0) {
-      fail('server exited with code ' + code);
-      process.exitCode = code || 1;
+    const file = resolveRequest(base, req.url);
+    if (!file) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Not found');
+      return;
     }
+    res.writeHead(200, {
+      'Content-Type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream',
+      'Content-Length': fs.statSync(file).size,
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff'
+    });
+    if (req.method === 'HEAD') {
+      res.end();
+      return;
+    }
+    fs.createReadStream(file).on('error', () => res.destroy()).pipe(res);
   });
+}
 
-  log('SERVER · http://localhost:' + port);
-  log('DEBUG  · http://localhost:' + port + '/?dmfdebug=1');
-  log('CLOUD SHELL · Web Preview → Preview on port ' + port);
-  log('PERF · console: window.__DMF_PERF__');
-  log('LIVE SIGNAL · fullscreen + SPACE arms the next downbeat; ESC exits');
+let server = null;
+function startServer(port) {
+  server = createDevServer(publicDir);
+  server.on('error', (err) => {
+    fail(err.code === 'EADDRINUSE'
+      ? 'port ' + port + ' is already in use (try --port ' + (port + 1) + ')'
+      : 'server error: ' + err.message);
+    process.exit(1);
+  });
+  server.listen(port, () => {
+    log('SERVER · http://localhost:' + port + ' · public/ with firebase.json rewrites');
+    log('DEBUG  · http://localhost:' + port + '/?dmfdebug=1');
+    log('CLOUD SHELL · Web Preview → Preview on port ' + port);
+    log('PERF · console: window.__DMF_PERF__');
+    log('LIVE SIGNAL · fullscreen + SPACE arms the next downbeat; ESC exits');
+  });
 }
 
 function shutdown() {
-  if (server && !server.killed) server.kill('SIGTERM');
-}
-process.on('SIGINT', () => {
-  log('stopping');
-  shutdown();
-  process.exit(0);
-});
-process.on('SIGTERM', () => {
-  shutdown();
-  process.exit(0);
-});
-
-try {
-  canonicalBuild('initial');
-} catch (err) {
-  fail(err && err.stack ? err.stack : String(err));
-  process.exit(1);
-}
-
-if (buildOnly) {
-  log('build-only complete');
+  if (server) server.close();
   process.exit(0);
 }
 
-startServer();
+function main() {
+  process.chdir(root);
 
-if (noWatch) {
-  log('watch disabled');
-} else {
+  const port = Number(argValue('--port', process.env.HYPERDRIVE_PORT || process.env.PORT || '8080'));
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    fail('Invalid --port value: ' + port);
+    process.exit(1);
+  }
+
+  process.on('SIGINT', () => {
+    log('stopping');
+    shutdown();
+  });
+  process.on('SIGTERM', shutdown);
+
+  try {
+    canonicalBuild('initial');
+  } catch (err) {
+    fail(err && err.stack ? err.stack : String(err));
+    process.exit(1);
+  }
+
+  if (buildOnly) {
+    log('build-only complete');
+    process.exit(0);
+  }
+
+  startServer(port);
+
+  if (noWatch) {
+    log('watch disabled');
+    return;
+  }
+
   let last = snapshot();
-  let building = false;
-  let queued = false;
-
   setInterval(() => {
     let next;
     try {
@@ -273,31 +358,18 @@ if (noWatch) {
       return;
     }
     if (!changed(last, next)) return;
-    last = next;
-
-    if (building) {
-      queued = true;
-      return;
-    }
-
-    building = true;
     try {
       canonicalBuild('source change');
     } catch (err) {
       fail(err && err.stack ? err.stack : String(err));
-    } finally {
-      building = false;
-      if (queued) {
-        queued = false;
-        try {
-          canonicalBuild('queued change');
-          last = snapshot();
-        } catch (err) {
-          fail(err && err.stack ? err.stack : String(err));
-        }
-      }
     }
+    // Rebuilds are synchronous, so edits made during one are caught here.
+    last = next;
   }, 900).unref();
 
   log('WATCH · source + Overdrive runtime + visual assets');
 }
+
+if (require.main === module) main();
+
+module.exports = { createDevServer, resolveRequest };
