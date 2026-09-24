@@ -1,7 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8">
+<script>
+/* DMF language: Spanish by default; the visitor's choice persists as dmf_lang ('es' | 'en').
+   <html lang> is the single source of truth every component reads. */
+(function(){var l='es';try{var s=localStorage.getItem('dmf_lang');if(s==='en'||s==='es')l=s;}catch(e){}document.documentElement.lang=l;})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Demian Muller — Electronic Artist · DJ · Live Act</title>
 <meta name="description" content="Demian Muller — Electronic music artist, DJ and Live Act. 20+ years touring, 500+ tracks & remixes. DMF Academy. Booking worldwide.">
@@ -250,29 +255,55 @@ ul{list-style:none}
 .acad-cta{flex:none;display:inline-flex;align-items:center;gap:12px;padding:18px 34px;background:#ff5b1e;color:#0a0806;font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.08em;text-transform:uppercase;transition:background .2s}
 .acad-cta:hover{background:#ff7a45;color:#0a0806}
 
-/* DEMOS */
-.demos-sub{margin:0 0 44px;max-width:640px;color:#8a8178;font-size:15px;line-height:1.6}
-.demos-groups{display:flex;flex-direction:column;gap:clamp(40px,5vw,64px)}
-.demo-group-title{font-family:'Anton',sans-serif;font-size:clamp(16px,1.8vw,22px);text-transform:uppercase;color:#ff5b1e;letter-spacing:.04em;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid rgba(242,237,230,.14)}
-.demo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px}
-.demo-card{border:1px solid rgba(242,237,230,.12);background:rgba(255,255,255,.02)}
-.demo-card video{display:block;width:100%;aspect-ratio:16/9;background:#000;object-fit:cover}
-.demo-card-title{padding:14px 16px;font-size:14px;font-weight:600;color:#f2ede6}
-.lab-card{border:1px solid rgba(242,237,230,.12);background:rgba(255,255,255,.02);overflow:hidden}
-.lab-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(242,237,230,.08);background:rgba(255,91,30,.03)}
-.lab-live{display:flex;align-items:center;gap:6px;font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:#ff5b1e}
-.lab-live::before{content:'';width:6px;height:6px;border-radius:50%;background:#ff5b1e;animation:labPulse 2s ease-in-out infinite}
-@keyframes labPulse{0%,100%{opacity:.4}50%{opacity:1}}
-.lab-type{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#665f58}
-.lab-card video{display:block;width:100%;aspect-ratio:16/9;background:#000;object-fit:cover}
-.lab-footer{padding:12px 14px;border-top:1px solid rgba(242,237,230,.08)}
-.lab-title{font-size:14px;font-weight:600;color:#f2ede6;margin-bottom:8px}
-.lab-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.lab-meta-item{font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:#665f58}
-.lab-meta-item strong{color:#8a8178;font-weight:600;margin-right:4px}
-.lab-progress{margin-top:10px;height:2px;background:rgba(242,237,230,.08);overflow:hidden}
-.lab-progress-bar{height:100%;background:#ff5b1e;width:0}
-.lab-feedback{margin-top:8px;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#ff5b1e;opacity:.6}
+/* DMF LAB // SIGNAL LOCKED — a conversion scene, not a video library. The course lives in DMF Academy.
+   One editorial composition: the claim, the gate to Student Access, and a locked transmission. */
+.lab-lock{position:relative;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(32px,5vw,80px);align-items:center;margin-top:clamp(20px,3vw,36px);padding-top:clamp(28px,4vw,52px);border-top:1px solid rgba(242,237,230,.08)}
+.lab-lock-kicker{margin:0 0 22px;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:#ff5b1e}
+.lab-lock-title{margin:0 0 22px;max-width:17ch;font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(32px,4.3vw,64px);line-height:.98;letter-spacing:.005em;text-transform:uppercase;color:#f2ede6}
+.lab-lock-sub{margin:0 0 34px;max-width:52ch;font-size:16px;line-height:1.65;color:#a89e94}
+.lab-lock-actions{display:flex;flex-wrap:wrap;align-items:center;gap:22px 30px}
+.lab-gate{position:relative;display:inline-flex;align-items:center;gap:18px;padding:22px 30px 22px 36px;background:linear-gradient(100deg,#ff5b1e,#ff7a3d);color:#0a0806;font-family:'Anton',sans-serif;font-size:clamp(17px,1.7vw,22px);letter-spacing:.08em;text-transform:uppercase;text-decoration:none;box-shadow:0 0 0 1px rgba(255,91,30,.55),0 14px 40px rgba(255,91,30,.22),0 0 calc(24px + var(--dmf-energy,0) * 18px) rgba(255,91,30,calc(.16 + var(--dmf-energy,0) * .14));transform:translate3d(0,0,0);transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s}
+.lab-gate::before{content:'';position:absolute;inset:-7px;border:1px solid rgba(255,91,30,.35);pointer-events:none;transition:inset .35s cubic-bezier(.2,.7,.2,1),border-color .35s}
+.lab-gate::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#ffd3bf;box-shadow:0 0 14px rgba(255,181,153,.8);pointer-events:none}
+.lab-gate-arrow{display:inline-block;transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.lab-gate:focus-visible{outline:2px solid #ffb599;outline-offset:8px}
+@media(hover:hover) and (pointer:fine){
+  .lab-gate:hover{transform:translate3d(4px,-3px,0);box-shadow:0 0 0 1px rgba(255,181,153,.7),0 22px 60px rgba(255,91,30,.34),0 0 48px rgba(255,91,30,.35)}
+  .lab-gate:hover::before{inset:-14px;border-color:rgba(255,181,153,.55)}
+  .lab-gate:hover .lab-gate-arrow{transform:translateX(6px)}
+}
+.lab-plans{padding-bottom:6px;border-bottom:1px solid rgba(242,237,230,.3);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#f2ede6;text-decoration:none;transition:color .2s,border-color .2s}
+.lab-plans:hover,.lab-plans:focus-visible{color:#ff5b1e;border-color:#ff5b1e}
+.lab-lock-micro{margin:24px 0 0;font-size:13px;letter-spacing:.02em;color:#8a8178}
+.lab-lock-facts{display:flex;flex-wrap:wrap;gap:10px 20px;margin:26px 0 0;padding:0;list-style:none}
+.lab-lock-facts li{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#8a8178}
+.lab-lock-facts li::before{content:'';width:5px;height:5px;background:#ff5b1e;box-shadow:0 0 8px rgba(255,91,30,.6)}
+.lab-lock-visual{position:relative;justify-self:center;width:100%;max-width:520px;aspect-ratio:1/1;display:grid;place-items:center}
+.lab-lock-ring{position:absolute;inset:0}
+.lab-lock-ring span{position:absolute;inset:calc(var(--r) * 1%);border-radius:50%;border:1px solid rgba(255,91,30,calc(.12 + var(--dmf-energy,0) * .12));box-shadow:0 0 calc(var(--dmf-wave,0) * 30px) rgba(255,91,30,calc(var(--dmf-wave,0) * .5))}
+.lab-lock-ring span:nth-child(2){border-style:dashed;border-color:rgba(242,237,230,.1)}
+.lab-lock-core{position:relative;z-index:1;padding:26px 32px;border:1px solid rgba(255,91,30,.4);background:rgba(10,8,6,.78);box-shadow:inset 0 0 40px rgba(255,91,30,.08);text-align:center}
+.lab-lock-status{display:flex;align-items:center;justify-content:center;gap:12px;font-family:'Anton',sans-serif;font-size:clamp(20px,2.4vw,30px);letter-spacing:.14em;text-transform:uppercase;color:#f2ede6}
+.lab-lock-dot{width:9px;height:9px;background:#ff5b1e;box-shadow:0 0 calc(8px + var(--dmf-kick,0) * 14px) rgba(255,91,30,.8)}
+.lab-lock-channel{margin-top:10px;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:#8a8178}
+.lab-lock-lines{position:absolute;left:6%;right:6%;bottom:7%;display:grid;gap:10px}
+.lab-line{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;font-size:8px;letter-spacing:.24em;color:#665f58}
+.lab-line i{position:relative;display:block;height:1px;overflow:hidden;background:linear-gradient(90deg,rgba(255,91,30,.5),rgba(255,91,30,.05));opacity:calc(.55 + var(--dmf-high,0) * .45)}
+.lab-line i::after{content:'';position:absolute;top:0;height:1px;width:22%;left:calc(var(--dmf-front,0) * 125% - 25% - var(--i) * 6%);background:linear-gradient(90deg,transparent,#ffb599,transparent);opacity:calc(min(1, var(--dmf-front,0) * 6) * (1 - var(--dmf-front,0)))}
+.lab-line b{font-weight:400;color:#ff5b1e}
+/* The gate arrives once with the section (and with a stage TRANSIT), then stays still. */
+.dmf-choreo #demos.is-in .lab-gate,.is-stage-arrive .lab-gate{animation:dmfGateArrive 1.1s cubic-bezier(.2,.7,.2,1) .2s both}
+@keyframes dmfGateArrive{0%{transform:perspective(900px) translateZ(-70px);opacity:.4;box-shadow:0 0 0 1px rgba(255,91,30,.2)}60%{box-shadow:0 0 0 1px rgba(255,181,153,.7),0 18px 50px rgba(255,91,30,.3),0 0 56px rgba(255,91,30,.4)}100%{transform:none;opacity:1}}
+@media(max-width:900px){
+  .lab-lock{grid-template-columns:1fr}
+  .lab-lock-visual{max-width:360px}
+  .lab-gate{width:100%;justify-content:space-between;padding:20px 22px 20px 26px}
+}
+@media(prefers-reduced-motion:reduce){
+  .lab-gate,.lab-gate::before,.lab-gate-arrow{transition:none!important;animation:none!important}
+  .lab-gate:hover{transform:none}
+  .lab-line i::after{display:none}
+}
 .dmf-loop-section{margin-bottom:clamp(44px,6vw,72px)}
 .dmf-loop-head{font-family:'Anton',sans-serif;font-size:clamp(18px,2vw,26px);text-transform:uppercase;color:#f2ede6;letter-spacing:.03em;margin-bottom:8px}
 .dmf-loop-sub{margin:0 0 32px;max-width:540px;color:#8a8178;font-size:14px;line-height:1.6}
@@ -519,7 +550,7 @@ ul{list-style:none}
   .hero h1{font-size:clamp(48px,16vw,80px)}
   .hero-stats{gap:24px}
   .stat-num{font-size:36px}
-  .releases-grid,.sets-grid,.demo-grid{grid-template-columns:1fr}
+  .releases-grid,.sets-grid{grid-template-columns:1fr}
   .labels-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
 }
 </style>
@@ -613,7 +644,7 @@ ul{list-style:none}
     <a href="#demos" class="nav-link" data-i18n="navDemos">Demos</a>
     <a href="#tips" class="nav-link" data-i18n="navTips">Tips</a>
     <a href="#contact" class="nav-link" data-i18n="navContact">Contact</a>
-    <button class="lang-btn" id="langBtn" onclick="toggleLang()">ES</button>
+    <button class="lang-btn" id="langBtn" type="button" onclick="toggleLang()">ES</button>
     <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
@@ -749,17 +780,17 @@ ul{list-style:none}
       <div class="rider-card-title" data-i18n="riderDjHead">DJ Set</div>
       <div class="rider-label" data-i18n="reqLabel">Requirements</div>
       <ul class="rider-list">
-        <li class="rider-item">4&times; CDJ-3000 or 4&times; CDJ-2000NXS2 (must be LINKED)</li>
-        <li class="rider-item">1&times; DJM-V10 or 1&times; DJM-900NXS2</li>
+        <li class="rider-item" data-i18n="riderDj1">4&times; CDJ-3000 or 4&times; CDJ-2000NXS2 (must be LINKED)</li>
+        <li class="rider-item" data-i18n="riderDj2">1&times; DJM-V10 or 1&times; DJM-900NXS2</li>
         <li class="rider-item">1&times; RMX-1000</li>
-        <li class="rider-item">1&times; stand for RMX-1000, or a laptop stand</li>
-        <li class="rider-item">Stereo monitors</li>
+        <li class="rider-item" data-i18n="riderDj4">1&times; stand for RMX-1000, or a laptop stand</li>
+        <li class="rider-item" data-i18n="riderDj5">Stereo monitors</li>
       </ul>
       <div class="rider-label" data-i18n="hospLabel">Hospitality</div>
       <ul class="rider-list">
-        <li class="rider-item">8 &times; sparkling water</li>
-        <li class="rider-item">4 &times; sugar-free Red Bull</li>
-        <li class="rider-item">2 &times; bottles of sparkling wine (Brut)</li>
+        <li class="rider-item" data-i18n="riderHosp1">8 &times; sparkling water</li>
+        <li class="rider-item" data-i18n="riderHosp2">4 &times; sugar-free Red Bull</li>
+        <li class="rider-item" data-i18n="riderHosp3">2 &times; bottles of sparkling wine (Brut)</li>
       </ul>
     </div>
     <div class="rider-card">
@@ -767,18 +798,18 @@ ul{list-style:none}
       <div class="rider-label" data-i18n="reqLabel2">Requirements</div>
       <ul class="rider-list">
         <li class="rider-item" data-i18n="liveReq1">Minimum space &asymp; one CDJ next to the DJ setup</li>
-        <li class="rider-item">RCA cable for direct connection to a mixer channel</li>
+        <li class="rider-item" data-i18n="liveReq2">RCA cable for direct connection to a mixer channel</li>
         <li class="rider-item" data-i18n="liveReq3">Microphone stand</li>
-        <li class="rider-item">2 &times; XLR cables</li>
+        <li class="rider-item" data-i18n="liveReq4">2 &times; XLR cables</li>
         <li class="rider-item" data-i18n="liveReq5">Power outlet on the booth with at least 5 free sockets</li>
       </ul>
       <div class="rider-label" data-i18n="providedLabel">Provided by Demian Muller</div>
       <ul class="rider-list">
         <li class="rider-item">Akai APC40</li>
-        <li class="rider-item">Audio interface</li>
+        <li class="rider-item" data-i18n="riderProv2">Audio interface</li>
         <li class="rider-item">MacBook Pro 15"</li>
         <li class="rider-item">TC-Helicon VoiceLive Touch</li>
-        <li class="rider-item">Shure Beta 57A microphone</li>
+        <li class="rider-item" data-i18n="riderProv5">Shure Beta 57A microphone</li>
       </ul>
     </div>
   </div>
@@ -888,13 +919,42 @@ ul{list-style:none}
 </section>
 
 <!-- DEMOS -->
-<section id="demos" class="section">
+<section id="demos" class="section lab-portal">
   <div class="section-head" style="margin-bottom:14px">
     <span class="section-num">07</span>
     <h2 class="section-title" data-i18n="demosTitle">DMF Lab</h2>
   </div>
-  <p class="demos-sub" data-i18n="demosSub">Live sessions from the DMF program — watch the method in action.</p>
-  <div class="demos-groups" id="demosGroups"></div>
+  <div class="lab-lock">
+    <div class="lab-lock-copy">
+      <p class="lab-lock-kicker" data-i18n="labKicker">DMF LAB // LA SEÑAL ESTÁ BLOQUEADA</p>
+      <h3 class="lab-lock-title" data-i18n="labHeadline">Aquí no vienes a mirar clases. Vienes a terminar música.</h3>
+      <p class="lab-lock-sub" data-i18n="labSub">Las sesiones completas, el método de Demian y el progreso módulo a módulo viven dentro de DMF Academy.</p>
+      <div class="lab-lock-actions">
+        <a href="/login" class="lab-gate" id="labGate"><span data-i18n="labCta">ENTRAR A STUDENT ACCESS</span><span class="lab-gate-arrow" aria-hidden="true">&rarr;</span></a>
+        <a href="#academy" class="lab-plans" data-i18n="labPlans">VER PLANES DE ACADEMY</a>
+      </div>
+      <p class="lab-lock-micro" data-i18n="labMicro">Crea tu cuenta. Elige tu acceso. Continúa donde quedaste.</p>
+      <ul class="lab-lock-facts">
+        <li data-i18n="labFact1">4 módulos disponibles</li>
+        <li data-i18n="labFact2">Progreso guardado</li>
+        <li data-i18n="labFact3">Acceso privado</li>
+        <li data-i18n="labFact4">Video protegido</li>
+      </ul>
+    </div>
+    <div class="lab-lock-visual" aria-hidden="true">
+      <div class="lab-lock-ring"><span style="--r:0"></span><span style="--r:11"></span><span style="--r:23"></span></div>
+      <div class="lab-lock-core">
+        <div class="lab-lock-status"><i class="lab-lock-dot"></i><span data-i18n="labLocked">SEÑAL BLOQUEADA</span></div>
+        <div class="lab-lock-channel" data-i18n="labChannel">TRANSMISIÓN DEL CURSO // PRIVADA</div>
+      </div>
+      <div class="lab-lock-lines">
+        <div class="lab-line" style="--i:0"><span>M01</span><i></i><b>&#9632;</b></div>
+        <div class="lab-line" style="--i:1"><span>M02</span><i></i><b>&#9632;</b></div>
+        <div class="lab-line" style="--i:2"><span>M03</span><i></i><b>&#9632;</b></div>
+        <div class="lab-line" style="--i:3"><span>M04</span><i></i><b>&#9632;</b></div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- TIPS -->
@@ -965,7 +1025,11 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 </script>
 <script>
 (function(){
-  var lang = 'en';
+  // ES is the default; EN only when the visitor chose it (dmf_lang). Never inferred from the browser.
+  function resolveLang(stored){ return stored === 'en' ? 'en' : 'es'; }
+  function readStoredLang(){ try { return localStorage.getItem('dmf_lang'); } catch (e) { return null; } }
+  function langLabel(l){ return l === 'en' ? 'EN' : 'ES'; }
+  var lang = resolveLang(readStoredLang());
 
   var dict = {
     en: {
@@ -987,6 +1051,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       riderTitle:'Technical Rider', riderDjHead:'DJ Set', riderLiveHead:'Live Act',
       reqLabel:'Requirements', reqLabel2:'Requirements', hospLabel:'Hospitality', providedLabel:'Provided by Demian Muller',
       liveReq1:'Minimum space ≈ one CDJ next to the DJ setup', liveReq3:'Microphone stand', liveReq5:'Power outlet on the booth with at least 5 free sockets',
+      riderDj1:'4× CDJ-3000 or 4× CDJ-2000NXS2 (must be LINKED)', riderDj2:'1× DJM-V10 or 1× DJM-900NXS2', riderDj4:'1× stand for RMX-1000, or a laptop stand', riderDj5:'Stereo monitors', riderHosp1:'8 × sparkling water', riderHosp2:'4 × sugar-free Red Bull', riderHosp3:'2 × bottles of sparkling wine (Brut)', liveReq2:'RCA cable for direct connection to a mixer channel', liveReq4:'2 × XLR cables', riderProv2:'Audio interface', riderProv5:'Shure Beta 57A microphone',
       acadKicker:'DMF Academy — Dynamic Music Formula',
       acadTag:'From idea to finished track',
       acadTitle:'Learn to produce electronic music with a professional methodology',
@@ -1043,7 +1108,14 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       acadClose:'Stop dreaming about releases. Start finishing tracks.',
       acadCta:'Start now',
       loopHead:'The DMF Learning Loop',loopSub:'Every module follows the same cycle — no theory without practice, no practice without feedback.',
-      demosTitle:'DMF Lab', demosSub:'Live sessions from the DMF program — watch the method in action.',
+      demosTitle:'DMF Lab',
+      labKicker:'DMF LAB // THE SIGNAL IS LOCKED',
+      labHeadline:'You\u2019re not here to watch classes. You\u2019re here to finish music.',
+      labSub:'The full sessions, Demian\u2019s method and your module-by-module progress live inside DMF Academy.',
+      labCta:'ENTER STUDENT ACCESS', labPlans:'VIEW ACADEMY PLANS',
+      labMicro:'Create your account. Choose your access. Pick up where you left off.',
+      labFact1:'4 modules available', labFact2:'Progress saved', labFact3:'Private access', labFact4:'Protected video',
+      labLocked:'SIGNAL LOCKED', labChannel:'COURSE TRANSMISSION // PRIVATE',
       tipsTitle:'Tips for DJs & producers', tipsSub:'Two decades of studio and booth experience, distilled into working principles — by Demian Muller.',
       tipsHl1:'Finish more tracks', tipsHl2:'Build a repeatable workflow', tipsHl3:'Think like a producer, not only like a DJ',
       tipsCta:'Explore the Academy', tipsImgStat1:'20+ years', tipsImgStat2:'500+ tracks',
@@ -1072,6 +1144,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       riderTitle:'Rider Técnico', riderDjHead:'DJ Set', riderLiveHead:'Live Act',
       reqLabel:'Requerimientos', reqLabel2:'Requerimientos', hospLabel:'Hospitalidad', providedLabel:'Aporta Demian Muller',
       liveReq1:'Espacio mínimo ≈ un CDJ al lado del setup del DJ', liveReq3:'Soporte de micrófono', liveReq5:'Enchufe en la cabina con al menos 5 tomas libres',
+      riderDj1:'4× CDJ-3000 o 4× CDJ-2000NXS2 (deben estar en LINK)', riderDj2:'1× DJM-V10 o 1× DJM-900NXS2', riderDj4:'1× soporte para RMX-1000 o soporte para laptop', riderDj5:'Monitores estéreo', riderHosp1:'8 × agua con gas', riderHosp2:'4 × Red Bull sin azúcar', riderHosp3:'2 × botellas de espumante (Brut)', liveReq2:'Cable RCA para conexión directa a un canal del mixer', liveReq4:'2 × cables XLR', riderProv2:'Interfaz de audio', riderProv5:'Micrófono Shure Beta 57A',
       acadKicker:'DMF Academy — Dynamic Music Formula',
       acadTag:'De la idea al track terminado',
       acadTitle:'Aprende a producir música electrónica con una metodología profesional',
@@ -1128,7 +1201,14 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       acadClose:'Deja de soñar con lanzamientos. Empieza a terminar tracks.',
       acadCta:'Empieza ahora',
       loopHead:'El Loop de Aprendizaje DMF',loopSub:'Cada módulo sigue el mismo ciclo — sin teoría sin práctica, sin práctica sin feedback.',
-      demosTitle:'DMF Lab', demosSub:'Sesiones en vivo del programa DMF — mira el método en acción.',
+      demosTitle:'DMF Lab',
+      labKicker:'DMF LAB // LA SEÑAL ESTÁ BLOQUEADA',
+      labHeadline:'Aquí no vienes a mirar clases. Vienes a terminar música.',
+      labSub:'Las sesiones completas, el método de Demian y el progreso módulo a módulo viven dentro de DMF Academy.',
+      labCta:'ENTRAR A STUDENT ACCESS', labPlans:'VER PLANES DE ACADEMY',
+      labMicro:'Crea tu cuenta. Elige tu acceso. Continúa donde quedaste.',
+      labFact1:'4 módulos disponibles', labFact2:'Progreso guardado', labFact3:'Acceso privado', labFact4:'Video protegido',
+      labLocked:'SEÑAL BLOQUEADA', labChannel:'TRANSMISIÓN DEL CURSO // PRIVADA',
       tipsTitle:'Consejos para DJs y productores', tipsSub:'Dos décadas de estudio y cabina destiladas en principios de trabajo — por Demian Muller.',
       tipsHl1:'Termina más tracks', tipsHl2:'Construye un workflow repetible', tipsHl3:'Piensa como productor, no solo como DJ',
       tipsCta:'Explora la Academy', tipsImgStat1:'20+ años', tipsImgStat2:'500+ tracks',
@@ -1269,46 +1349,6 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     ]},
   ];
 
-  var demosEn = [
-    {h:'Module 1 · Ableton intro',items:[
-      {t:'1 · Intro Ableton — Part 1',src:'assets/videos/intro-ableton-p1.mp4'},
-      {t:'2 · Intro Ableton — Part 2',src:'assets/videos/intro-ableton-p2.mp4'},
-    ]},
-    {h:'Module 2 · Track foundation',items:[
-      {t:'2.1 · Kick, Snare & Hi-Hat',src:'assets/videos/kick-snare-hihat.mp4'},
-      {t:'2.2 · Structure',src:'assets/videos/estructura.mp4'},
-      {t:'2.3 · Bass line',src:'assets/videos/bass-line.mp4'},
-      {t:'2.4 · Loopcloud — Intro',src:'assets/videos/loopcloud-intro.mp4'},
-    ]},
-    {h:'Module 3 · Sound design & mixing',items:[
-      {t:'3.1 · Top Loops',src:'assets/videos/top-loops.mp4'},
-      {t:'3.2 · Synths & Categories',src:'assets/videos/synths-categorias.mp4'},
-      {t:'3.3 · Percussion',src:'assets/videos/percusion.mp4'},
-      {t:'3.4 · Shakers & Hi-hat open',src:'assets/videos/shakers-hihat.mp4'},
-      {t:'3.5 · Edit & mix',src:'assets/videos/edit-mix.mp4'},
-      {t:'3.6 · Vocals',src:'assets/videos/vocales.mp4'},
-      {t:'3.7 · Compression & dynamic range',src:'assets/videos/compression.mp4'},
-    ]},
-  ];
-  var demosEs = [
-    {h:'Módulo 1 · Intro a Ableton',items:demosEn[0].items.map(function(x,i){return{t:['1 · Intro Ableton — Parte 1','2 · Intro Ableton — Parte 2'][i],src:x.src};})},
-    {h:'Módulo 2 · Base del track',items:[
-      {t:'2.1 · Kick, Snare & Hi-Hat',src:demosEn[1].items[0].src},
-      {t:'2.2 · Estructura',src:demosEn[1].items[1].src},
-      {t:'2.3 · Bass line',src:demosEn[1].items[2].src},
-      {t:'2.4 · Loopcloud — Intro',src:demosEn[1].items[3].src},
-    ]},
-    {h:'Módulo 3 · Sound design & mezcla',items:[
-      {t:'3.1 · Top Loops',src:demosEn[2].items[0].src},
-      {t:'3.2 · Synths y Categorías',src:demosEn[2].items[1].src},
-      {t:'3.3 · Percusión',src:demosEn[2].items[2].src},
-      {t:'3.4 · Shakers & Hi-hat open',src:demosEn[2].items[3].src},
-      {t:'3.5 · Edit & mix',src:demosEn[2].items[4].src},
-      {t:'3.6 · Vocales',src:demosEn[2].items[5].src},
-      {t:'3.7 · Compresión y rango dinámico',src:demosEn[2].items[6].src},
-    ]},
-  ];
-
   function renderReleases(){
     var g=document.getElementById('releasesGrid');
     g.innerHTML=releases.map(function(r){
@@ -1364,22 +1404,6 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       }).join('')+'</div></div>';
     }).join('');
   }
-
-  function renderDemos(){
-    var d = lang==='es' ? demosEs : demosEn;
-    var labLabel=lang==='es'?'SESIÓN EN VIVO':'LIVE SESSION';
-    var feedbackLabel=lang==='es'?'FEEDBACK DE DEMIAN':'DEMIAN’S FEEDBACK';
-    var types=lang==='es'?['TUTORIAL','PRÁCTICA','SESIÓN LAB']:['TUTORIAL','PRACTICE','LAB SESSION'];
-    var metas=[{bpm:'—',key:'—'},{bpm:'124',key:'Am'},{bpm:'126',key:'Cm'}];
-    var g=document.getElementById('demosGroups');
-    g.innerHTML=d.map(function(grp,gi){
-      var type=types[gi]||types[0];var meta=metas[gi]||metas[0];
-      return '<div><div class="demo-group-title">'+grp.h+'</div><div class="demo-grid">'+grp.items.map(function(v){
-        return '<div class="lab-card"><div class="lab-header"><span class="lab-live">'+labLabel+'</span><span class="lab-type">'+type+'</span></div><video src="'+v.src+'" controls preload="metadata" playsinline></video><div class="lab-footer"><div class="lab-title">'+v.t+'</div><div class="lab-meta"><span class="lab-meta-item"><strong>BPM</strong> '+meta.bpm+'</span><span class="lab-meta-item"><strong>KEY</strong> '+meta.key+'</span></div><div class="lab-progress"><div class="lab-progress-bar"></div></div><div class="lab-feedback">'+feedbackLabel+'</div></div></div>';
-      }).join('')+'</div></div>';
-    }).join('');
-  }
-
 
   var loopInterval;
   function renderLoop(){
@@ -1452,19 +1476,22 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var key=el.getAttribute('data-i18n-html');
       if(d[key]!==undefined) el.innerHTML=d[key];
     });
-    document.getElementById('langBtn').textContent = lang==='en'?'ES':'EN';
+    // The button shows the language being displayed: ES = Spanish page, EN = English page.
     document.documentElement.lang = lang;
+    var btn = document.getElementById('langBtn');
+    btn.textContent = langLabel(lang);
+    btn.setAttribute('aria-label', lang === 'en' ? 'Language: English — switch to Spanish' : 'Idioma: español — cambiar a inglés');
     renderModules();
     renderAudience();
     renderLoop();
     renderProof();
     renderTiers();
     renderTips();
-    renderDemos();
   }
 
   window.toggleLang = function(){
-    lang = lang==='en'?'es':'en';
+    lang = lang === 'es' ? 'en' : 'es';
+    try { localStorage.setItem('dmf_lang', lang); } catch (e) {}
     applyLang();
   };
 
@@ -1611,13 +1638,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   renderLabels();
   renderSets();
   renderPlatforms();
-  renderModules();
-  renderAudience();
-  renderLoop();
-  renderProof();
-  renderTiers();
-  renderTips();
-  renderDemos();
+  applyLang();
 })();
 </script>
 <script>
@@ -1732,7 +1753,20 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     el.__waveTimer = setTimeout(function(){ el.classList.remove(next); }, 1300);
   }
 
-  // 4. Hero depth from the pointer — desktop fine pointers only, inertia on the shared frame loop.
+  // 4. DMF Lab gate: on a fine-pointer hover it sends one bounded signal pulse from the gate through
+  //    the page (rate limited by the bus). Nothing moves on its own; touch never triggers it.
+  var gate = document.getElementById('labGate');
+  var finePtr = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (gate && finePtr) {
+    gate.addEventListener('mouseenter', function(){
+      var hub = window.DMFSignal;
+      if (!hub || !hub.pulse) return;
+      var r = gate.getBoundingClientRect();
+      hub.pulse(r.top + (window.pageYOffset || 0) + r.height / 2);
+    });
+  }
+
+  // 5. Hero depth from the pointer — desktop fine pointers only, inertia on the shared frame loop.
   var fine = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   if (!hero || !fine) return;
   var tx = 0, ty = 0, px = 0, py = 0, shownX = 0, shownY = 0;

@@ -70,8 +70,7 @@ const bodyInjection = `${BODY_MARKER}
   };
 
   function lang(){
-    var btn=document.querySelector('.lang-btn');
-    return btn && btn.textContent.trim().toUpperCase()==='EN' ? 'es' : 'en';
+    return String(document.documentElement.lang||'es').toLowerCase().indexOf('en')===0 ? 'en' : 'es';
   }
 
   function copy(){
@@ -164,7 +163,7 @@ const bodyInjection = `${BODY_MARKER}
 
     var beacon=document.createElement('div');
     beacon.className='dmf-codex-beacon';
-    beacon.innerHTML='<span>●</span> CODEX // TRAINING SIGNAL ONLINE';
+    beacon.innerHTML='<span>●</span> '+copy().beacon+'ONLINE';
     document.body.appendChild(beacon);
 
     render(root);
