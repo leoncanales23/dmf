@@ -59,7 +59,7 @@
               '<svg class="dmf-live-hud-phase" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"></circle><circle class="dmf-live-hud-phase-arc" cx="10" cy="10" r="8" pathLength="1"></circle></svg>',
               '<span class="dmf-live-hud-bpm"><b>' + RELIC_BPM + '</b> BPM</span>',
             '</div>',
-            '<div class="dmf-live-hud-meta"><span>Kinetic <b data-hud="kinetic">REST</b></span><span>Accel <b data-hud="accel">0.0</b></span><span>Cam <b data-hud="shot">ICON</b></span><span>Tier <b data-hud="tier">HIGH</b></span><span>FPS <b data-hud="fps">60</b></span></div>',
+            '<div class="dmf-live-hud-meta"><span>Kinetic <b data-hud="kinetic">REST</b></span><span>Accel <b data-hud="accel">0.0</b></span><span>Cam <b data-hud="shot">ICON</b></span><span>Tier <b data-hud="tier">HIGH</b></span><span>FPS <b data-hud="fps">60</b></span><span>Act <b data-hud="act">ARRIVAL</b></span></div>',
             '<div class="dmf-live-hud-main">',
               '<div class="dmf-live-hud-tags"><span class="dmf-live-hud-hyper">Hyperdrive</span><span class="dmf-live-hud-sing" data-hud="sing">Singularity</span></div>',
               '<div class="dmf-live-hud-state">DORMANT</div>',
@@ -151,6 +151,27 @@
     var small = window.innerWidth < 480;
     var quality = (mem <= 2 || cores <= 2) ? 'static' : ((window.innerWidth < 768 || touch) ? 'balanced' : 'high');
     var motionScale = 1;
+
+    // === SPATIAL STAGE (V4) — one renderer for the whole landing ===
+    // On HIGH/BALANCED the canvas moves (once) into a fixed layer behind the page and the relic band turns
+    // transparent. setViewOffset anchors the composition: locked to the band in ARRIVAL, docked where each
+    // ACT wants it afterwards, with every move followed by kinetic bodies. Fullscreen LIVE SIGNAL, LITE and
+    // reduced motion keep the V3 band layout; the renderer is never recreated.
+    var ST = window.DMFStage;
+    var stageHub = hub.stage;
+    var stage = stageHub && stageHub.director;
+    var stageEligible = !reduceMotion && quality !== 'static' && !!ST && !!stage;
+    var compactStage = window.innerWidth < 768 || touch;
+    if (stage) stage.setCompact(compactStage);
+    var follower = ST ? new ST.DMFStageFollower() : null;
+    if (follower && stage) follower.reset(stage.poses[0]);
+    var portal = ST ? new ST.DMFPortalField() : null;
+    var stageStarted = false, shownMaskTop = -1e9, shownMaskBot = -1e9;
+    var staged = false, stageVisible = false, stageLayer = null, shownStageOpacity = -1, seenLayout = -1;
+    var stageActNow = 0, stageMotion = 0, frameAspect = 1.3, midTorque = 0, portalScaleNow = 0;
+    var vw = window.innerWidth || 1, vh = window.innerHeight || 1;
+    var visTop = 0, visLeft = 0, visW = 0, visH = 0;
+    var perf = hub.perf || null;   // debug surface only (created by the bus when ?dmfdebug=1 / localhost)
 
     // === LIGHTING — altar/museum treatment ===
     var ambientLight = new THREE.AmbientLight(0x0e0c0a, 0.35);
@@ -346,6 +367,52 @@
     var ghosts = [];
     var GHOST_LAG = [2, 4];
     var GHOST_OPACITY = [0.07, 0.035];
+
+    // === PORTAL / DEPTH ARCHITECTURE (V4) — instanced, warm, additive; hidden (zero cost) at rest ===
+    // Transmission rings recede behind the Receiver, light frames line both sides like a stage truss, and
+    // floor transmission lines mark depth. Brightness lives in instance colours (additive), so there is
+    // one draw call per structure and nothing is allocated per frame.
+    var RING_MAX = 10, FRAME_MAX = 8, LINE_MAX = 16;
+    var portalMat = new THREE.MeshBasicMaterial({
+      color: 0xff7a3d, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, transparent: true,
+      depthWrite: false, toneMapped: false
+    });
+    function frameOutline(fw, fh, t) {
+      var g = new THREE.BufferGeometry();
+      var x = fw / 2, y = fh / 2;
+      var quads = [[-x, y - t, x, y], [-x, -y, x, -y + t], [-x, -y, -x + t, y], [x - t, -y, x, y]];
+      var pos = [];
+      for (var q = 0; q < quads.length; q++) {
+        var a = quads[q];
+        pos.push(a[0], a[1], 0, a[2], a[1], 0, a[2], a[3], 0, a[0], a[1], 0, a[2], a[3], 0, a[0], a[3], 0);
+      }
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      return g;
+    }
+    var portalRings = new THREE.InstancedMesh(new THREE.RingGeometry(2.6, 2.625, 96, 1), portalMat, RING_MAX);
+    var portalFrames = new THREE.InstancedMesh(frameOutline(2.4, 3.8, 0.018), portalMat.clone(), FRAME_MAX);
+    var floorLineGeo = new THREE.PlaneGeometry(18, 0.014);
+    floorLineGeo.rotateX(-Math.PI / 2);
+    var portalLines = new THREE.InstancedMesh(floorLineGeo, portalMat.clone(), LINE_MAX);
+    var PORTAL_MESHES = [portalRings, portalFrames, portalLines];
+    var pM = new THREE.Matrix4(), pP = new THREE.Vector3(), pQ = new THREE.Quaternion(), pS = new THREE.Vector3();
+    var pE = new THREE.Euler(), pC = new THREE.Color();
+    for (var pmi = 0; pmi < PORTAL_MESHES.length; pmi++) {
+      var pm = PORTAL_MESHES[pmi];
+      pm.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      for (var pj = 0; pj < pm.count; pj++) { pm.setMatrixAt(pj, pM); pm.setColorAt(pj, pC.setRGB(0, 0, 0)); }
+      pm.frustumCulled = false;
+      pm.visible = false;
+      pm.renderOrder = 2;
+      scene.add(pm);
+    }
+    // LITE has no spatial geometry; BALANCED keeps half of each structure.
+    function portalCount(tier) {
+      if (tier === 'high') return 1;
+      if (tier === 'balanced') return 0.5;
+      if (tier === 'lite') return 0;
+      return 0;
+    }
 
     // === DMFRelicAnimator — shared uniforms for relic + overlays ===
     // The GLB is a single static mesh with no rig: motion is procedural in the
@@ -664,6 +731,9 @@
 
     // Tier ranges for dynamic render resolution; the scaler moves inside them, the governor moves between them.
     function tierRange(tier) {
+      // The full-viewport stage fills ~2x the pixels of the band, so it gets a lower ceiling.
+      if (staged && tier === 'high') return [1.1, 1.5];
+      if (staged && tier === 'balanced') return [1, small ? 1.1 : 1.25];
       if (tier === 'high') return [1.35, 1.75];
       if (tier === 'balanced') return [1, small ? 1.25 : 1.5];
       return [1, 1];
@@ -685,6 +755,11 @@
       echoOn = tier === 'high';
       velDetail = tier === 'high' ? 1 : (tier === 'balanced' ? 0.6 : 0);
       tunnelOn = tier !== 'lite';
+      portalScaleNow = portalCount(tier);
+      if (stageHub) stageHub.spatialTier = staged ? 'stage-' + tier : (fsActive ? 'fullscreen' : 'band');
+      portalRings.count = Math.round(RING_MAX * portalScaleNow);
+      portalFrames.count = Math.round(FRAME_MAX * portalScaleNow);
+      portalLines.count = Math.round(LINE_MAX * portalScaleNow);
       if (!echoOn) for (var gk = 0; gk < ghosts.length; gk++) ghosts[gk].visible = false;
       var range = tierRange(tier);
       renderScaler.setRange(range[0], range[1]);
@@ -805,10 +880,14 @@
         if (rig.mode === 'user') { user.roll = 0; copyPose(cur, user); copyPose(aim, user); syncPose(user); return; }
       }
       var od = hub.state === 'OVERDRIVE';
+      // Docked behind an ACT the camera holds the ICON portrait (the journey offsets move it); the
+      // ICON → SIGNAL → RELIC cycle only runs while the Receiver lives in its own band.
+      var docked = staged && stageActNow > 0;
       if (od && rig.shot !== 'D') cut('D', 1.6);
-      else if (!od && rig.shot === 'D') { rig.shotIdx = 2; cut('C', 3.0); }
+      else if (!od && rig.shot === 'D') { rig.shotIdx = docked ? 0 : 2; cut(docked ? 'A' : 'C', 3.0); }
+      else if (docked && rig.shot !== 'A') { rig.shotIdx = 0; cut('A', 2.8); }
       rig.t += dt;
-      if (rig.shot !== 'D' && rig.t > SHOT_DUR[rig.shot]) {
+      if (!docked && rig.shot !== 'D' && rig.t > SHOT_DUR[rig.shot]) {
         rig.shotIdx = (rig.shotIdx + 1) % SHOT_ORDER.length;
         cut(SHOT_ORDER[rig.shotIdx], 2.8);
       }
@@ -826,16 +905,27 @@
     // Camera = shot pose + kinetic overlay: dolly travel, lateral ORBIT arc (mids + pointer inertia),
     // pointer height inertia, impact lens. The pointer never drives the camera directly.
     function applyCamera(dolly) {
-      var aspect = w / h;
+      var aspect = staged ? frameAspect : w / h;
       var fit = aspect < 1.1 ? 1 + (1.1 - aspect) * 0.95 : 1;
       var auto = rig.mode === 'auto';
       var az = cur.az + latK.x + (auto ? Math.sin(autoAngle) * 0.05 * motionScale : 0);
       var r = (cur.r - dolly) * fit;
       var y = cur.y + (auto ? parYK.x + Math.sin(autoAngle * 0.8) * 0.08 * motionScale : 0);
+      // CAMERA JOURNEY: the ACT's authored dolly/orbit/height/target/FOV, followed by kinetic bodies.
+      // Scroll speed stretches the lens a little; the kick punches it only while the stage is moving.
+      var sp = staged ? follower.pose : null;
+      var stageFov = 0, lookLift = 0;
+      if (sp) {
+        az += sp.az;
+        r *= 1 + sp.r;
+        y += sp.y;
+        lookLift = sp.ty;
+        stageFov = sp.fov + 1.2 * Math.abs(stageHub.scroll.velocity) - 0.5 * portal.punch * portal.intensity;
+      }
       camera.position.set(Math.sin(az) * r, y, Math.cos(az) * r);
-      var fov = 34 + lens.fov;
+      var fov = 34 + clamp(lens.fov + stageFov, -3.5, 3.5);
       if (Math.abs(camera.fov - fov) > 0.001) { camera.fov = fov; camera.updateProjectionMatrix(); }
-      LOOK.set(cur.tx, cur.ty, cur.tz);
+      LOOK.set(cur.tx, cur.ty + lookLift, cur.tz);
       camera.up.set(0, 1, 0);
       camera.lookAt(LOOK);
       var roll = cur.roll + lens.roll;
@@ -916,17 +1006,28 @@
     var ptrAcc = 0, ptrLastX = -1, ptrSpin = 0;
     container.addEventListener('mousemove', function (e) {
       var rect = container.getBoundingClientRect();
-      if (finePointer) {
+      if (finePointer && !staged) {
         var nx = (e.clientX - rect.left) / rect.width;
         if (ptrLastX >= 0) ptrAcc += nx - ptrLastX;
         ptrLastX = nx;
       }
       parallaxX = finePointer ? ((e.clientX - rect.left) / rect.width - 0.5) * 2 : 0;
       parallaxY = finePointer ? ((e.clientY - rect.top) / rect.height - 0.5) * 2 : 0;
-      mouseNDC.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+      if (staged) mouseNDC.set((e.clientX / vw) * 2 - 1, -(e.clientY / vh) * 2 + 1);
+      else mouseNDC.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
       mouseInside = true;
       mouseMoved = true;
     });
+    // On the spatial stage the pointer is felt page-wide (fine pointers only), still only as velocity.
+    var ptrPageX = -1;
+    if (finePointer) {
+      window.addEventListener('mousemove', function (e) {
+        if (!staged) { ptrPageX = -1; return; }
+        var nx = e.clientX / vw;
+        if (ptrPageX >= 0) ptrAcc += nx - ptrPageX;
+        ptrPageX = nx;
+      }, { passive: true });
+    }
     container.addEventListener('mouseleave', function () {
       parallaxX = 0; parallaxY = 0; mouseInside = false; ptrLastX = -1;
       hideReadout();
@@ -996,6 +1097,8 @@
     var hudAccel = hud.querySelector('[data-hud="accel"]');
     var hudFps = hud.querySelector('[data-hud="fps"]');
     var hudSing = hud.querySelector('[data-hud="sing"]');
+    var hudAct = hud.querySelector('[data-hud="act"]');
+    var hudShownAct = '';
     var hudLast = 0;
     var hudShownState = '';
     var hudShownShot = '';
@@ -1051,6 +1154,8 @@
       var accel = kn.accel.toFixed(1);
       if (accel !== hudShownAccel) { hudAccel.textContent = accel; hudShownAccel = accel; }
       if (hub.fps !== hudShownFps) { hudFps.textContent = hub.fps; hudShownFps = hub.fps; }
+      var actName = stage ? stage.actName() : 'ARRIVAL';
+      if (actName !== hudShownAct) { hudAct.textContent = actName; hudShownAct = actName; }
       var sg = hub.singularity;
       var sing = !sg ? 'off' : (sg.active ? sg.phase : (sg.armed ? 'armed' : (sg.sinceLast < sg.cooldown ? 'cooldown' : 'idle')));
       if (sing !== hudShownSing) {
@@ -1081,8 +1186,23 @@
     function requestResize() { resizePending = true; if (staticMode) renderStatic(); }
     function doResize() {
       resizePending = false;
+      vw = window.innerWidth || vw;
+      vh = window.innerHeight || vh;
+      var r = container.getBoundingClientRect();
+      var sy = window.pageYOffset || 0;
+      visTop = r.top + sy; visLeft = r.left; visW = r.width; visH = r.height;
+      var nowCompact = vw < 768 || touch;
+      if (nowCompact !== compactStage) { compactStage = nowCompact; if (stage) stage.setCompact(compactStage); }
+      if (staged) {
+        w = vw;
+        h = vh;
+        renderer.setSize(w, h);
+        camPrevSet = false;
+        return;
+      }
       w = container.clientWidth;
       h = container.clientHeight;
+      camera.clearViewOffset();
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
@@ -1160,9 +1280,15 @@
       var cx = camera.position.x, cz = camera.position.z;
       var cl = Math.sqrt(cx * cx + cz * cz) || 1;
       var sink = 0.12 * pedK.x;
+      // RECEIVER CONTINUITY: each ACT gives it an orientation, a size and an advance; MID adds torque.
+      var sp = staged ? follower.pose : null;
+      var adv = depthK.x + (sp ? sp.depth : 0);
       if (modelRef) {
-        modelRef.position.set(modelBase.x + cx / cl * depthK.x, modelBase.y - sink, modelBase.z + cz / cl * depthK.x);
-        if (modelCurrentScale >= modelTargetScale) modelRef.scale.setScalar(modelTargetScale * (1 + scaleK.x));
+        modelRef.position.set(modelBase.x + cx / cl * adv, modelBase.y - sink, modelBase.z + cz / cl * adv);
+        if (modelCurrentScale >= modelTargetScale) {
+          modelRef.scale.setScalar(modelTargetScale * (1 + scaleK.x) * (sp ? 1 + sp.scale : 1));
+          modelRef.rotation.y = sp ? sp.rotY + midTorque : 0;
+        }
       }
       pedestal.scale.y = 1 - pedK.x;
       pedestal.position.y = 0.06 * (1 - pedK.x);
@@ -1324,8 +1450,11 @@
       if (hit > 0 && (od > 0.3 || hdLevel > 0 || sHit)) lightSpring.impulse((s.beatIndex % 2 ? 1 : -1) * (0.9 * od + 1.2 * hdLevel + (sHit ? 1.4 : 0)));
       keyLight.position.set(Math.sin(lightSpring.x) * 6.4, 7, Math.cos(lightSpring.x) * 6.4);
 
-      // BODY lights; HIGH drives the light edges.
-      rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 + s.body * 0.3 * (1 + 0.6 * od) + hdLevel * 0.4 + sLvl * 0.5;
+      // BODY lights; HIGH drives the light edges; each ACT sets its own key/rim emphasis.
+      var stageLight = staged ? follower.pose.light : 0;
+      midTorque = staged ? 0.035 * f.forceMid * f.amp * Math.sin(Math.PI * beats / 2) * freeze : 0;
+      keyLight.intensity = 2.4 * (1 + 0.35 * stageLight);
+      rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 + s.body * 0.3 * (1 + 0.6 * od) + hdLevel * 0.4 + sLvl * 0.5 + 0.3 * stageLight;
       accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15 + f.edge * 0.2;
       fillLight.intensity = 0.3 + Math.sin(autoAngle + 2) * 0.06;
       underGlow.intensity = 0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.body * 0.35 * (1 + od) + hdLevel * 0.3 + sLvl * 0.4;
@@ -1410,10 +1539,16 @@
       var radial = depthK.v + 2 * scaleK.v;
       var rvx = cp.x / cl * radial, rvy = -0.12 * pedK.v, rvz = cp.z / cl * radial;
       var rx = rvx - cvx, ry = rvy - cvy, rz = rvz - cvz;
+      // Stage travel and scrolling move the Receiver across the screen: feed that to the highlight stretch.
+      var stx = 0, sty = 0;
+      if (staged) {
+        stx = follower.bodies.cx.v * 6;
+        sty = -follower.bodies.cy.v * 6 + stageHub.scroll.velocity * 1.5;
+      }
       // Relative velocity in view space (rotation part of the view matrix) for the shader.
       var e = camera.matrixWorldInverse.elements;
-      var vx = e[0] * rx + e[4] * ry + e[8] * rz;
-      var vy = e[1] * rx + e[5] * ry + e[9] * rz;
+      var vx = e[0] * rx + e[4] * ry + e[8] * rz + stx;
+      var vy = e[1] * rx + e[5] * ry + e[9] * rz + sty;
       var vz = e[2] * rx + e[6] * ry + e[10] * rz;
       var sp = Math.sqrt(vx * vx + vy * vy + vz * vz);
       var ang = Math.abs(headK.v) * 0.5 + Math.abs(twistK.v) * 2 + Math.abs(rollSpring.v) * 4 + Math.abs(ptrSpin) * 0.3;
@@ -1514,6 +1649,151 @@
       return SHOT_NAMES[rig.shot];
     }
 
+    // Moves the one canvas between the fixed stage layer and the relic band (fullscreen / LITE).
+    function setStaged(on) {
+      staged = on;
+      if (on) {
+        if (!stageLayer) {
+          stageLayer = document.createElement('div');
+          stageLayer.className = 'dmf-stage-layer';
+          stageLayer.setAttribute('aria-hidden', 'true');
+          document.body.insertBefore(stageLayer, document.body.firstChild);
+        }
+        stageLayer.appendChild(renderer.domElement);
+        band.classList.add('is-staged');
+        shownStageOpacity = -1;
+        // A page opened (or returned to) mid-scroll starts docked where it is, not flown in from the band.
+        if (!stageStarted) { stageStarted = true; follower.reset(stage.target); }
+      } else {
+        container.appendChild(renderer.domElement);
+        band.classList.remove('is-staged');
+        for (var i = 0; i < PORTAL_MESHES.length; i++) PORTAL_MESHES[i].visible = false;
+        if (stageLayer) stageLayer.style.opacity = '0';
+        stageHub.portalIntensity = 0;
+      }
+      stageHub.spatialTier = on ? 'stage-' + quality : (fsActive ? 'fullscreen' : 'band');
+      stageHub.originY = -1;
+      var range = tierRange(quality);
+      renderScaler.setRange(range[0], range[1]);
+      renderScale = Math.min(window.devicePixelRatio || 1, renderScaler.scale);
+      renderer.setPixelRatio(renderScale);
+      hub.renderScale = renderScale;
+      resizePending = true;
+    }
+
+    // The ACT's pose → a composition frame on screen. ARRIVAL locks it to the relic band (scroll-linked,
+    // exact); docked ACTs place it in the viewport. w blends the two, so leaving the band is one
+    // continuous, physically followed move. Only cached numbers are read here.
+    function stageFrame(s, dt) {
+      var tr = stage.transit;
+      var sg = hub.singularity;
+      var P = follower.update(stage.target, dt, tr, compactStage ? 0.6 : 1);
+      stageActNow = stage.act;
+      var sy = stageHub.scrollY;
+      var bh = visH > 0 ? visH : vh * 0.7;
+      var bx = visLeft + (visW > 0 ? visW : vw) * 0.5;
+      var by = visTop - sy + bh * 0.5;
+      var wgt = P.w;
+      var fh = bh + (P.h * vh - bh) * wgt;
+      var cxp = bx + (P.cx * vw - bx) * wgt;
+      var cyp = by + (P.cy * vh - by) * wgt;
+      frameAspect = visW > 0 && visH > 0 ? visW / visH : vw / vh;
+      if (compactStage && frameAspect < 0.9) frameAspect = 0.9;
+      var fw = fh * frameAspect;
+      camera.aspect = fw / fh;
+      camera.setViewOffset(fw, fh, fw * 0.5 - cxp, fh * 0.5 - cyp, vw, vh);
+      stageHub.originY = cyp;
+      // Presence: fades in (off screen) as the band approaches from below, then follows the ACT; it rises
+      // only while the stage moves (TRANSIT, scrolling) and settles back to the ACT's quiet level.
+      var approach = clamp((vh * 1.25 - (visTop - sy)) / (vh * 0.25), 0, 1);
+      stageVisible = approach > 0;
+      var lift = wgt > 0.05 ? 0.3 * tr.level + 0.25 * Math.abs(stageHub.scroll.velocity) : 0;
+      var op = Math.min(P.opacity + lift, 1) * approach;
+      // Mask: in ARRIVAL the stage shows only through the band (feathered); docking opens it to the page.
+      var open = clamp(wgt, 0, 1);
+      var mTop = (visTop - sy) * (1 - open) - vh * 0.3 * open;
+      var mBot = (visTop - sy + bh) * (1 - open) + vh * 1.3 * open;
+      if (Math.abs(mTop - shownMaskTop) > 1 || Math.abs(mBot - shownMaskBot) > 1) {
+        shownMaskTop = mTop;
+        shownMaskBot = mBot;
+        stageLayer.style.setProperty('--dmf-stage-top', mTop.toFixed(0) + 'px');
+        stageLayer.style.setProperty('--dmf-stage-bottom', mBot.toFixed(0) + 'px');
+      }
+      if (Math.abs(op - shownStageOpacity) > 0.004 || (op === 0 && shownStageOpacity !== 0)) {
+        shownStageOpacity = op;
+        stageLayer.style.opacity = op.toFixed(3);
+      }
+      stageMotion = clamp(follower.speed * 1.5, 0, 1);
+      stageHub.cameraJourney = sg && sg.active ? 'singularity' : (tr.active ? 'transit' : (follower.speed > 0.02 ? 'travel' : 'hold'));
+      stageHub.receiverStageDepth = P.depth;
+      stageHub.spatialVelocity = follower.speed;
+    }
+
+    // Portal architecture: rings recede behind the Receiver, frames line the sides, floor lines mark depth.
+    // KICK: floor propagation + structural compression; LOW: depth pressure; MID: lateral sway;
+    // HIGH: a highlight travelling down the frames. Hidden outright when there is nothing to show.
+    function updatePortal(s, dt) {
+      var sg = hub.singularity;
+      var f = hub.forces;
+      portal.update(stageMotion, stageHub.scroll.velocity, stage.transit.level, sg && sg.active ? sg.level : 0, f, dt);
+      var scale = staged ? portalScaleNow : 0;
+      var inten = portal.intensity * scale;
+      var floorGain = portal.floorAmp * Math.exp(-portal.floorT * 1.2) * scale;
+      stageHub.portalIntensity = inten;
+      if (inten < 0.002 && floorGain < 0.02) {
+        if (portalRings.visible) for (var h0 = 0; h0 < PORTAL_MESHES.length; h0++) PORTAL_MESHES[h0].visible = false;
+        return;
+      }
+      var amp = 0.6 + 0.4 * f.amp;
+      var spacing = 2.2 * (1 + 0.15 * portal.pressure) * (1 - 0.1 * portal.compression);
+      var rs = 1 - 0.06 * portal.compression;
+      pQ.set(0, 0, 0, 1);
+      for (var i = 0; i < portalRings.count; i++) {
+        var depth = i / (RING_MAX - 1);
+        pP.set(0, 1.5, -3 - i * spacing);
+        pS.set(rs * (1 + 0.04 * i), rs * (1 + 0.04 * i), 1);
+        pM.compose(pP, pQ, pS);
+        portalRings.setMatrixAt(i, pM);
+        var k = inten * amp * (0.9 - 0.6 * depth);
+        portalRings.setColorAt(i, pC.setRGB(k, k, k));
+      }
+      var half = portalFrames.count >> 1;
+      var sway = 0.25 * portal.lateral * Math.sin(Math.PI * (s.beatIndex + s.beatPhase) / 4) + 0.05 * clamp(ptrSpin, -4, 4);
+      for (var j = 0; j < portalFrames.count; j++) {
+        var side = j < half ? -1 : 1;
+        var idx = j < half ? j : j - half;
+        pE.set(0, side * Math.PI / 2, 0);
+        pQ.setFromEuler(pE);
+        pP.set(side * (4.4 + sway * side), 1.9, 1.5 - idx * 2.6 * (1 - 0.08 * portal.compression));
+        pS.set(1, 1, 1);
+        pM.compose(pP, pQ, pS);
+        portalFrames.setMatrixAt(j, pM);
+        var ph = portal.edgePhase - idx / Math.max(1, half);
+        ph -= Math.floor(ph);
+        var edge = Math.exp(-Math.pow((ph - 0.5) / 0.12, 2));
+        var kf = inten * amp * (0.18 + 0.6 * edge) * (1 - 0.1 * idx);
+        portalFrames.setColorAt(j, pC.setRGB(kf, kf, kf));
+      }
+      pQ.set(0, 0, 0, 1);
+      pS.set(1 + 0.1 * portal.pressure, 1, 1);
+      for (var l = 0; l < portalLines.count; l++) {
+        var z = 4.5 - l * 1.25 * (LINE_MAX / Math.max(1, portalLines.count));
+        pP.set(0, 0.012, z);
+        pM.compose(pP, pQ, pS);
+        portalLines.setMatrixAt(l, pM);
+        var x = (portal.floorT * 7 - Math.abs(z)) / 0.8;
+        var pulse = floorGain * Math.exp(-x * x);
+        var kl = inten * amp * 0.45 + pulse * (0.12 + 0.88 * inten);
+        portalLines.setColorAt(l, pC.setRGB(kl, kl, kl));
+      }
+      for (var m = 0; m < PORTAL_MESHES.length; m++) {
+        var mesh = PORTAL_MESHES[m];
+        mesh.instanceMatrix.needsUpdate = true;
+        if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+        mesh.visible = mesh.count > 0;
+      }
+    }
+
     function hoverZone() {
       if (!modelRef || !mouseInside || rig.dragging) {
         if (currentZone) hideReadout();
@@ -1532,8 +1812,9 @@
       }
       var zi = getZoneIndex(hits[0].point);
       projected.copy(hits[0].point).project(camera);
-      readoutEl.style.left = ((projected.x * 0.5 + 0.5) * w) + 'px';
-      readoutEl.style.top = ((-projected.y * 0.5 + 0.5) * h) + 'px';
+      var rox = staged ? -visLeft : 0, roy = staged ? -(visTop - stageHub.scrollY) : 0;
+      readoutEl.style.left = ((projected.x * 0.5 + 0.5) * w + rox) + 'px';
+      readoutEl.style.top = ((-projected.y * 0.5 + 0.5) * h + roy) + 'px';
       if (zones[zi].en !== currentZone) { currentZone = zones[zi].en; showReadout(zones[zi]); }
       if (!readoutEl.classList.contains('is-visible')) readoutEl.classList.add('is-visible');
       container.style.cursor = 'crosshair';
@@ -1543,18 +1824,23 @@
     hoverZone.last = -1;
 
     function tick(s, dt, raw) {
-      if (!isVisible && !fsActive) return;
+      var stageWanted = stageEligible && !fsActive && quality !== 'lite';
+      if (stageWanted !== staged) setStaged(stageWanted);
+      if (staged && stageHub.layout !== seenLayout) { seenLayout = stageHub.layout; resizePending = true; }
+      if (resizePending) doResize();
+      if (staged) stageFrame(s, dt);
+      if (staged ? !stageVisible : (!isVisible && !fsActive)) return;
       frameCount++;
       var downgrade = governor.sample(raw);
       if (downgrade) applyQuality(downgrade);
       else if (renderScaler.sample(raw) !== null) applyPixelRatio();
-      if (resizePending) doResize();
 
       animateRelic(s, dt);
       rigUpdate(dt, performance.now());
       applyCamera(dollyK.x);
       camera.updateMatrixWorld();
       kineticField(s, dt);
+      if (staged) updatePortal(s, dt);
 
       var activeZoneIdx = frameCount % 3 === 0 || mouseMoved ? hoverZone() : hoverZone.last;
       hub.hoverLevel = activeZoneIdx === 3 ? 2 : (activeZoneIdx >= 0 ? 1 : 0);
@@ -1590,6 +1876,10 @@
       updateHud(s, performance.now());
 
       renderer.render(scene, camera);
+      if (perf) {
+        perf.drawCalls = renderer.info.render.calls;
+        perf.triangles = renderer.info.render.triangles;
+      }
     }
   }
 
