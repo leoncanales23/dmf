@@ -5,7 +5,11 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "build:hyperdrive": "node scripts/dev-hyperdrive.cjs --build-only",
+    "dev:hyperdrive": "node scripts/dev-hyperdrive.cjs",
+    "dev:hyperdrive:once": "node scripts/dev-hyperdrive.cjs --no-watch",
+    "test:hyperdrive": "node scripts/overdrive/test/engine.test.cjs && node scripts/overdrive/test/landing.test.cjs && node scripts/overdrive/test/dev-hyperdrive.test.cjs"
   },
   "dependencies": {
     "express": "^4.21.0",
