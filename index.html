@@ -373,11 +373,17 @@ ul{list-style:none}
 
 /* DMF OVERDRIVE — hero composition */
 .hero{overflow-x:clip}
-.hero-copy{position:relative;z-index:1;transform:translate3d(0,var(--hero-copy-y,0px),0)}
-.hero-ghost{position:absolute;z-index:0;left:-1.5vw;top:50%;transform:translate3d(0,calc(-50% + var(--hero-ghost-y,0px)),0);font-family:'Anton',sans-serif;font-size:clamp(150px,29vw,470px);line-height:.8;letter-spacing:.01em;text-transform:uppercase;white-space:nowrap;color:transparent;-webkit-text-stroke:1px rgba(242,237,230,.055);pointer-events:none;-webkit-user-select:none;user-select:none}
+.hero-copy{position:relative;z-index:1;transform:translate3d(calc(var(--hero-px,0) * -3px),calc(var(--hero-copy-y,0px) + var(--hero-py,0) * -2px),0)}
+/* SIGNAL depth field: three outlines at different depths, parallax rates and warmth */
+.hero-ghost{position:absolute;z-index:0;left:-1.5vw;top:50%;transform:translate3d(calc(var(--hero-px,0) * -14px),calc(-50% + var(--hero-ghost-y,0px) + var(--hero-py,0) * -8px),0) scale(calc(1 + var(--dmf-wave,0) * .012));font-family:'Anton',sans-serif;font-size:clamp(150px,29vw,470px);line-height:.8;letter-spacing:.01em;text-transform:uppercase;white-space:nowrap;color:transparent;-webkit-text-stroke:1px rgba(242,237,230,calc(.055 + var(--dmf-wave,0) * .14));pointer-events:none;-webkit-user-select:none;user-select:none}
+.hero-ghost--2{transform:translate3d(calc(var(--hero-px,0) * -8px + 1.2vw),calc(-50% + var(--hero-ghost-y,0px) * .62 + var(--hero-py,0) * -5px + .9vw),0) scale(calc(1.02 + var(--dmf-wave,0) * .02));-webkit-text-stroke:1px rgba(255,91,30,calc(.035 + var(--dmf-wave,0) * .12))}
+.hero-ghost--3{transform:translate3d(calc(var(--hero-px,0) * -4px + 2.4vw),calc(-50% + var(--hero-ghost-y,0px) * .35 + var(--hero-py,0) * -3px + 1.8vw),0) scale(1.04);-webkit-text-stroke:1px rgba(242,237,230,.022)}
+.hero-plane{position:absolute;z-index:0;left:0;right:0;top:30%;height:30%;pointer-events:none;opacity:0;background:linear-gradient(90deg,transparent,rgba(255,91,30,.09) 44%,rgba(255,211,191,.13) 50%,rgba(255,91,30,.09) 56%,transparent) no-repeat;background-size:42% 100%;background-position:-70% 0}
+.hero h1{transform:scaleY(calc(1 - var(--dmf-impulse,0) * .01));transform-origin:0 100%}
 .hero h1 .hero-line{display:block;overflow:hidden;padding-top:.08em;margin-top:-.08em}
 .hero h1 .hero-line>span{display:block}
-.hero-img{z-index:1;transform:translate3d(0,var(--hero-img-y,0px),0)}
+.hero h1 .hc{display:inline-block}
+.hero-img{z-index:1;transform:translate3d(calc(var(--hero-px,0) * 6px),calc(var(--hero-img-y,0px) + var(--hero-py,0) * 4px),0)}
 .hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:18px 30px;margin-top:36px}
 .hero-cta{display:inline-flex;align-items:center;gap:14px;padding:18px 30px;background:#ff5b1e;color:#0a0806;font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.1em;text-transform:uppercase;transition:background .2s,transform .2s}
 .hero-cta:hover{background:#ff7a45;color:#0a0806;transform:translateY(-2px)}
@@ -418,8 +424,31 @@ ul{list-style:none}
 .dmf-choreo .is-in .section-title,.dmf-choreo .acad-title.is-in,.dmf-choreo .band.is-in .band-text p{clip-path:inset(-.1em 0 -.1em 0);transform:none}
 .dmf-choreo .band img,.dmf-choreo .fly-card-img img,.dmf-choreo .tips-img img{transform:scale(1.05);transition:transform 1.8s cubic-bezier(.2,.7,.2,1)}
 .dmf-choreo .band.is-in img,.dmf-choreo .fly-card.is-in .fly-card-img img,.dmf-choreo .tips-img.is-in img{transform:none}
-.dmf-choreo .section::before,.dmf-choreo .contact::before{content:'';position:absolute;left:0;top:-1px;width:clamp(80px,16vw,220px);height:1px;background:#ff5b1e;box-shadow:0 0 10px rgba(255,91,30,.5);transform:scaleX(0);transform-origin:left center;transition:transform 1.1s cubic-bezier(.7,0,.2,1) .15s;pointer-events:none}
-.dmf-choreo .section.is-in::before,.dmf-choreo .contact.is-in::before{transform:scaleX(1)}
+/* Continuous transitions: each divider draws with the section's scroll-linked entrance (--dmf-enter),
+   so the previous block's exit (--dmf-exit) hands the line to the next one. */
+.dmf-choreo .section::before,.dmf-choreo .contact::before{content:'';position:absolute;left:0;top:-1px;width:clamp(80px,16vw,220px);height:1px;background:#ff5b1e;box-shadow:0 0 calc(10px + var(--dmf-wave,0) * 18px) rgba(255,91,30,calc(.5 + var(--dmf-wave,0) * .4));transform:scaleX(calc(var(--dmf-enter,0) * (1 + var(--dmf-wave,0) * .35)));transform-origin:left center;transition:transform .15s linear;pointer-events:none}
+.dmf-choreo .section-head{transform:translate3d(0,calc(var(--dmf-exit,0) * -18px),0);opacity:calc(1 - var(--dmf-exit,0) * .35)}
+.dmf-choreo .dmf-signal-band.is-receiving .dmf-signal-arrival{animation:none;height:46%;transform-origin:top center;transform:scaleY(var(--dmf-enter,0));opacity:calc((1 - var(--dmf-enter,0)) * 4)}
+.tiers-grid{position:relative}
+.tiers-grid::before{content:'';position:absolute;left:0;right:0;top:-18px;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,#ff5b1e 50%,transparent);box-shadow:0 0 12px rgba(255,91,30,.4);transform:scaleX(var(--dmf-resolve,0));opacity:var(--dmf-resolve,0)}
+
+/* Wave events: letters answer one after another, a signal plane passes behind the name,
+   titles get a warm travelling highlight and a tiny tracking contraction. Warm, never white. */
+.hero.is-wave-a h1 .hc{animation:dmfHcA .6s cubic-bezier(.2,.7,.2,1) calc(var(--i) * 18ms) both}
+.hero.is-wave-b h1 .hc{animation:dmfHcB .6s cubic-bezier(.2,.7,.2,1) calc(var(--i) * 18ms) both}
+@keyframes dmfHcA{0%{transform:none;text-shadow:0 0 0 rgba(255,91,30,0)}28%{transform:translateY(calc(var(--wave-k,1) * -.045em)) scaleY(1.02);text-shadow:0 0 .14em rgba(255,91,30,calc(var(--wave-k,1) * .45))}100%{transform:none;text-shadow:0 0 0 rgba(255,91,30,0)}}
+@keyframes dmfHcB{0%{transform:none;text-shadow:0 0 0 rgba(255,91,30,0)}28%{transform:translateY(calc(var(--wave-k,1) * -.045em)) scaleY(1.02);text-shadow:0 0 .14em rgba(255,91,30,calc(var(--wave-k,1) * .45))}100%{transform:none;text-shadow:0 0 0 rgba(255,91,30,0)}}
+.hero.is-wave-a .hero-plane{animation:dmfPlaneA .9s cubic-bezier(.4,0,.2,1) both}
+.hero.is-wave-b .hero-plane{animation:dmfPlaneB .9s cubic-bezier(.4,0,.2,1) both}
+@keyframes dmfPlaneA{0%{background-position:-70% 0;opacity:0}18%{opacity:var(--wave-k,1)}100%{background-position:170% 0;opacity:0}}
+@keyframes dmfPlaneB{0%{background-position:-70% 0;opacity:0}18%{opacity:var(--wave-k,1)}100%{background-position:170% 0;opacity:0}}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  .dmf-choreo .is-in.is-wave-a .section-title,.dmf-choreo .is-in.is-wave-b .section-title{background:linear-gradient(100deg,currentColor 42%,#ffd9c9 50%,currentColor 58%) no-repeat;background-size:260% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .dmf-choreo .is-in.is-wave-a .section-title{animation:dmfTitleA .8s cubic-bezier(.4,0,.2,1) both}
+  .dmf-choreo .is-in.is-wave-b .section-title{animation:dmfTitleB .8s cubic-bezier(.4,0,.2,1) both}
+}
+@keyframes dmfTitleA{0%{background-position:100% 0;transform:none}35%{transform:scaleX(.992)}100%{background-position:0 0;transform:none}}
+@keyframes dmfTitleB{0%{background-position:100% 0;transform:none}35%{transform:scaleX(.992)}100%{background-position:0 0;transform:none}}
 .dmf-choreo .section.is-in .section-num{animation:dmfActivate 1.3s ease-out .4s both}
 @keyframes dmfActivate{0%{text-shadow:0 0 0 rgba(255,91,30,0)}30%{text-shadow:0 0 18px rgba(255,91,30,.85)}100%{text-shadow:0 0 0 rgba(255,91,30,0)}}
 
@@ -431,14 +460,14 @@ ul{list-style:none}
 .hero-cta,.acad-cta,.acad-cta-free{box-shadow:0 0 calc(var(--dmf-peak,0) * 26px) rgba(255,91,30,calc(var(--dmf-peak,0) * .5))}
 .tier-card.tier-featured{box-shadow:0 0 calc(40px + var(--dmf-low,0) * 26px) rgba(255,91,30,calc(.12 + var(--dmf-low,0) * .1)),0 20px 60px rgba(0,0,0,.3)}
 .tier-card.tier-featured .tier-cta{box-shadow:0 4px 16px rgba(255,91,30,.25),0 0 calc(var(--dmf-peak,0) * 24px) rgba(255,91,30,calc(var(--dmf-peak,0) * .45))}
-.signal-path::after{content:'';position:absolute;left:19px;top:0;width:2px;height:100%;background:linear-gradient(to bottom,#ffb599,#ff5b1e);box-shadow:0 0 10px rgba(255,91,30,.6);transform-origin:top center;transform:scaleY(var(--dmf-path,0));transition:transform .7s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+.signal-path::after{content:'';position:absolute;left:19px;top:0;width:2px;height:100%;background:linear-gradient(to bottom,#ffb599,#ff5b1e);box-shadow:0 0 10px rgba(255,91,30,.6);transform-origin:top center;transform:scaleY(max(var(--dmf-path,0),var(--dmf-path-scroll,0)));transition:transform .7s cubic-bezier(.2,.7,.2,1);pointer-events:none}
 .signal-node.is-live::before{background:#ff5b1e;border-color:#ff5b1e;box-shadow:0 0 calc(10px + var(--dmf-kick,0) * 16px) rgba(255,91,30,.55)}
 .signal-node.is-live .signal-node-state{color:#ff5b1e}
 .signal-node.is-live .signal-node-wave{opacity:.7}
 @media(max-width:600px){.signal-path::after{left:11px}}
 
 @media(prefers-reduced-motion:reduce){
-  .section::after,.contact::after{display:none}
+  .section::after,.contact::after,.hero-plane,.hero-ghost--2,.hero-ghost--3{display:none}
 }
 
 /* MOBILE */
@@ -447,6 +476,7 @@ ul{list-style:none}
   .hero-signal-v{left:50%}
   .hero-signal-label{right:calc(50% + 18px)}
   .hero-ghost{top:auto;bottom:16%;transform:translate3d(0,var(--hero-ghost-y,0px),0);font-size:36vw}
+  .hero-ghost--2,.hero-ghost--3{display:none}
   .nav-links .nav-link{display:none}
   .hamburger{display:flex}
   .nav-links.open .nav-link{display:block}
@@ -569,13 +599,16 @@ ul{list-style:none}
 
 <!-- HERO -->
 <header id="top" class="hero">
+  <div class="hero-ghost hero-ghost--3" aria-hidden="true">Signal</div>
+  <div class="hero-ghost hero-ghost--2" aria-hidden="true">Signal</div>
   <div class="hero-ghost" aria-hidden="true">Signal</div>
+  <div class="hero-plane" aria-hidden="true"></div>
   <div class="hero-copy">
     <div class="hero-kicker">
       <span class="hero-kicker-line"></span>
       <span class="hero-kicker-text">Press Kit — EPK</span>
     </div>
-    <h1 aria-label="Demian Muller"><span class="hero-line"><span>Demian</span></span><span class="hero-line"><span>Muller</span></span></h1>
+    <h1 aria-label="Demian Muller"><span class="hero-line" aria-hidden="true"><span><span class="hc" style="--i:0">D</span><span class="hc" style="--i:1">e</span><span class="hc" style="--i:2">m</span><span class="hc" style="--i:3">i</span><span class="hc" style="--i:4">a</span><span class="hc" style="--i:5">n</span></span></span><span class="hero-line" aria-hidden="true"><span><span class="hc" style="--i:6">M</span><span class="hc" style="--i:7">u</span><span class="hc" style="--i:8">l</span><span class="hc" style="--i:9">l</span><span class="hc" style="--i:10">e</span><span class="hc" style="--i:11">r</span></span></span></h1>
     <p class="hero-role" data-i18n="role">Electronic Artist · DJ · Live Act</p>
     <div class="hero-actions">
       <a href="#academy" class="hero-cta"><span data-i18n="heroCta">Enter DMF Academy</span><span aria-hidden="true">→</span></a>
@@ -1538,9 +1571,16 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fill();
         if(p.life>=p.ml||p.y<-r||p.x<-r||p.x>W+r) parts[j]=spawn(true);
       }
-      raf=requestAnimationFrame(frame);
     }
-    frame();
+    // Share the landing's single frame loop when the signal bus runs; otherwise keep a local loop.
+    function loop(){frame();raf=requestAnimationFrame(loop);}
+    function startSmoke(){
+      var hub=window.DMFSignal;
+      if(hub&&hub.onFrame&&!hub.reduced&&!hub.saveData) hub.onFrame(frame);
+      else loop();
+    }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',startSmoke,{once:true});
+    else startSmoke();
   })();
 
   // Init
@@ -1558,13 +1598,15 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 })();
 </script>
 <script>
-/* DMF OVERDRIVE — scroll choreography (reveal → tension → activation → release) and hero depth.
-   Native IntersectionObserver + rAF, transforms only. Content stays visible without JS or with reduced motion. */
+/* DMF HYPERDRIVE — scroll choreography, continuous scene transitions, wave response and hero depth.
+   Native IntersectionObserver + one-shot rAF on scroll; positions are cached, never measured per frame.
+   Content stays visible without JS or with reduced motion. */
 (function(){
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce || !('IntersectionObserver' in window)) return;
   document.documentElement.classList.add('dmf-choreo');
 
+  // 1. One-shot reveals: reveal → tension → activation → release.
   var io = new IntersectionObserver(function(entries){
     for (var i = 0; i < entries.length; i++) {
       if (entries[i].isIntersecting) {
@@ -1576,20 +1618,124 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   var els = document.querySelectorAll('.hero, .section, .contact, .band, .section-head, .acad-kicker, .acad-tag, .acad-title, .acad-sub, .acad-badge, .fly-card, .tips-img');
   for (var i = 0; i < els.length; i++) io.observe(els[i]);
 
+  // 2. Continuous scene transitions: --dmf-enter / --dmf-exit per block, academy path progress,
+  //    and the pricing resolve line. Doc positions come from IntersectionObserver rects.
   var hero = document.querySelector('.hero');
-  if (!hero) return;
-  var heroOn = false, ticking = false;
+  var scrollY = window.pageYOffset || 0;
+  var vh = window.innerHeight || 800;
+  var scenes = [];
+  var ticking = false;
+  function clamp01(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
+  function setVar(el, name, v){
+    v = Math.round(v * 1000) / 1000;
+    var cache = el.__sceneVals || (el.__sceneVals = {});
+    if (cache[name] !== v) { cache[name] = v; el.style.setProperty(name, v); }
+  }
+  var sceneIO = new IntersectionObserver(function(entries){
+    var y = window.pageYOffset || 0;
+    for (var i = 0; i < entries.length; i++) {
+      var el = entries[i].target;
+      el.__top = entries[i].boundingClientRect.top + y;
+      el.__h = entries[i].boundingClientRect.height || 1;
+      var idx = scenes.indexOf(el);
+      if (entries[i].isIntersecting) { if (idx < 0) scenes.push(el); }
+      else if (idx >= 0) scenes.splice(idx, 1);
+    }
+    request();
+  }, { rootMargin: '25% 0px' });
+  function observeScenes(){
+    var list = document.querySelectorAll('header.hero, .dmf-signal-band, .section, .contact, #modulesGrid, #tiersGrid');
+    for (var i = 0; i < list.length; i++) if (!list[i].__scene) { list[i].__scene = true; sceneIO.observe(list[i]); }
+  }
   function update(){
     ticking = false;
-    if (!heroOn) return;
-    var y = -hero.getBoundingClientRect().top;
-    hero.style.setProperty('--hero-ghost-y', (y * 0.22).toFixed(1) + 'px');
-    hero.style.setProperty('--hero-copy-y', (y * 0.06).toFixed(1) + 'px');
-    hero.style.setProperty('--hero-img-y', (y * -0.05).toFixed(1) + 'px');
+    for (var i = 0; i < scenes.length; i++) {
+      var el = scenes[i];
+      if (el.__top == null) continue;
+      var top = el.__top - scrollY;
+      var bottom = top + el.__h;
+      if (el.id === 'modulesGrid') { setVar(el, '--dmf-path-scroll', clamp01((vh * 0.62 - top) / el.__h)); continue; }
+      if (el.id === 'tiersGrid') { setVar(el, '--dmf-resolve', clamp01((vh * 0.95 - top) / (vh * 0.35))); continue; }
+      setVar(el, '--dmf-enter', clamp01((vh - top) / (vh * 0.8)));
+      setVar(el, '--dmf-exit', clamp01((vh * 0.5 - bottom) / (vh * 0.5)));
+      if (el === hero) {
+        var y = scrollY - el.__top;
+        el.style.setProperty('--hero-ghost-y', (y * 0.22).toFixed(1) + 'px');
+        el.style.setProperty('--hero-copy-y', (y * 0.06).toFixed(1) + 'px');
+        el.style.setProperty('--hero-img-y', (y * -0.05).toFixed(1) + 'px');
+      }
+    }
   }
   function request(){ if (!ticking) { ticking = true; requestAnimationFrame(update); } }
-  new IntersectionObserver(function(en){ heroOn = en[0].isIntersecting; if (heroOn) request(); }).observe(hero);
-  window.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('scroll', function(){ scrollY = window.pageYOffset || 0; request(); }, { passive: true });
+  var resizeTimer = 0;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function(){
+      vh = window.innerHeight || vh;
+      scrollY = window.pageYOffset || 0;
+      for (var i = 0; i < scenes.length; i++) {
+        var r = scenes[i].getBoundingClientRect();
+        scenes[i].__top = r.top + scrollY;
+        scenes[i].__h = r.height || 1;
+      }
+      request();
+    }, 200);
+  });
+  observeScenes();
+  window.addEventListener('load', observeScenes);
+  setTimeout(observeScenes, 1500);
+
+  // 3. Global signal wave: the bus announces meaningful pulses; typography answers when the front arrives.
+  window.addEventListener('dmf:wave', function(e){
+    var d = e.detail || {};
+    if ((d.strength || 0) < 0.5) return;
+    var k = Math.min(1, d.strength);
+    for (var i = 0; i < scenes.length; i++) {
+      var el = scenes[i];
+      if (el !== hero && !(el.classList.contains('section') && el.classList.contains('is-in'))) continue;
+      var delay = d.delayFor ? d.delayFor(el) : 0;
+      if (delay > 1.4) continue;
+      setTimeout(fireWave.bind(null, el, k), delay * 1000);
+    }
+  });
+  function fireWave(el, k){
+    var next = el.__wave === 'is-wave-a' ? 'is-wave-b' : 'is-wave-a';
+    el.classList.remove('is-wave-a', 'is-wave-b');
+    el.style.setProperty('--wave-k', k.toFixed(2));
+    el.classList.add(next);
+    el.__wave = next;
+    clearTimeout(el.__waveTimer);
+    el.__waveTimer = setTimeout(function(){ el.classList.remove(next); }, 1300);
+  }
+
+  // 4. Hero depth from the pointer — desktop fine pointers only, inertia on the shared frame loop.
+  var fine = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (!hero || !fine) return;
+  var tx = 0, ty = 0, px = 0, py = 0, shownX = 0, shownY = 0;
+  hero.addEventListener('pointermove', function(e){
+    tx = (e.clientX / (window.innerWidth || 1) - 0.5) * 2;
+    ty = (e.clientY / vh - 0.5) * 2;
+  });
+  hero.addEventListener('pointerleave', function(){ tx = 0; ty = 0; });
+  function attach(){
+    var hub = window.DMFSignal;
+    if (!hub || !hub.onFrame) return;
+    hub.onFrame(function(s, dt){
+      if (scenes.indexOf(hero) < 0) return;
+      var k = 1 - Math.exp(-dt * 4);
+      px += (tx - px) * k;
+      py += (ty - py) * k;
+      if (Math.abs(px - shownX) > 0.002 || Math.abs(py - shownY) > 0.002) {
+        shownX = px;
+        shownY = py;
+        hero.style.setProperty('--hero-px', px.toFixed(3));
+        hero.style.setProperty('--hero-py', py.toFixed(3));
+      }
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', attach, { once: true });
+  else attach();
 })();
 </script>
 </body>
