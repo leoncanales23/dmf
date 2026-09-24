@@ -98,11 +98,13 @@ jobs:
           grep -q 'Student Access' public/index.html
           grep -q 'dmfTraining' firebase.json
 
-      - name: Validate DMF Overdrive engine and landing
+      - name: Validate DMF Overdrive engine, landing and dev launcher
         run: |
           for f in scripts/overdrive/*.js; do node --check "$f"; done
+          node --check scripts/dev-hyperdrive.cjs
           node scripts/overdrive/test/engine.test.cjs
           node scripts/overdrive/test/landing.test.cjs
+          node scripts/overdrive/test/dev-hyperdrive.test.cjs
 
   validate-academy:
     runs-on: ubuntu-latest
