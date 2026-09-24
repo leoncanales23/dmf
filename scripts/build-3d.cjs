@@ -150,7 +150,10 @@ const headInjection = `${HEAD_MARKER}
 /* SPATIAL STAGE (V4): the one canvas lives in a fixed layer behind the page; the relic band becomes a
    transparent window onto it. Fullscreen LIVE SIGNAL, LITE and reduced motion keep the canvas in the band. */
 .dmf-stage-layer{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;overflow:hidden;contain:strict;-webkit-mask-image:linear-gradient(to bottom,transparent calc(var(--dmf-stage-top,0px) - 90px),#000 var(--dmf-stage-top,0px),#000 var(--dmf-stage-bottom,100vh),transparent calc(var(--dmf-stage-bottom,100vh) + 90px));mask-image:linear-gradient(to bottom,transparent calc(var(--dmf-stage-top,0px) - 90px),#000 var(--dmf-stage-top,0px),#000 var(--dmf-stage-bottom,100vh),transparent calc(var(--dmf-stage-bottom,100vh) + 90px))}
+.dmf-stage-layer{inset:0 0 auto 0;height:100vh;height:100lvh}
 .dmf-stage-layer canvas{position:absolute;inset:0;display:block;width:100%!important;height:100%!important}
+/* WebKit / no-mask fallback: a hard-edged clip of the same band-following window. */
+.dmf-stage-layer.dmf-stage-clip{-webkit-mask-image:none;mask-image:none;-webkit-clip-path:inset(max(0px,var(--dmf-stage-top,0px)) 0 max(0px,calc(100% - var(--dmf-stage-bottom,100%))) 0);clip-path:inset(max(0px,var(--dmf-stage-top,0px)) 0 max(0px,calc(100% - var(--dmf-stage-bottom,100%))) 0)}
 .dmf-signal-band.is-staged,.dmf-signal-band.is-staged .dmf-signal-visual:not(.is-fullscreen){background:transparent}
 .dmf-signal-band.is-staged .dmf-signal-copy{position:relative;z-index:1;background:linear-gradient(90deg,#060505 78%,rgba(6,5,5,0))}
 @media(max-width:900px){.dmf-signal-band.is-staged .dmf-signal-copy{background:linear-gradient(180deg,#060505 85%,rgba(6,5,5,0))}}

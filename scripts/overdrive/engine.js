@@ -306,30 +306,73 @@
     return this.state;
   };
 
-  // One-way quality downgrade from rolling FPS; never upgrades, so tiers cannot oscillate.
+  // One-way quality governor from a rolling frame budget; never upgrades, so tiers cannot oscillate.
+  // Stage-aware: the V4 full-viewport stage gets a stricter budget than the relic band. A window only
+  // counts as pressure when the average frame is over budget AND most frames are over budget, so isolated
+  // spikes (GC, a decode) never downgrade. Pressure must hold for `sustain` consecutive windows. Gaps
+  // (> 250 ms: background tab, offscreen) reset the window, and pause() adds a grace window after a
+  // tab returns, so a hidden tab can never cost quality. Preallocated state only; no per-frame garbage.
+  var BUDGET_MS = {
+    band: { high: 1000 / 35, balanced: 1000 / 24 },
+    stage: { high: 1000 / 45, balanced: 1000 / 30 }
+  };
+  var NEXT_TIER = { high: 'balanced', balanced: 'lite' };
   function DMFPerformanceGovernor(tier, opts) {
     opts = opts || {};
     this.tier = tier;
+    this.mode = opts.mode === 'stage' ? 'stage' : 'band';
     this.window = opts.window || 3;
+    this.sustain = opts.sustain || 2;
     this.acc = 0;
     this.frames = 0;
+    this.over = 0;
     this.windows = 0;
+    this.grace = 0;
+    this.pressure = 0;
     this.fps = 60;
+    this.frameMs = 1000 / 60;
+    this.overRatio = 0;
+    this.downgrades = 0;
   }
-
+  DMFPerformanceGovernor.prototype.setMode = function (mode) {
+    mode = mode === 'stage' ? 'stage' : 'band';
+    if (mode === this.mode) return;
+    this.mode = mode;
+    this.acc = 0; this.frames = 0; this.over = 0; this.pressure = 0;
+  };
+  DMFPerformanceGovernor.prototype.budget = function () {
+    var b = BUDGET_MS[this.mode][this.tier];
+    return b || 0;
+  };
+  // Tab hidden / page frozen: drop the partial window and ignore the first full one after return.
+  DMFPerformanceGovernor.prototype.pause = function () {
+    this.acc = 0; this.frames = 0; this.over = 0; this.pressure = 0;
+    this.grace = 1;
+  };
   DMFPerformanceGovernor.prototype.sample = function (realDt) {
-    if (realDt > 0.25) { this.acc = 0; this.frames = 0; return null; }
+    if (realDt > 0.25) { this.acc = 0; this.frames = 0; this.over = 0; return null; }
+    var budget = this.budget();
     this.acc += realDt;
     this.frames++;
+    if (budget && realDt * 1000 > budget) this.over++;
     if (this.acc < this.window) return null;
     this.fps = this.frames / this.acc;
+    this.frameMs = this.acc * 1000 / this.frames;
+    this.overRatio = this.over / this.frames;
     this.acc = 0;
     this.frames = 0;
+    this.over = 0;
     this.windows++;
-    if (this.windows < 2) return null;
-    if (this.tier === 'high' && this.fps < 35) { this.tier = 'balanced'; return 'balanced'; }
-    if (this.tier === 'balanced' && this.fps < 24) { this.tier = 'lite'; return 'lite'; }
-    return null;
+    if (this.windows < 2) return null;          // first window: shader compile / warm-up
+    if (this.grace > 0) { this.grace--; return null; }
+    if (!budget) return null;                   // lite is the floor
+    var pressured = this.frameMs > budget && this.overRatio > 0.5;
+    this.pressure = pressured ? this.pressure + 1 : 0;
+    if (this.pressure < this.sustain) return null;
+    this.pressure = 0;
+    this.tier = NEXT_TIER[this.tier];
+    this.downgrades++;
+    return this.tier;
   };
 
   // HYPERDRIVE MOMENT — a finite 2-4 s cinematic event, never a state.

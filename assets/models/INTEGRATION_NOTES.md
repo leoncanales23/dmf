@@ -133,6 +133,12 @@ force, kinetic bodies supply the motion.
   travelling down the frames. HIGH full, BALANCED half, LITE none.
 - Compact (phones): centred upper-third docking, gentler camera, quieter
   presence, 60 % TRANSIT amplitude; native scroll, no pointer effects.
+- V4.1 hardening: the governor is stage-aware (stricter frame budget on the
+  full-viewport stage, majority-of-frames pressure for 2 consecutive windows,
+  one way only, hidden tabs never count); the stage mask falls back from
+  `mask-image` to `-webkit-mask-image` to a `clip-path` window, and to the V3
+  band when none exists; the layer uses `100lvh` so mobile toolbars never
+  resize the canvas. Language is read from `<html lang>` by every component.
 - Debug: `stageAct`, `stageProgress`, `stageTransition`, `scrollVelocity`,
   `scrollAcceleration`, `cameraJourney`, `receiverStageDepth`,
   `portalIntensity`, `spatialVelocity`, `spatialTier`, `drawCalls`,

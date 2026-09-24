@@ -17,6 +17,7 @@
   var listeners = [];
 
   var hyper = new O.DMFHyperdrive();
+  var lastPulse = -1e9;
   // KINETIC SINGULARITY: one force matrix for everything that moves, and the rare finite event above HYPERDRIVE.
   var forces = new KN.DMFForceMatrix();
   var sing = new KN.DMFSingularity();
@@ -59,6 +60,15 @@
       sing.arm(withSingularity);
     },
     onFrame: function (fn) { listeners.push(fn); },
+    // A page element can send one bounded pulse through the landing (e.g. the Student Access gate on
+    // hover). Rate limited, and a no-op without the live clock (reduced motion, Save-Data).
+    pulse: function (originDocY) {
+      var now = performance.now();
+      if (!hub.running || now - lastPulse < 1500) return false;
+      lastPulse = now;
+      emitWave(0.5, false, originDocY);
+      return true;
+    },
     attachAudio: attachAudio,
     scan: scan
   };

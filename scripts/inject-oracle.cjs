@@ -107,8 +107,7 @@ const bodyInjection = `${BODY_MARKER}
   };
 
   function lang(){
-    var btn=document.querySelector('.lang-btn');
-    return btn && btn.textContent.trim().toUpperCase()==='EN' ? 'es':'en';
+    return String(document.documentElement.lang||'es').toLowerCase().indexOf('en')===0 ? 'en':'es';
   }
 
   function profile(){
