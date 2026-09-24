@@ -4,8 +4,8 @@
   var RELIC_BPM = 124;
 
   function getLang() {
-    var btn = document.querySelector('.lang-btn');
-    return btn && btn.textContent.trim().toUpperCase() === 'EN' ? 'es' : 'en';
+    // Single source of truth: the page sets <html lang> (es default, en when chosen).
+    return String(document.documentElement.lang || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
   }
 
   function mountDMFSignal() {
@@ -160,7 +160,19 @@
     var ST = window.DMFStage;
     var stageHub = hub.stage;
     var stage = stageHub && stageHub.director;
-    var stageEligible = !reduceMotion && quality !== 'static' && !!ST && !!stage;
+    // WebKit safety: the band-following mask needs mask-image (or -webkit-mask-image); clip-path inset is a
+    // hard-edged fallback; with none of them the stage stays off and the Receiver keeps the V3 band layout.
+    function stageMaskMode() {
+      var CS = window.CSS;
+      if (!CS || !CS.supports) return 'none';
+      var g = 'linear-gradient(to bottom, transparent calc(20px - 10px), #000 20px)';
+      if (CS.supports('mask-image', g)) return 'mask';
+      if (CS.supports('-webkit-mask-image', g)) return 'webkit-mask';
+      if (CS.supports('clip-path', 'inset(1px 0px 1px 0px)') || CS.supports('-webkit-clip-path', 'inset(1px 0px 1px 0px)')) return 'clip';
+      return 'none';
+    }
+    var maskMode = stageMaskMode();
+    var stageEligible = !reduceMotion && quality !== 'static' && !!ST && !!stage && maskMode !== 'none';
     var compactStage = window.innerWidth < 768 || touch;
     if (stage) stage.setCompact(compactStage);
     var follower = ST ? new ST.DMFStageFollower() : null;
@@ -1194,6 +1206,8 @@
       var nowCompact = vw < 768 || touch;
       if (nowCompact !== compactStage) { compactStage = nowCompact; if (stage) stage.setCompact(compactStage); }
       if (staged) {
+        // The layer is sized to the large viewport (100lvh), so mobile toolbars never resize the canvas.
+        vh = (stageLayer && stageLayer.clientHeight) || vh;
         w = vw;
         h = vh;
         renderer.setSize(w, h);
@@ -1209,7 +1223,16 @@
       // A layout change re-frames the camera; it is not motion, so the velocity field restarts from here.
       camPrevSet = false;
     }
-    window.addEventListener('resize', requestResize);
+    var lastResizeW = window.innerWidth;
+    window.addEventListener('resize', function () {
+      var nw = window.innerWidth;
+      // iOS / Android toolbars change only the height while scrolling: not a layout change for the stage.
+      if (touch && staged && nw === lastResizeW) return;
+      lastResizeW = nw;
+      requestResize();
+    });
+    // A hidden tab never costs quality: the governor drops its window and skips the first one back.
+    document.addEventListener('visibilitychange', function () { if (document.hidden) governor.pause(); });
 
     var staticMode = false;
     function renderStatic() {
@@ -1655,7 +1678,7 @@
       if (on) {
         if (!stageLayer) {
           stageLayer = document.createElement('div');
-          stageLayer.className = 'dmf-stage-layer';
+          stageLayer.className = 'dmf-stage-layer dmf-stage-' + maskMode;
           stageLayer.setAttribute('aria-hidden', 'true');
           document.body.insertBefore(stageLayer, document.body.firstChild);
         }
@@ -1673,6 +1696,7 @@
       }
       stageHub.spatialTier = on ? 'stage-' + quality : (fsActive ? 'fullscreen' : 'band');
       stageHub.originY = -1;
+      governor.setMode(on ? 'stage' : 'band');
       var range = tierRange(quality);
       renderScaler.setRange(range[0], range[1]);
       renderScale = Math.min(window.devicePixelRatio || 1, renderScaler.scale);
@@ -1879,6 +1903,13 @@
       if (perf) {
         perf.drawCalls = renderer.info.render.calls;
         perf.triangles = renderer.info.render.triangles;
+        perf.governorMode = governor.mode;
+        perf.governorTier = governor.tier;
+        perf.frameMs = governor.frameMs;
+        perf.frameBudgetMs = governor.budget();
+        perf.frameOverRatio = governor.overRatio;
+        perf.governorPressure = governor.pressure;
+        perf.stageMask = maskMode;
       }
     }
   }
