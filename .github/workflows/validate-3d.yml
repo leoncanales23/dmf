@@ -76,6 +76,8 @@ jobs:
           grep -q 'function DMFSignalEngine(' public/index.html
           grep -q 'DMFCameraRig' public/index.html
           grep -q 'dmf-live-hud' public/index.html
+          grep -q 'function DMFHyperdrive(' public/index.html
+          grep -q "dmf:wave" public/index.html
           grep -q "classList.add('dmf-choreo')" public/index.html
           grep -q 'DMF_CODEX_HEAD' public/index.html
           grep -q 'dmf-initiation-protocol' public/index.html
