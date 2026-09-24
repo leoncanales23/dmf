@@ -106,6 +106,7 @@ function verifyRuntimeAssets() {
     'assets/models/dmf-studio-optimized.glb',
     'assets/models/DMF_RELIC_01.3mf',
     'scripts/overdrive/engine.js',
+    'scripts/overdrive/kinetic.js',
     'scripts/overdrive/signal-bus.js',
     'scripts/overdrive/relic.js'
   ];
