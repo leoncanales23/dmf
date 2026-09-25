@@ -591,8 +591,8 @@ ul{list-style:none}
 
 /* Z0 — the field: a fixed light falloff and nine sparse specks behind everything. */
 .eh-field{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden;opacity:calc(.3 + var(--eh-light,1) * .7 * (1 - var(--eh-calm,0) * .65))}
-.eh-field::before{content:'';position:absolute;left:-20%;top:-10%;width:90%;height:80%;background:radial-gradient(50% 50% at 50% 50%,rgba(255,91,30,.045),transparent 70%);opacity:calc(.55 + var(--eh-energy,0) * .45);transform:translate3d(calc(var(--eh-scroll,0) * 40vw),calc(var(--eh-depth,0) * 6px),0)}
-.eh-field i{position:absolute;left:var(--x);top:var(--y);width:2px;height:2px;border-radius:50%;background:#ffb08a;opacity:calc(.1 + var(--eh-high,0) * .35);transform:translate3d(0,calc(var(--eh-scroll,0) * var(--p) * -55vh),0)}
+.eh-field::before{content:'';position:absolute;left:-20%;top:-10%;width:90%;height:80%;background:radial-gradient(50% 50% at 50% 50%,rgba(255,91,30,.045),transparent 70%);opacity:calc(.55 + var(--eh-energy,0) * .45);transform:translate3d(calc(var(--eh-scroll,0) * 40vw - var(--eh-pan,0) * 9px),calc(var(--eh-depth,0) * 6px - var(--eh-tilt,0) * 6px),0) rotate(calc(var(--eh-roll,0) * 1deg)) scale(calc(1 - var(--eh-dolly,0) * .8))}
+.eh-field i{position:absolute;left:var(--x);top:var(--y);width:2px;height:2px;border-radius:50%;background:#ffb08a;opacity:calc(.1 + var(--eh-high,0) * .35);transform:translate3d(calc(var(--eh-pan,0) * var(--p) * -12px),calc(var(--eh-scroll,0) * var(--p) * -55vh - var(--eh-tilt,0) * 3px),0)}
 .eh-field i:nth-child(3n){width:1px;height:1px}
 .eh-tier-balanced .eh-field i:nth-child(n+6),.eh-compact .eh-field i:nth-child(n+5),.eh-tier-lite .eh-field i:nth-child(n+4),.eh-tier-static .eh-field i:nth-child(n+4){display:none}
 
@@ -605,9 +605,9 @@ ul{list-style:none}
 /* STAGE AWAKENING — black → orange signal → reflections → silhouette → speaker depth → rim light →
    typography → reactive. ~2.2 s, once per visit, never blocks scrolling. */
 .concert-logo-wrap{isolation:isolate}
-.eh-halo{position:absolute;inset:-22% -14%;z-index:-1;pointer-events:none;background:radial-gradient(50% 50% at 50% 50%,rgba(255,91,30,.2),transparent 70%);opacity:calc(.5 + var(--eh-energy,0) * .3 + var(--eh-kick,0) * .2);transform:scale(calc(1 + var(--eh-depth,0) * .025))}
+.eh-halo{position:absolute;inset:-22% -14%;z-index:-1;pointer-events:none;background:radial-gradient(50% 50% at 50% 50%,rgba(255,91,30,.2),transparent 70%);opacity:calc(.5 + var(--eh-energy,0) * .3 + var(--eh-kick,0) * .2 + var(--eh-moment,0) * .35);transform:scale(calc(1 + var(--eh-depth,0) * .025 + var(--eh-moment,0) * .05))}
 .eh-signal{position:absolute;left:32%;right:32%;top:50%;z-index:2;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,#ff5b1e 30%,#ffc9ae 50%,#ff5b1e 70%,transparent);opacity:0;transform:scaleX(.004)}
-.eh-floor{position:absolute;left:12%;right:12%;top:62%;height:34%;z-index:0;pointer-events:none;background:radial-gradient(50% 36% at 50% 34%,rgba(255,91,30,.13),transparent 100%);opacity:calc(.6 + var(--eh-low,0) * .4);transform:scaleY(calc(1 + var(--eh-depth,0) * .06));transform-origin:50% 0}
+.eh-floor{position:absolute;left:12%;right:12%;top:62%;height:34%;z-index:0;pointer-events:none;background:radial-gradient(50% 36% at 50% 34%,rgba(255,91,30,.13),transparent 100%);opacity:calc(.55 + var(--eh-press,0) * .35 + var(--eh-moment,0) * .3);transform:scaleY(calc(1 + var(--eh-depth,0) * .06 + var(--eh-moment,0) * .1));transform-origin:50% 0}
 html.eh-wake .eh-signal{animation:ehSignal 1.3s cubic-bezier(.5,0,.2,1) .12s both}
 html.eh-wake .eh-floor{animation:ehFade .9s ease-out .32s both}
 html.eh-wake .concert-stage{animation:ehFade 1s ease-out .4s both}
@@ -639,7 +639,7 @@ html.eh-woken .concert-logo-wrap,html.eh-woken .concert-tagline{animation:none}
 .eh-cone{position:relative;display:block;border-radius:50%;background:radial-gradient(circle,#070605 0 16%,#1d1714 17% 20%,#0e0b09 21% 60%,#221b17 62% 65%,#0c0a08 66%);box-shadow:inset 0 0 0 1px rgba(242,237,230,.045)}
 .eh-cone::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:1px solid rgba(255,91,30,.55);opacity:calc(var(--eh-kick,0) * .55)}
 .eh-cone--hf{width:44%;aspect-ratio:1;transform:scale(calc(1 + var(--eh-kick,0) * .012))}
-.eh-cone--lf{width:78%;aspect-ratio:1;transform:scale(calc(1 + var(--eh-low,0) * .03))}
+.eh-cone--lf{width:78%;aspect-ratio:1;transform:scale(calc(1 + var(--eh-press,0) * .03 + var(--eh-moment,0) * .02))}
 /* Phones: not the desktop minus effects — two low monitors cropped by the frame edges, below the logo. */
 @media(max-width:700px){
   .eh-stack{width:64px;height:24vh;bottom:4%;padding:8% 0;transform:translate3d(0,calc(var(--eh-depth,0) * 1px),0)}
@@ -649,25 +649,25 @@ html.eh-woken .concert-logo-wrap,html.eh-woken .concert-tagline{animation:none}
 }
 
 /* Z3 — visual assets drift against the scroll; a rim of DMF orange follows the mids on the hero portrait. */
-.fly-card,.tips-img{translate:0 calc(var(--eh-rel,0) * var(--eh-z3))}
+.fly-card,.tips-img{translate:calc(var(--eh-pan,0) * 7px * var(--eh-zk,1)) calc(var(--eh-rel,0) * var(--eh-z3) * var(--eh-zk,1) + var(--eh-tilt,0) * 5px * var(--eh-zk,1))}
 .hero-img::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(255,91,30,.2),transparent 16%),linear-gradient(0deg,rgba(255,91,30,.08),transparent 22%);opacity:calc(.25 + var(--eh-mid,0) * .5 + var(--eh-energy,0) * .25)}
 
 /* Z5 — shared reflection language: one warm specular band per framed image, travelling with the block
    through the viewport, nudged by the pointer, brighter on HIGH and on fast scroll. Never a mirror. */
 .eh-sheen{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-.eh-sheen::before{content:'';position:absolute;top:-20%;bottom:-20%;left:0;width:36%;background:linear-gradient(90deg,transparent,rgba(255,214,192,.06) 42%,rgba(255,232,220,.1) 50%,rgba(255,214,192,.06) 58%,transparent);opacity:calc(.35 + var(--eh-high,0) * .5 + var(--eh-speed,0) * .7);transform:translate3d(calc(var(--eh-sheen,.5) * 380% - 140%),0,0) skewX(-16deg);will-change:transform}
+.eh-sheen::before{content:'';position:absolute;top:-20%;bottom:-20%;left:0;width:36%;background:linear-gradient(90deg,transparent,rgba(255,214,192,.06) 42%,rgba(255,232,220,.1) 50%,rgba(255,214,192,.06) 58%,transparent);opacity:calc(.35 + var(--eh-high,0) * .5 + var(--eh-speed,0) * .7);transform:translate3d(calc((var(--eh-lx,.5) - var(--eh-l,0)) / var(--eh-w,1) * 277.8% - 50%),0,0) skewX(-16deg);will-change:transform}
 .eh-tier-lite .eh-sheen,.eh-tier-static .eh-sheen{display:none}
 
 /* Z4 — typography as material: titles sit slightly forward of the copy, compress a few percent with scroll
    inertia, and split into an orange echo for an instant when their section arrives through a gate. */
-.section-title,.acad-title{translate:0 calc(var(--eh-rel,0) * var(--eh-z4));scale:1 calc(1 - var(--eh-speed,0) * .03);text-shadow:calc(var(--eh-split,0) * 7px) 0 0 rgba(255,91,30,calc(var(--eh-split,0) * .4)),calc(var(--eh-split,0) * -4px) 0 0 rgba(242,237,230,calc(var(--eh-split,0) * .1))}
+.section-title,.acad-title{transform-origin:0 50%;translate:calc(var(--eh-pan,0) * 4px * var(--eh-zk,1)) calc(var(--eh-rel,0) * var(--eh-z4) * var(--eh-zk,1) + var(--eh-vel,0) * 5px);scale:calc(1 - var(--eh-speed,0) * .025) 1;text-shadow:calc(var(--eh-split,0) * 7px) 0 0 rgba(255,91,30,calc(var(--eh-split,0) * .4)),calc(var(--eh-split,0) * -4px) 0 0 rgba(242,237,230,calc(var(--eh-split,0) * .1)),0 -1px 0 rgba(255,214,190,calc(var(--eh-high,0) * .22))}
 
 /* POINTER FIELD — CTAs and the logo lean ≤3 px toward a fine pointer; touch never depends on it. */
 .hero-cta,.hero-cta-2,.tier-cta,.lab-gate,.tips-cta,.acad-cta,.acad-cta-free,.dmf-signal-cta,.nav-logo{translate:calc(var(--eh-mx,0) * 1px) calc(var(--eh-my,0) * 1px)}
 
 /* CTA CONVERGENCE — as the offer arrives the spectacle steps back and the cards gain contrast. */
 .tier-card{transition:border-color .3s,transform .3s,box-shadow .3s,background-color .6s}
-html.eh-calm .tier-card{background-color:rgba(10,8,6,.8)}
+html.eh-calm .tier-card{background-color:rgba(10,8,6,.9)}
 html.eh-calm .eh-sheen::before{opacity:.2}
 
 /* Reduced motion: the composition stays, the choreography goes. */
@@ -678,13 +678,49 @@ html.eh-calm .eh-sheen::before{opacity:.2}
   .eh-signal,.eh-gate{display:none}
   .fly-card,.tips-img,.section-title,.acad-title{translate:none;scale:none}
 }
+
+/* ===================================================================================================
+   EVENT HORIZON V2 — SPATIAL NARRATIVE (scripts/overdrive/spatial-narrative.js)
+   "The page is not scrolling. The stage is moving around you."
+   The director's camera (--eh-pan / --eh-tilt in degrees, --eh-dolly, --eh-zk = the section's depth
+   authority) moves the planes of the PR77 vocabulary, never the copy: Z0 drifts against the camera,
+   Z1 a little, Z3 and Z4 with it. Hard limits live in the director (pan ±1.2°, tilt ±0.8°, roll ±0.25°,
+   dolly ±2.5%); here they become a few pixels at most.
+   =================================================================================================== */
+/* Z1 architecture */
+.hero-ghost{translate:calc(var(--eh-pan,0) * -6px) calc(var(--eh-tilt,0) * -4px)}
+/* Z3 visual: the portrait takes the hero dolly-in; frames pass through one space in releases / DJ */
+.hero-img{translate:calc(var(--eh-pan,0) * 5px * var(--eh-zk,1)) calc(var(--eh-tilt,0) * 4px * var(--eh-zk,1))}
+.hero-img img{scale:calc(1 + max(0, var(--eh-dolly,0)))}
+.band img{scale:calc(1 + max(0, var(--eh-dolly,0)) * .8)}
+.release-card,.set-card{position:relative;overflow:hidden;translate:calc(var(--eh-pan,0) * 5px * var(--eh-zk,1)) 0}
+.label-item{translate:calc(var(--eh-pan,0) * 3px * var(--eh-zk,1)) 0}
+/* The logo hears the hero moment and pointer gravity only */
+.concert-logo-wrap{scale:calc(1 + var(--eh-moment,0) * .012);translate:calc(var(--eh-gx,0) * 3px) calc(var(--eh-gy,0) * 2px)}
+.eh-stack{translate:0 calc(var(--eh-moment,0) * 1px)}
+
+/* Z5 AFTERIMAGE — the section left behind leaves one outlined trace behind the content (350–650 ms),
+   drifting up while the next section absorbs it. One element, reused; never into the offer. */
+.eh-after{display:none;position:absolute;left:5vw;top:30vh;max-width:90vw;overflow:hidden;font-family:'Anton',sans-serif;font-size:clamp(64px,12vw,200px);line-height:.95;text-transform:uppercase;white-space:nowrap;color:transparent;-webkit-text-stroke:1px rgba(255,91,30,.55);opacity:var(--eh-after,0);transform:translate3d(0,calc((1 - var(--eh-after,0)) * -34px),0) scale(calc(1.04 - var(--eh-after,0) * .04));transform-origin:0 50%}
+.eh-after::after{content:'';position:absolute;left:0;right:0;bottom:2px;height:1px;background:linear-gradient(90deg,#ff5b1e,transparent);transform:scaleX(var(--eh-after,0));transform-origin:0 50%}
+.eh-field.eh-after-on .eh-after{display:block}
+.eh-calm .eh-after,.eh-still .eh-after,.eh-tier-lite .eh-after,.eh-tier-static .eh-after{display:none!important}
+
+/* CONVERSION SANCTUARY — in the offer nothing competes with buying: titles hold still, cards read first. */
+html.eh-calm .section-title,html.eh-calm .acad-title{scale:none}
+html.eh-calm .tier-card{border-color:rgba(242,237,230,.2)}
+
+@media(prefers-reduced-motion:reduce){
+  .hero-ghost,.hero-img,.hero-img img,.band img,.release-card,.set-card,.label-item,.concert-logo-wrap,.eh-stack{translate:none;scale:none}
+  .eh-after{display:none}
+}
 </style>
 </head>
 <body>
 
 <canvas id="smoke-canvas"></canvas>
 <div class="radial-overlay"></div>
-<div class="eh-field" aria-hidden="true"><i style="--x:12%;--y:22%;--p:.2"></i><i style="--x:84%;--y:14%;--p:.45"></i><i style="--x:67%;--y:61%;--p:.3"></i><i style="--x:27%;--y:78%;--p:.6"></i><i style="--x:91%;--y:83%;--p:.15"></i><i style="--x:46%;--y:9%;--p:.5"></i><i style="--x:6%;--y:52%;--p:.35"></i><i style="--x:58%;--y:36%;--p:.25"></i><i style="--x:36%;--y:47%;--p:.4"></i><span class="eh-gate"></span></div>
+<div class="eh-field" aria-hidden="true"><i style="--x:12%;--y:22%;--p:.2"></i><i style="--x:84%;--y:14%;--p:.45"></i><i style="--x:67%;--y:61%;--p:.3"></i><i style="--x:27%;--y:78%;--p:.6"></i><i style="--x:91%;--y:83%;--p:.15"></i><i style="--x:46%;--y:9%;--p:.5"></i><i style="--x:6%;--y:52%;--p:.35"></i><i style="--x:58%;--y:36%;--p:.25"></i><i style="--x:36%;--y:47%;--p:.4"></i><span class="eh-gate"></span><span class="eh-after"></span></div>
 
 
 <!-- CONCERT INTRO -->
@@ -1493,7 +1529,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   function renderReleases(){
     var g=document.getElementById('releasesGrid');
     g.innerHTML=releases.map(function(r){
-      return '<div class="release-card"><div class="release-head"><span class="release-label">'+r.label+'</span><span class="release-tag">'+r.tag+'</span></div><div class="release-title">'+r.title+'</div><div class="release-embed"><iframe src="'+r.embed+'" scrolling="no" allow="autoplay" loading="lazy"></iframe></div></div>';
+      return '<div class="release-card"><span class="eh-sheen" aria-hidden="true"></span><div class="release-head"><span class="release-label">'+r.label+'</span><span class="release-tag">'+r.tag+'</span></div><div class="release-title">'+r.title+'</div><div class="release-embed"><iframe src="'+r.embed+'" scrolling="no" allow="autoplay" loading="lazy"></iframe></div></div>';
     }).join('');
   }
 
@@ -1507,7 +1543,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   function renderSets(){
     var g=document.getElementById('setsGrid');
     g.innerHTML=sets.map(function(s){
-      return '<div class="set-card"><iframe src="'+s.embed+'" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe><div class="set-info"><div class="set-title">'+s.title+'</div><div class="set-meta">'+s.meta+'</div></div></div>';
+      return '<div class="set-card"><span class="eh-sheen" aria-hidden="true"></span><iframe src="'+s.embed+'" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe><div class="set-info"><div class="set-title">'+s.title+'</div><div class="set-meta">'+s.meta+'</div></div></div>';
     }).join('');
   }
 

@@ -152,7 +152,7 @@
       var drive = { lift: 0, scale: 0, punch: 0, punchV: 0, mid: 0, high: 0, energy: 0.3, halo: 0 };
       var ptr = { x: 0, y: 0, yaw: 0, pitch: 0 };
       // Event Horizon layer: section focus (dolly, edge light), scroll inertia (lean), hover focus.
-      var stage = { focus: 0, dolly: 0, lean: 0, hover: 0, hoverTarget: 0 };
+      var stage = { focus: 0, dolly: 0, lean: 0, hover: 0, hoverTarget: 0, low: 0 };
       var clock = 0;
 
       new THREE.GLTFLoader().load(MODEL_URL, function (gltf) {
@@ -240,10 +240,12 @@
 
       function placeCamera() {
         var d = baseDist * (1 - 0.012 * drive.punch) * (1 + 0.04 * stage.dolly);
-        var ce = Math.cos(VIEW_ELEVATION);
+        // V2 camera grammar: in the mixer's section the camera sits up to ~3° lower.
+        var elev = VIEW_ELEVATION - 0.05 * stage.low;
+        var ce = Math.cos(elev);
         camera.position.set(
           target.x + d * ce * Math.sin(VIEW_AZIMUTH),
-          target.y + d * Math.sin(VIEW_ELEVATION),
+          target.y + d * Math.sin(elev),
           target.z + d * ce * Math.cos(VIEW_AZIMUTH));
         camera.lookAt(target);
       }
@@ -343,6 +345,7 @@
         stage.dolly = approach(stage.dolly, 1 - ehFocus, 2, dt);
         stage.lean = approach(stage.lean, eh ? eh.velocity : 0, 5, dt);
         stage.hover = approach(stage.hover, stage.hoverTarget, 4, dt);
+        stage.low = approach(stage.low, eh && eh.section === 'tips' ? clamp01(-(eh.camTilt || 0) / 0.8) : 0, 1.5, dt);
 
         ptr.yaw = approach(ptr.yaw, ptr.x * POINTER_MAX, 4, dt);
         ptr.pitch = approach(ptr.pitch, ptr.y * POINTER_MAX * 0.6, 4, dt);

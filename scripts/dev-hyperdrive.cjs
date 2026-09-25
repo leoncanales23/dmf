@@ -110,6 +110,7 @@ function verifyRuntimeAssets() {
     'scripts/overdrive/kinetic.js',
     'scripts/overdrive/spatial-stage.js',
     'scripts/overdrive/signal-bus.js',
+    'scripts/overdrive/spatial-narrative.js',
     'scripts/overdrive/event-horizon.js',
     'scripts/overdrive/relic.js',
     'scripts/overdrive/mixer-stage.js'

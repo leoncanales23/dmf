@@ -188,6 +188,7 @@ const bodyInjection = [
   inlineModule('kinetic.js'),
   inlineModule('spatial-stage.js'),
   inlineModule('signal-bus.js'),
+  inlineModule('spatial-narrative.js'),
   inlineModule('event-horizon.js'),
   inlineModule('relic.js'),
   inlineModule('mixer-stage.js')

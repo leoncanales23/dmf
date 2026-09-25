@@ -1342,6 +1342,10 @@
       var ehQuiet = eh ? 1 - 0.45 * eh.calm : 1;
       var ehFocus = eh && eh.section === 'relic' ? eh.focus : 0;
       var ehDepth = eh ? Math.max(0, eh.depth) : 0;
+      // V2 Spatial Narrative: the director's camera, acoustic pressure and figure orientation.
+      var ehPress = eh ? eh.pressure || 0 : 0;
+      var ehPan = eh ? eh.camPan || 0 : 0, ehTilt = eh ? eh.camTilt || 0 : 0, ehDolly = eh ? eh.dolly || 0 : 0;
+      var ehYaw = eh ? eh.headYaw || 0 : 0, ehPitch = eh ? eh.headPitch || 0 : 0;
       // PRECOMPRESSION: the Receiver's groove almost freezes while pressure builds.
       var freeze = 1 - 0.85 * sPre;
       liveTime += dt;
@@ -1396,7 +1400,7 @@
       // IGNITION preloads the cones inward; LOW pressure loads the cabinets (right side detuned).
       coneL.step(-0.35 * sIgn, dt);
       coneR.step(-0.35 * sIgn, dt);
-      var cabPress = -0.008 * f.cabinet * f.amp * ehQuiet * (1 + 0.6 * ehDepth);
+      var cabPress = -0.008 * f.cabinet * f.amp * ehQuiet * (1 + 0.6 * ehDepth + 0.4 * ehPress);
       cabL.step(cabPress, dt);
       cabR.step(cabPress * 0.85, dt);
       U.uConeL.value = coneL.x;
@@ -1414,7 +1418,7 @@
       // shoulders answer the mids; the torso counter-rotates on IGNITION.
       var beats = s.beatIndex + s.beatPhase;
       var nodBase = (0.05 + 0.03 * od) * (0.5 + 0.5 * Math.cos(2 * Math.PI * (s.beatPhase - 0.18))) * s.energy * freeze;
-      headK.step(nodBase - 0.03 * pressure, dt);
+      headK.step(nodBase - 0.03 * pressure + ehPitch, dt);
       headSlow.step(headK.x, dt);
       U.uNod.value = clamp(headK.x - 0.3 * headSlow.x, -0.06, 0.22);
       var groove = Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * s.beatPhase), 3);
@@ -1422,7 +1426,7 @@
       U.uBounce.value = torsoK.x;
       var swayWave = Math.sin(Math.PI * beats);
       U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze;
-      twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet, -0.05, 0.05), dt);
+      twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet + ehYaw, -0.05, 0.05), dt);
       U.uTwist.value = twistK.x;
       shoulderK.step(0.022 * f.shoulder * f.amp * swayWave * freeze, dt);
       U.uShoulder.value = shoulderK.x;
@@ -1543,7 +1547,7 @@
       }
       // The HYPERDRIVE pre-impact pullback lives in the dolly too, so its release is a push with mass,
       // never a one-frame jump.
-      dollyAim = (od * 0.25 - 0.45 * hdPre - 0.55 * sPre + 0.9 * sIgn + 2.2 * sBrk - 0.08 * pressure) * ms;
+      dollyAim = (od * 0.25 - 0.45 * hdPre - 0.55 * sPre + 0.9 * sIgn + 2.2 * sBrk - 0.08 * pressure) * ms + ehDolly * 4;
       dollyK.step(dollyAim, dt);
       lensSpring.step((hdPre * 1.2 + sPre * 1.4) * ms, dt);
       rollSpring.step(0, dt);
@@ -1558,8 +1562,8 @@
         twistK.impulse(0.004 * pv * ms);
         ptrSpin = pv;
       } else ptrSpin *= Math.exp(-dt * 8);
-      latK.step(auto ? (0.035 * f.torque * f.travel * Math.sin(Math.PI * beats / 2) * freeze + parallaxX * 0.08) * ms : 0, dt);
-      parYK.step(auto ? -parallaxY * 0.22 : 0, dt);
+      latK.step(auto ? (0.035 * f.torque * f.travel * Math.sin(Math.PI * beats / 2) * freeze + parallaxX * 0.08) * ms + ehPan * 0.0175 : 0, dt);
+      parYK.step(auto ? -parallaxY * 0.22 + ehTilt * 0.06 : 0, dt);
     }
 
     // VELOCITY FIELD, reflection acceleration, temporal echo, tunnel and telemetry.
@@ -1744,7 +1748,9 @@
       var approach = clamp((vh * 1.25 - (visTop - sy)) / (vh * 0.25), 0, 1);
       stageVisible = approach > 0;
       var lift = wgt > 0.05 ? 0.3 * tr.level + 0.25 * Math.abs(stageHub.scroll.velocity) : 0;
-      var op = Math.min(P.opacity + lift, 1) * approach;
+      // V2 conversion sanctuary: behind the offer the Receiver recedes to a trace (never gone, never competing).
+      var ehCalm = hub.eventHorizon ? hub.eventHorizon.calm : 0;
+      var op = Math.min(P.opacity + lift, 1) * approach * (1 - 0.65 * ehCalm);
       // Mask: in ARRIVAL the stage shows only through the band (feathered); docking opens it to the page.
       var open = clamp(wgt, 0, 1);
       var mTop = (visTop - sy) * (1 - open) - vh * 0.3 * open;
