@@ -98,16 +98,22 @@
     if (!hub || hub.saveData) return;
 
     var visual = band.querySelector('.dmf-signal-visual');
+    // The one Three.js r128 + GLTFLoader load of the page; other scenes (the Tips mixer) wait on hub.three.
+    function announceThree(state) {
+      hub.three = state;
+      document.dispatchEvent(new CustomEvent('dmf:three', { detail: { state: state } }));
+    }
+    hub.three = 'loading';
     var threeScript = document.createElement('script');
     threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
     threeScript.onload = function () {
       var loaderScript = document.createElement('script');
       loaderScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
-      loaderScript.onload = function () { initScene(visual, band, hub); };
-      loaderScript.onerror = function () {};
+      loaderScript.onload = function () { announceThree('ready'); initScene(visual, band, hub); };
+      loaderScript.onerror = function () { announceThree('failed'); };
       document.head.appendChild(loaderScript);
     };
-    threeScript.onerror = function () {};
+    threeScript.onerror = function () { announceThree('failed'); };
     document.head.appendChild(threeScript);
   }
 

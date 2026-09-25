@@ -82,6 +82,8 @@ jobs:
           grep -q 'function DMFKineticBody(' public/index.html
           grep -q 'function DMFStageDirector(' public/index.html
           grep -q 'dmf-stage-layer' public/index.html
+          grep -q 'DMF MIXER STAGE' public/index.html
+          grep -q 'pioneer-djm-900nxs2-mixer-slide.glb' public/index.html
           grep -q "classList.add('dmf-choreo')" public/index.html
           grep -q 'DMF_CODEX_HEAD' public/index.html
           grep -q 'dmf-initiation-protocol' public/index.html
@@ -111,6 +113,7 @@ jobs:
           node scripts/overdrive/test/spatial-stage.test.cjs
           node scripts/overdrive/test/language-lab.test.cjs
           node scripts/overdrive/test/landing.test.cjs
+          node scripts/overdrive/test/mixer-stage.test.cjs
           node scripts/overdrive/test/dev-hyperdrive.test.cjs
 
   validate-academy:
