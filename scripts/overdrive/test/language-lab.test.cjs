@@ -163,7 +163,8 @@ test('V4.1 adds no loops: gate pulse is event-driven, rate limited and off witho
   assert.ok(!/requestAnimationFrame|setInterval|setTimeout/.test(gate), 'gate block schedules nothing');
   assert.ok(gate.includes("gate.addEventListener('mouseenter'") && gate.includes('(hover: hover) and (pointer: fine)'));
   assert.equal(count(SRC, 'setInterval('), 1, 'only the pre-existing learning-loop interval');
-  assert.equal(count(SRC, 'requestAnimationFrame'), 2, 'only the existing one-shot scroll rAF and smoke fallback');
+  // Event Horizon removed the smoke's fallback loop (reduced motion / Save-Data now paint one still frame).
+  assert.equal(count(SRC, 'requestAnimationFrame'), 1, 'only the one-shot scroll rAF');
   const pulse = BUS.slice(BUS.indexOf('pulse: function (originDocY)'), BUS.indexOf('attachAudio: attachAudio'));
   assert.ok(pulse.includes('if (!hub.running || now - lastPulse < 1500) return false;'), 'pulse is gated and rate limited');
   assert.ok(pulse.includes('emitWave(0.5, false, originDocY)'), 'pulse stays below HYPERDRIVE/SINGULARITY strength');

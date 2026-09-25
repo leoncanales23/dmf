@@ -119,7 +119,8 @@ test('no uncontrolled requestAnimationFrame loops: one global loop, one-shot scr
   assert.equal(count(BUS, 'requestAnimationFrame(frame)'), 2, 'bus owns exactly one self-scheduling loop');
   assert.equal(count(CHOREO, 'requestAnimationFrame('), 1, 'choreography uses a one-shot rAF');
   assert.ok(CHOREO.includes('if (!ticking) { ticking = true; requestAnimationFrame(update); }'));
-  assert.ok(SRC.includes('if(hub&&hub.onFrame&&!hub.reduced&&!hub.saveData) hub.onFrame(frame);'), 'smoke must share the loop');
+  // Smoke shares the loop and, without the live clock, paints one still frame (Event Horizon: no fallback loop).
+  assert.ok(SRC.includes('live=!!(hub&&hub.onFrame&&!hub.reduced&&!hub.saveData);') && SRC.includes('if(live) hub.onFrame(onBus);'), 'smoke must share the loop');
 });
 
 test('HYPERDRIVE and impact lens stay inside safety limits', function () {
