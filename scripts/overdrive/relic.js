@@ -1336,6 +1336,12 @@
       var hdPre = hd ? hd.pre : 0;
       var sPre = sg ? sg.pre : 0, sIgn = sg ? sg.ignition : 0, sLvl = sg ? sg.level : 0, sBrk = sg ? sg.breakthrough : 0;
       var sHit = !!(sg && sg.hit);
+      // EVENT HORIZON: quiet and conversion sections settle the stage (speakers, glow, portal); the Receiver
+      // gains focus as its own section arrives; stage depth loads the cabinets with the low band.
+      var eh = hub.eventHorizon;
+      var ehQuiet = eh ? 1 - 0.45 * eh.calm : 1;
+      var ehFocus = eh && eh.section === 'relic' ? eh.focus : 0;
+      var ehDepth = eh ? Math.max(0, eh.depth) : 0;
       // PRECOMPRESSION: the Receiver's groove almost freezes while pressure builds.
       var freeze = 1 - 0.85 * sPre;
       liveTime += dt;
@@ -1371,7 +1377,7 @@
       if (hit > 0) {
         sinceHit = 0;
         hitStrength = hit * (0.6 + 0.4 * s.energy) * (1 + 0.5 * od + hdLevel + (sHit ? 1.5 : 0));
-        var punch = 46 * hit * (0.8 + 0.5 * od + 0.5 * hdLevel + (sHit ? 0.6 : 0));
+        var punch = 46 * hit * (0.8 + 0.5 * od + 0.5 * hdLevel + (sHit ? 0.6 : 0)) * 0.82 * ehQuiet;
         coneL.impulse(punch);
         coneRDelay = 0.014;
         coneRAmp = punch;
@@ -1390,7 +1396,7 @@
       // IGNITION preloads the cones inward; LOW pressure loads the cabinets (right side detuned).
       coneL.step(-0.35 * sIgn, dt);
       coneR.step(-0.35 * sIgn, dt);
-      var cabPress = -0.008 * f.cabinet * f.amp;
+      var cabPress = -0.008 * f.cabinet * f.amp * ehQuiet * (1 + 0.6 * ehDepth);
       cabL.step(cabPress, dt);
       cabR.step(cabPress * 0.85, dt);
       U.uConeL.value = coneL.x;
@@ -1416,7 +1422,7 @@
       U.uBounce.value = torsoK.x;
       var swayWave = Math.sin(Math.PI * beats);
       U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze;
-      twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn, -0.05, 0.05), dt);
+      twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet, -0.05, 0.05), dt);
       U.uTwist.value = twistK.x;
       shoulderK.step(0.022 * f.shoulder * f.amp * swayWave * freeze, dt);
       U.uShoulder.value = shoulderK.x;
@@ -1446,7 +1452,7 @@
       // Reflective sweeps — rate limited (≥1.2 s apart), warm, never strobing. Fast motion can also
       // start one (kineticField), sharing the same cooldown.
       sweepCooldown -= dt;
-      var wantSweep = hdHit || sHit || (barEdge && ((od > 0.5) || (hub.state === 'TRANSMITTING' && s.bar % 2 === 0) || sweepCooldown < -8));
+      var wantSweep = hdHit || sHit || (eh && eh.speed > 0.45 && eh.calm < 0.5) || (barEdge && ((od > 0.5) || (hub.state === 'TRANSMITTING' && s.bar % 2 === 0) || sweepCooldown < -8));
       if (wantSweep && sweepCooldown <= 0) { sweepPos = -0.2; sweepActive = true; sweepCooldown = 1.2; sweepSpeed = 1.5; }
       if (sweepActive) { sweepPos += dt * sweepSpeed; if (sweepPos > 1.4) sweepActive = false; }
       U.uSweep.value = sweepPos;
@@ -1482,14 +1488,14 @@
       // BODY lights; HIGH drives the light edges; each ACT sets its own key/rim emphasis.
       var stageLight = staged ? follower.pose.light : 0;
       midTorque = staged ? 0.035 * f.forceMid * f.amp * Math.sin(Math.PI * beats / 2) * freeze : 0;
-      keyLight.intensity = 2.4 * (1 + 0.35 * stageLight);
-      rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 + s.body * 0.3 * (1 + 0.6 * od) + hdLevel * 0.4 + sLvl * 0.5 + 0.3 * stageLight;
+      keyLight.intensity = 2.4 * (1 + 0.35 * stageLight) * (0.7 + 0.3 * ehQuiet);
+      rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 + s.body * 0.3 * (1 + 0.6 * od) + hdLevel * 0.4 + sLvl * 0.5 + 0.3 * stageLight + 0.25 * ehFocus;
       accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15 + f.edge * 0.2;
       fillLight.intensity = 0.3 + Math.sin(autoAngle + 2) * 0.06;
-      underGlow.intensity = 0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.body * 0.35 * (1 + od) + hdLevel * 0.3 + sLvl * 0.4;
+      underGlow.intensity = (0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.body * 0.35 * (1 + od) + hdLevel * 0.3 + sLvl * 0.4) * ehQuiet;
       haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1 + hdLevel * 0.2 + sLvl * 0.25;
       screenGlow.color.setHSL(0.62 + Math.sin(autoAngle * 0.4) * 0.04, 0.45, 0.35);
-      coneMat.opacity = 0.012 + Math.sin(autoAngle * 1.3) * 0.005 + od * 0.008 + hdLevel * 0.01;
+      coneMat.opacity = (0.012 + Math.sin(autoAngle * 1.3) * 0.005 + od * 0.008 + hdLevel * 0.01) * ehQuiet;
 
       // Embers slow down while the scene contracts, then surge; HIGH adds small detail speed.
       var speedMul = (1 + s.energy * 1.2 + od * 0.8 + hdLevel * 1.5 + sLvl * 2 + f.detail * 0.6) * (1 - 0.6 * hdPre) * (1 - 0.8 * sPre);
@@ -1767,7 +1773,7 @@
       var f = hub.forces;
       portal.update(stageMotion, stageHub.scroll.velocity, stage.transit.level, sg && sg.active ? sg.level : 0, f, dt);
       var scale = staged ? portalScaleNow : 0;
-      var inten = portal.intensity * scale;
+      var inten = portal.intensity * scale * (hub.eventHorizon ? 1 - 0.6 * hub.eventHorizon.calm : 1);
       var floorGain = portal.floorAmp * Math.exp(-portal.floorT * 1.2) * scale;
       stageHub.portalIntensity = inten;
       if (inten < 0.002 && floorGain < 0.02) {

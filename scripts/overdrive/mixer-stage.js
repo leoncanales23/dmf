@@ -151,6 +151,8 @@
       var env = { t: 0, reveal: 0, rim: 0, fill: 0, edge: 0, awaitingKick: false, done: staticMode };
       var drive = { lift: 0, scale: 0, punch: 0, punchV: 0, mid: 0, high: 0, energy: 0.3, halo: 0 };
       var ptr = { x: 0, y: 0, yaw: 0, pitch: 0 };
+      // Event Horizon layer: section focus (dolly, edge light), scroll inertia (lean), hover focus.
+      var stage = { focus: 0, dolly: 0, lean: 0, hover: 0, hoverTarget: 0 };
       var clock = 0;
 
       new THREE.GLTFLoader().load(MODEL_URL, function (gltf) {
@@ -237,7 +239,7 @@
       }
 
       function placeCamera() {
-        var d = baseDist * (1 - 0.012 * drive.punch);
+        var d = baseDist * (1 - 0.012 * drive.punch) * (1 + 0.04 * stage.dolly);
         var ce = Math.cos(VIEW_ELEVATION);
         camera.position.set(
           target.x + d * ce * Math.sin(VIEW_AZIMUTH),
@@ -251,14 +253,14 @@
         var e = drive.energy, rv = env.reveal;
         hueNow.copy(hueA).lerp(hueB, clamp01(drive.mid * 0.8));
         rim.color.copy(hueNow);
-        rim.intensity = env.rim * (1.15 + drive.mid * 0.6);
+        rim.intensity = env.rim * (1.15 + drive.mid * 0.6) * (1 + 0.18 * stage.hover);
         fill.intensity = env.fill * 0.95;
-        spec.intensity = rv * (0.18 + drive.high * 0.35);
+        spec.intensity = rv * (0.18 + drive.high * 0.35 + 0.1 * stage.hover);
         for (var i = 0; i < mats.length; i++) {
           mats[i].envMapIntensity = rv * (0.75 + 0.35 * e + drive.mid * 0.15);
           mats[i].emissiveIntensity = 0.018 * e * rv + env.edge * 0.04;
         }
-        if (edges) edges.material.opacity = Math.min(0.6, env.edge * 0.5 + drive.high * 0.18 * rv + 0.07 * rv);
+        if (edges) edges.material.opacity = Math.min(0.6, env.edge * 0.5 + drive.high * 0.18 * rv + (0.05 + 0.04 * stage.focus) * rv);
         if (halo) halo.material.opacity = (0.42 + 0.3 * drive.halo + 0.12 * e) * env.rim;
         if (shadow) shadow.material.opacity = 0.35 + 0.65 * env.rim;
       }
@@ -333,10 +335,19 @@
         body.position.y = drive.lift * 0.009 * env.reveal;
         body.scale.setScalar(1 + (drive.lift * 0.008 + Math.max(0, drive.punch) * 0.004) * env.reveal);
 
+        // EVENT HORIZON: as the Tips section arrives the camera dollies in ~4%, the edges gain a little
+        // orange; scroll inertia leans the view ≤1.6°; a hover focus lifts rim and specular for a moment.
+        var eh = bus.eventHorizon;
+        var ehFocus = eh ? (eh.section === 'tips' ? eh.focus : 0.35) : 1;
+        stage.focus = approach(stage.focus, ehFocus, 2, dt);
+        stage.dolly = approach(stage.dolly, 1 - ehFocus, 2, dt);
+        stage.lean = approach(stage.lean, eh ? eh.velocity : 0, 5, dt);
+        stage.hover = approach(stage.hover, stage.hoverTarget, 4, dt);
+
         ptr.yaw = approach(ptr.yaw, ptr.x * POINTER_MAX, 4, dt);
         ptr.pitch = approach(ptr.pitch, ptr.y * POINTER_MAX * 0.6, 4, dt);
         rig.rotation.y = ptr.yaw + Math.sin(clock * 0.21) * 0.012;
-        rig.rotation.x = ptr.pitch;
+        rig.rotation.x = ptr.pitch + stage.lean * 0.035;
 
         // The specular travels slowly across the top plate.
         placeSpec(clock);
@@ -352,11 +363,12 @@
           ptr.y = Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height) * 2 - 1));
         });
         host.addEventListener('pointerenter', function () {
+          stage.hoverTarget = 1;
           if (!hub.pulse) return;
           var r = host.getBoundingClientRect();
           hub.pulse(r.top + (window.pageYOffset || 0) + r.height / 2);
         });
-        host.addEventListener('pointerleave', function () { ptr.x = 0; ptr.y = 0; });
+        host.addEventListener('pointerleave', function () { ptr.x = 0; ptr.y = 0; stage.hoverTarget = 0; });
       }
 
       if ('ResizeObserver' in window) {
