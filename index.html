@@ -336,6 +336,25 @@ ul{list-style:none}
 .tips-img-overlay{position:absolute;z-index:2;bottom:16px;left:16px;display:flex;flex-direction:column;gap:6px;pointer-events:none}
 .tips-img-stat{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#ffb599;text-shadow:0 1px 8px rgba(0,0,0,.7);display:flex;align-items:center;gap:8px}
 .tips-img-stat::before{content:'';width:14px;height:1px;background:#ff5b1e;box-shadow:0 0 6px rgba(255,91,30,.6)}
+/* Tips slide: Pioneer DJM-900NXS2 3D (scripts/overdrive/mixer-stage.js). The fallback is always in the DOM
+   and the canvas fades in over it only after its first rendered frame — never an empty rectangle. */
+.tips-img.dmf-mixer{aspect-ratio:1/1;background:radial-gradient(ellipse 70% 55% at 50% 62%,#16100c 0%,#0a0806 72%)}
+.dmf-mixer-stage{position:absolute;inset:0}
+.dmf-mixer-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity .9s cubic-bezier(.2,.7,.2,1)}
+.dmf-mixer.is-live .dmf-mixer-canvas{opacity:1}
+.dmf-mixer.is-fallback .dmf-mixer-canvas{display:none}
+.dmf-mixer-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .9s}
+.dmf-mixer-fallback::before{content:'';position:absolute;left:18%;right:18%;top:58%;height:18%;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(255,91,30,.26),rgba(255,91,30,0) 70%);filter:blur(6px)}
+.dmf-mixer-fallback-name{position:relative;font-family:'Anton',sans-serif;font-size:clamp(28px,4vw,46px);letter-spacing:.04em;color:#2a2521;text-shadow:0 1px 0 rgba(255,91,30,.35)}
+.dmf-mixer-fallback-brand{position:relative;font-size:9px;font-weight:700;letter-spacing:.34em;text-transform:uppercase;color:#5c534b}
+.dmf-mixer.is-live .dmf-mixer-fallback{opacity:0}
+.dmf-mixer-tag{position:absolute;z-index:2;top:16px;left:16px;display:flex;flex-direction:column;gap:4px;pointer-events:none;font-size:9px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:#8a8178}
+.dmf-mixer-tag strong{font-family:'Anton',sans-serif;font-weight:400;font-size:13px;letter-spacing:.12em;color:#f2ede6}
+.dmf-mixer-sweep{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.dmf-mixer-sweep::before{content:'';position:absolute;top:-20%;bottom:-20%;left:-60%;width:45%;background:linear-gradient(100deg,rgba(255,91,30,0) 0%,rgba(255,91,30,.16) 45%,rgba(255,150,90,.22) 50%,rgba(255,91,30,.16) 55%,rgba(255,91,30,0) 100%);transform:skewX(-14deg);opacity:0}
+.dmf-mixer.is-sweep .dmf-mixer-sweep::before{animation:dmfMixerSweep 1.6s cubic-bezier(.4,0,.2,1) 1 forwards}
+@keyframes dmfMixerSweep{0%{left:-60%;opacity:0}15%{opacity:1}100%{left:120%;opacity:0}}
+@media(prefers-reduced-motion:reduce){.dmf-mixer-canvas,.dmf-mixer-fallback{transition:none}.dmf-mixer.is-sweep .dmf-mixer-sweep::before{animation:none}}
 .tips-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:clamp(28px,4vw,56px)}
 .tip-group-head{display:flex;align-items:baseline;gap:14px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid rgba(255,91,30,.4)}
 .tip-group-num{font-family:'Anton',sans-serif;font-size:clamp(24px,3vw,40px);color:#ff5b1e;line-height:1}
@@ -973,8 +992,11 @@ ul{list-style:none}
       </div>
       <a href="#academy" class="tips-cta"><span data-i18n="tipsCta">Explore the Academy</span> &rarr;</a>
     </div>
-    <div class="tips-img" style="position:relative">
-      <img src="assets/images/jpg_13_lookup.jpg" alt="Demian Muller">
+    <div class="tips-img dmf-mixer" style="position:relative">
+      <div class="dmf-mixer-fallback" aria-hidden="true"><span class="dmf-mixer-fallback-name">DJM-900NXS2</span><span class="dmf-mixer-fallback-brand">Pioneer DJ</span></div>
+      <div class="dmf-mixer-stage" role="img" aria-label="Pioneer DJ DJM-900NXS2"></div>
+      <div class="dmf-mixer-sweep" aria-hidden="true"></div>
+      <div class="dmf-mixer-tag" aria-hidden="true"><strong>DJM-900NXS2</strong><span>Pioneer DJ</span></div>
       <div class="tips-img-overlay">
         <span class="tips-img-stat" data-i18n="tipsImgStat1">20+ years</span>
         <span class="tips-img-stat" data-i18n="tipsImgStat2">500+ tracks</span>

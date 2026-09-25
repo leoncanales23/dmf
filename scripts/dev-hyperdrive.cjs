@@ -105,11 +105,13 @@ function verifyRuntimeAssets() {
   const required = [
     'assets/models/dmf-studio-optimized.glb',
     'assets/models/DMF_RELIC_01.3mf',
+    'assets/models/pioneer-djm-900nxs2-mixer-slide.glb',
     'scripts/overdrive/engine.js',
     'scripts/overdrive/kinetic.js',
     'scripts/overdrive/spatial-stage.js',
     'scripts/overdrive/signal-bus.js',
-    'scripts/overdrive/relic.js'
+    'scripts/overdrive/relic.js',
+    'scripts/overdrive/mixer-stage.js'
   ];
   const missing = required.filter((file) => !fs.existsSync(path.join(root, file)));
   if (missing.length) {

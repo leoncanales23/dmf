@@ -188,7 +188,8 @@ const bodyInjection = [
   inlineModule('kinetic.js'),
   inlineModule('spatial-stage.js'),
   inlineModule('signal-bus.js'),
-  inlineModule('relic.js')
+  inlineModule('relic.js'),
+  inlineModule('mixer-stage.js')
 ].join('\n');
 
 if (!html.includes(HEAD_MARKER)) {
