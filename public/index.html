@@ -591,8 +591,8 @@ ul{list-style:none}
 
 /* Z0 — the field: a fixed light falloff and nine sparse specks behind everything. */
 .eh-field{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden;opacity:calc(.3 + var(--eh-light,1) * .7 * (1 - var(--eh-calm,0) * .65))}
-.eh-field::before{content:'';position:absolute;left:-20%;top:-10%;width:90%;height:80%;background:radial-gradient(50% 50% at 50% 50%,rgba(255,91,30,.045),transparent 70%);opacity:calc(.55 + var(--eh-energy,0) * .45);transform:translate3d(calc(var(--eh-scroll,0) * 40vw),calc(var(--eh-depth,0) * 6px),0)}
-.eh-field i{position:absolute;left:var(--x);top:var(--y);width:2px;height:2px;border-radius:50%;background:#ffb08a;opacity:calc(.1 + var(--eh-high,0) * .35);transform:translate3d(0,calc(var(--eh-scroll,0) * var(--p) * -55vh),0)}
+.eh-field::before{content:'';position:absolute;left:-20%;top:-10%;width:90%;height:80%;background:radial-gradient(50% 50% at 50% 50%,rgba(255,91,30,.045),transparent 70%);opacity:calc(.55 + var(--eh-energy,0) * .45);transform:translate3d(calc(var(--eh-scroll,0) * 40vw - var(--eh-pan,0) * 9px),calc(var(--eh-depth,0) * 6px - var(--eh-tilt,0) * 6px),0) rotate(calc(var(--eh-roll,0) * 1deg)) scale(calc(1 - var(--eh-dolly,0) * .8))}
+.eh-field i{position:absolute;left:var(--x);top:var(--y);width:2px;height:2px;border-radius:50%;background:#ffb08a;opacity:calc(.1 + var(--eh-high,0) * .35);transform:translate3d(calc(var(--eh-pan,0) * var(--p) * -12px),calc(var(--eh-scroll,0) * var(--p) * -55vh - var(--eh-tilt,0) * 3px),0)}
 .eh-field i:nth-child(3n){width:1px;height:1px}
 .eh-tier-balanced .eh-field i:nth-child(n+6),.eh-compact .eh-field i:nth-child(n+5),.eh-tier-lite .eh-field i:nth-child(n+4),.eh-tier-static .eh-field i:nth-child(n+4){display:none}
 
@@ -605,9 +605,9 @@ ul{list-style:none}
 /* STAGE AWAKENING — black → orange signal → reflections → silhouette → speaker depth → rim light →
    typography → reactive. ~2.2 s, once per visit, never blocks scrolling. */
 .concert-logo-wrap{isolation:isolate}
-.eh-halo{position:absolute;inset:-22% -14%;z-index:-1;pointer-events:none;background:radial-gradient(50% 50% at 50% 50%,rgba(255,91,30,.2),transparent 70%);opacity:calc(.5 + var(--eh-energy,0) * .3 + var(--eh-kick,0) * .2);transform:scale(calc(1 + var(--eh-depth,0) * .025))}
+.eh-halo{position:absolute;inset:-22% -14%;z-index:-1;pointer-events:none;background:radial-gradient(50% 50% at 50% 50%,rgba(255,91,30,.2),transparent 70%);opacity:calc(.5 + var(--eh-energy,0) * .3 + var(--eh-kick,0) * .2 + var(--eh-moment,0) * .35);transform:scale(calc(1 + var(--eh-depth,0) * .025 + var(--eh-moment,0) * .05))}
 .eh-signal{position:absolute;left:32%;right:32%;top:50%;z-index:2;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,#ff5b1e 30%,#ffc9ae 50%,#ff5b1e 70%,transparent);opacity:0;transform:scaleX(.004)}
-.eh-floor{position:absolute;left:12%;right:12%;top:62%;height:34%;z-index:0;pointer-events:none;background:radial-gradient(50% 36% at 50% 34%,rgba(255,91,30,.13),transparent 100%);opacity:calc(.6 + var(--eh-low,0) * .4);transform:scaleY(calc(1 + var(--eh-depth,0) * .06));transform-origin:50% 0}
+.eh-floor{position:absolute;left:12%;right:12%;top:62%;height:34%;z-index:0;pointer-events:none;background:radial-gradient(50% 36% at 50% 34%,rgba(255,91,30,.13),transparent 100%);opacity:calc(.55 + var(--eh-press,0) * .35 + var(--eh-moment,0) * .3);transform:scaleY(calc(1 + var(--eh-depth,0) * .06 + var(--eh-moment,0) * .1));transform-origin:50% 0}
 html.eh-wake .eh-signal{animation:ehSignal 1.3s cubic-bezier(.5,0,.2,1) .12s both}
 html.eh-wake .eh-floor{animation:ehFade .9s ease-out .32s both}
 html.eh-wake .concert-stage{animation:ehFade 1s ease-out .4s both}
@@ -639,7 +639,7 @@ html.eh-woken .concert-logo-wrap,html.eh-woken .concert-tagline{animation:none}
 .eh-cone{position:relative;display:block;border-radius:50%;background:radial-gradient(circle,#070605 0 16%,#1d1714 17% 20%,#0e0b09 21% 60%,#221b17 62% 65%,#0c0a08 66%);box-shadow:inset 0 0 0 1px rgba(242,237,230,.045)}
 .eh-cone::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:1px solid rgba(255,91,30,.55);opacity:calc(var(--eh-kick,0) * .55)}
 .eh-cone--hf{width:44%;aspect-ratio:1;transform:scale(calc(1 + var(--eh-kick,0) * .012))}
-.eh-cone--lf{width:78%;aspect-ratio:1;transform:scale(calc(1 + var(--eh-low,0) * .03))}
+.eh-cone--lf{width:78%;aspect-ratio:1;transform:scale(calc(1 + var(--eh-press,0) * .03 + var(--eh-moment,0) * .02))}
 /* Phones: not the desktop minus effects — two low monitors cropped by the frame edges, below the logo. */
 @media(max-width:700px){
   .eh-stack{width:64px;height:24vh;bottom:4%;padding:8% 0;transform:translate3d(0,calc(var(--eh-depth,0) * 1px),0)}
@@ -649,25 +649,25 @@ html.eh-woken .concert-logo-wrap,html.eh-woken .concert-tagline{animation:none}
 }
 
 /* Z3 — visual assets drift against the scroll; a rim of DMF orange follows the mids on the hero portrait. */
-.fly-card,.tips-img{translate:0 calc(var(--eh-rel,0) * var(--eh-z3))}
+.fly-card,.tips-img{translate:calc(var(--eh-pan,0) * 7px * var(--eh-zk,1)) calc(var(--eh-rel,0) * var(--eh-z3) * var(--eh-zk,1) + var(--eh-tilt,0) * 5px * var(--eh-zk,1))}
 .hero-img::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(255,91,30,.2),transparent 16%),linear-gradient(0deg,rgba(255,91,30,.08),transparent 22%);opacity:calc(.25 + var(--eh-mid,0) * .5 + var(--eh-energy,0) * .25)}
 
 /* Z5 — shared reflection language: one warm specular band per framed image, travelling with the block
    through the viewport, nudged by the pointer, brighter on HIGH and on fast scroll. Never a mirror. */
 .eh-sheen{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-.eh-sheen::before{content:'';position:absolute;top:-20%;bottom:-20%;left:0;width:36%;background:linear-gradient(90deg,transparent,rgba(255,214,192,.06) 42%,rgba(255,232,220,.1) 50%,rgba(255,214,192,.06) 58%,transparent);opacity:calc(.35 + var(--eh-high,0) * .5 + var(--eh-speed,0) * .7);transform:translate3d(calc(var(--eh-sheen,.5) * 380% - 140%),0,0) skewX(-16deg);will-change:transform}
+.eh-sheen::before{content:'';position:absolute;top:-20%;bottom:-20%;left:0;width:36%;background:linear-gradient(90deg,transparent,rgba(255,214,192,.06) 42%,rgba(255,232,220,.1) 50%,rgba(255,214,192,.06) 58%,transparent);opacity:calc(.35 + var(--eh-high,0) * .5 + var(--eh-speed,0) * .7);transform:translate3d(calc((var(--eh-lx,.5) - var(--eh-l,0)) / var(--eh-w,1) * 277.8% - 50%),0,0) skewX(-16deg);will-change:transform}
 .eh-tier-lite .eh-sheen,.eh-tier-static .eh-sheen{display:none}
 
 /* Z4 — typography as material: titles sit slightly forward of the copy, compress a few percent with scroll
    inertia, and split into an orange echo for an instant when their section arrives through a gate. */
-.section-title,.acad-title{translate:0 calc(var(--eh-rel,0) * var(--eh-z4));scale:1 calc(1 - var(--eh-speed,0) * .03);text-shadow:calc(var(--eh-split,0) * 7px) 0 0 rgba(255,91,30,calc(var(--eh-split,0) * .4)),calc(var(--eh-split,0) * -4px) 0 0 rgba(242,237,230,calc(var(--eh-split,0) * .1))}
+.section-title,.acad-title{transform-origin:0 50%;translate:calc(var(--eh-pan,0) * 4px * var(--eh-zk,1)) calc(var(--eh-rel,0) * var(--eh-z4) * var(--eh-zk,1) + var(--eh-vel,0) * 5px);scale:calc(1 - var(--eh-speed,0) * .025) 1;text-shadow:calc(var(--eh-split,0) * 7px) 0 0 rgba(255,91,30,calc(var(--eh-split,0) * .4)),calc(var(--eh-split,0) * -4px) 0 0 rgba(242,237,230,calc(var(--eh-split,0) * .1)),0 -1px 0 rgba(255,214,190,calc(var(--eh-high,0) * .22))}
 
 /* POINTER FIELD — CTAs and the logo lean ≤3 px toward a fine pointer; touch never depends on it. */
 .hero-cta,.hero-cta-2,.tier-cta,.lab-gate,.tips-cta,.acad-cta,.acad-cta-free,.dmf-signal-cta,.nav-logo{translate:calc(var(--eh-mx,0) * 1px) calc(var(--eh-my,0) * 1px)}
 
 /* CTA CONVERGENCE — as the offer arrives the spectacle steps back and the cards gain contrast. */
 .tier-card{transition:border-color .3s,transform .3s,box-shadow .3s,background-color .6s}
-html.eh-calm .tier-card{background-color:rgba(10,8,6,.8)}
+html.eh-calm .tier-card{background-color:rgba(10,8,6,.9)}
 html.eh-calm .eh-sheen::before{opacity:.2}
 
 /* Reduced motion: the composition stays, the choreography goes. */
@@ -677,6 +677,42 @@ html.eh-calm .eh-sheen::before{opacity:.2}
   .concert-particle{opacity:.3}
   .eh-signal,.eh-gate{display:none}
   .fly-card,.tips-img,.section-title,.acad-title{translate:none;scale:none}
+}
+
+/* ===================================================================================================
+   EVENT HORIZON V2 — SPATIAL NARRATIVE (scripts/overdrive/spatial-narrative.js)
+   "The page is not scrolling. The stage is moving around you."
+   The director's camera (--eh-pan / --eh-tilt in degrees, --eh-dolly, --eh-zk = the section's depth
+   authority) moves the planes of the PR77 vocabulary, never the copy: Z0 drifts against the camera,
+   Z1 a little, Z3 and Z4 with it. Hard limits live in the director (pan ±1.2°, tilt ±0.8°, roll ±0.25°,
+   dolly ±2.5%); here they become a few pixels at most.
+   =================================================================================================== */
+/* Z1 architecture */
+.hero-ghost{translate:calc(var(--eh-pan,0) * -6px) calc(var(--eh-tilt,0) * -4px)}
+/* Z3 visual: the portrait takes the hero dolly-in; frames pass through one space in releases / DJ */
+.hero-img{translate:calc(var(--eh-pan,0) * 5px * var(--eh-zk,1)) calc(var(--eh-tilt,0) * 4px * var(--eh-zk,1))}
+.hero-img img{scale:calc(1 + max(0, var(--eh-dolly,0)))}
+.band img{scale:calc(1 + max(0, var(--eh-dolly,0)) * .8)}
+.release-card,.set-card{position:relative;overflow:hidden;translate:calc(var(--eh-pan,0) * 5px * var(--eh-zk,1)) 0}
+.label-item{translate:calc(var(--eh-pan,0) * 3px * var(--eh-zk,1)) 0}
+/* The logo hears the hero moment and pointer gravity only */
+.concert-logo-wrap{scale:calc(1 + var(--eh-moment,0) * .012);translate:calc(var(--eh-gx,0) * 3px) calc(var(--eh-gy,0) * 2px)}
+.eh-stack{translate:0 calc(var(--eh-moment,0) * 1px)}
+
+/* Z5 AFTERIMAGE — the section left behind leaves one outlined trace behind the content (350–650 ms),
+   drifting up while the next section absorbs it. One element, reused; never into the offer. */
+.eh-after{display:none;position:absolute;left:5vw;top:30vh;max-width:90vw;overflow:hidden;font-family:'Anton',sans-serif;font-size:clamp(64px,12vw,200px);line-height:.95;text-transform:uppercase;white-space:nowrap;color:transparent;-webkit-text-stroke:1px rgba(255,91,30,.55);opacity:var(--eh-after,0);transform:translate3d(0,calc((1 - var(--eh-after,0)) * -34px),0) scale(calc(1.04 - var(--eh-after,0) * .04));transform-origin:0 50%}
+.eh-after::after{content:'';position:absolute;left:0;right:0;bottom:2px;height:1px;background:linear-gradient(90deg,#ff5b1e,transparent);transform:scaleX(var(--eh-after,0));transform-origin:0 50%}
+.eh-field.eh-after-on .eh-after{display:block}
+.eh-calm .eh-after,.eh-still .eh-after,.eh-tier-lite .eh-after,.eh-tier-static .eh-after{display:none!important}
+
+/* CONVERSION SANCTUARY — in the offer nothing competes with buying: titles hold still, cards read first. */
+html.eh-calm .section-title,html.eh-calm .acad-title{scale:none}
+html.eh-calm .tier-card{border-color:rgba(242,237,230,.2)}
+
+@media(prefers-reduced-motion:reduce){
+  .hero-ghost,.hero-img,.hero-img img,.band img,.release-card,.set-card,.label-item,.concert-logo-wrap,.eh-stack{translate:none;scale:none}
+  .eh-after{display:none}
 }
 </style>
 <!-- DMF_MESHY_3D_HEAD -->
@@ -1080,7 +1116,7 @@ html.eh-calm .eh-sheen::before{opacity:.2}
 
 <canvas id="smoke-canvas"></canvas>
 <div class="radial-overlay"></div>
-<div class="eh-field" aria-hidden="true"><i style="--x:12%;--y:22%;--p:.2"></i><i style="--x:84%;--y:14%;--p:.45"></i><i style="--x:67%;--y:61%;--p:.3"></i><i style="--x:27%;--y:78%;--p:.6"></i><i style="--x:91%;--y:83%;--p:.15"></i><i style="--x:46%;--y:9%;--p:.5"></i><i style="--x:6%;--y:52%;--p:.35"></i><i style="--x:58%;--y:36%;--p:.25"></i><i style="--x:36%;--y:47%;--p:.4"></i><span class="eh-gate"></span></div>
+<div class="eh-field" aria-hidden="true"><i style="--x:12%;--y:22%;--p:.2"></i><i style="--x:84%;--y:14%;--p:.45"></i><i style="--x:67%;--y:61%;--p:.3"></i><i style="--x:27%;--y:78%;--p:.6"></i><i style="--x:91%;--y:83%;--p:.15"></i><i style="--x:46%;--y:9%;--p:.5"></i><i style="--x:6%;--y:52%;--p:.35"></i><i style="--x:58%;--y:36%;--p:.25"></i><i style="--x:36%;--y:47%;--p:.4"></i><span class="eh-gate"></span><span class="eh-after"></span></div>
 
 
 <!-- CONCERT INTRO -->
@@ -1890,7 +1926,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   function renderReleases(){
     var g=document.getElementById('releasesGrid');
     g.innerHTML=releases.map(function(r){
-      return '<div class="release-card"><div class="release-head"><span class="release-label">'+r.label+'</span><span class="release-tag">'+r.tag+'</span></div><div class="release-title">'+r.title+'</div><div class="release-embed"><iframe src="'+r.embed+'" scrolling="no" allow="autoplay" loading="lazy"></iframe></div></div>';
+      return '<div class="release-card"><span class="eh-sheen" aria-hidden="true"></span><div class="release-head"><span class="release-label">'+r.label+'</span><span class="release-tag">'+r.tag+'</span></div><div class="release-title">'+r.title+'</div><div class="release-embed"><iframe src="'+r.embed+'" scrolling="no" allow="autoplay" loading="lazy"></iframe></div></div>';
     }).join('');
   }
 
@@ -1904,7 +1940,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   function renderSets(){
     var g=document.getElementById('setsGrid');
     g.innerHTML=sets.map(function(s){
-      return '<div class="set-card"><iframe src="'+s.embed+'" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe><div class="set-info"><div class="set-title">'+s.title+'</div><div class="set-meta">'+s.meta+'</div></div></div>';
+      return '<div class="set-card"><span class="eh-sheen" aria-hidden="true"></span><iframe src="'+s.embed+'" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe><div class="set-info"><div class="set-title">'+s.title+'</div><div class="set-meta">'+s.meta+'</div></div></div>';
     }).join('');
   }
 
@@ -3968,6 +4004,200 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
 </script>
 <script>
+/* DMF SPATIAL NARRATIVE — pure mapping layer for the Event Horizon director (V2). ES5, no DOM, no clock.
+ * "The page is not scrolling. The stage is moving around you."
+ * DMFEventHorizon.update() calls DMFSpatialNarrative.update() once per director step with its own state;
+ * this module turns section + progress + audio + pointer into one continuous camera and its companions:
+ *   camera grammar (pan / tilt / roll / dolly / depth scale) with hard limits and critically damped motion,
+ *   acoustic pressure (the weight of the low end), head/figure orientation, pointer gravity, one light
+ *   source that crosses the whole page, the section afterimage and the once-per-visit hero moment.
+ * Inlined into public/index.html by scripts/build-3d.cjs before event-horizon.js; required by tests. */
+(function (root) {
+  'use strict';
+
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+  function smooth01(t) { t = clamp01(t); return t * t * (3 - 2 * t); }
+
+  // Hard limits. Degrees for angles; dolly and depth are fractions. Nothing past these, ever.
+  var LIMITS = { pan: 1.2, tilt: 0.8, roll: 0.25, dolly: 0.025, headYaw: 0.03, headPitch: 0.02, gravity: 1 };
+
+  // Camera grammar: the spatial state of each section. z = how much depth the section's planes carry.
+  // sweep = lateral travel across the section (pan runs -sweep/2 .. +sweep/2 with progress).
+  var POSES = {
+    intro:     { pan: 0,     tilt: 0,     roll: 0,     dolly: -0.012, sweep: 0,   z: 0.5 },   // frontal, monumental
+    hero:      { pan: 0.35,  tilt: -0.15, roll: 0,     dolly: 0.015,  sweep: 0,   z: 1 },     // slight dolly-in
+    relic:     { pan: 0,     tilt: -0.1,  roll: 0,     dolly: 0.01,   sweep: 0,   z: 0.9 },
+    bio:       { pan: -0.4,  tilt: 0.15,  roll: 0.12,  dolly: 0,      sweep: 0,   z: 0.8 },
+    band:      { pan: 0.45,  tilt: 0,     roll: -0.1,  dolly: 0.01,   sweep: 0,   z: 0.9 },
+    releases:  { pan: 0,     tilt: 0.1,   roll: 0,     dolly: 0,      sweep: 1.4, z: 0.8 },   // lateral pass
+    sets:      { pan: -0.2,  tilt: -0.6,  roll: 0,     dolly: 0.012,  sweep: 0,   z: 0.9 },   // DJ: camera low
+    platforms: { pan: 0.2,   tilt: -0.35, roll: 0,     dolly: 0.006,  sweep: 0,   z: 0.7 },
+    rider:     { pan: -0.2,  tilt: -0.3,  roll: 0,     dolly: 0.004,  sweep: 0,   z: 0.7 },
+    academy:   { pan: 0,     tilt: 0,     roll: 0,     dolly: 0,      sweep: 0,   z: 0.45 },  // stabilises
+    offer:     { pan: 0,     tilt: 0,     roll: 0,     dolly: 0,      sweep: 0,   z: 0.15 },  // rest
+    lab:       { pan: 0.2,   tilt: 0,     roll: 0,     dolly: 0.004,  sweep: 0,   z: 0.6 },
+    tips:      { pan: -0.15, tilt: -0.6,  roll: 0,     dolly: 0.015,  sweep: 0,   z: 0.85 },  // mixer: low camera
+    contact:   { pan: 0,     tilt: 0.25,  roll: 0,     dolly: -0.012, sweep: 0,   z: 0.5 }    // closing depth
+  };
+  var NEUTRAL = { pan: 0, tilt: 0, roll: 0, dolly: 0, sweep: 0, z: 0.5 };
+  function poseOf(id) { return POSES[id] || NEUTRAL; }
+
+  // Camera authority per tier / device. COMPACT keeps cameras almost neutral.
+  var TIER_CAMERA = { high: 1, balanced: 0.75, lite: 0.5, static: 0 };
+  var COMPACT_CAMERA = 0.3;
+  var COMPACT_HEAD = 0.4;
+  var AFTER_DUR = { high: 0.55, balanced: 0.42 };
+  var AFTER_AMP = { high: 1, balanced: 0.6 };
+  var MOMENT_DUR = 0.45;
+
+  // Critically damped spring, semi-implicit, sub-stepped: returns to rest without overshoot.
+  function DMFCritical(omega) { this.x = 0; this.v = 0; this.w = omega; }
+  DMFCritical.prototype.step = function (target, dt) {
+    var n = dt > 0.02 ? Math.ceil(dt / 0.02) : 1, h = dt / n, w = this.w;
+    for (var i = 0; i < n; i++) {
+      this.v += (w * w * (target - this.x) - 2 * w * this.v) * h;
+      this.x += this.v * h;
+    }
+    return this.x;
+  };
+
+  function DMFSpatialNarrative() {
+    this.pan = new DMFCritical(2.2);
+    this.tilt = new DMFCritical(2.2);
+    this.roll = new DMFCritical(1.8);
+    this.dolly = new DMFCritical(2.4);
+    this.z = new DMFCritical(2);
+    this.press = new DMFCritical(16);
+    this.yaw = new DMFCritical(1.6);
+    this.pitch = new DMFCritical(1.6);
+    this.gx = new DMFCritical(4);
+    this.gy = new DMFCritical(4);
+    this.light = new DMFCritical(2.5);
+    this.seenGate = 0;
+    this.afterT = 9;
+    this.afterDur = 0.55;
+    this.afterAmp = 1;
+    this.momentT = 9;
+    this.heroFired = false;     // seeded from sessionStorage by the page: once per visit
+    this.heroFiredNow = false;
+    this.z.x = 0.5;
+    this.light.x = 0.5;
+  }
+
+  // st: the Event Horizon state (read and written in place). inp: the director input. dt in seconds.
+  DMFSpatialNarrative.prototype.update = function (st, inp, ids, dt) {
+    var s = inp.s || st;
+    var tier = st.performanceTier;
+    var compact = !!st.compact;
+    var calm = st.calm;
+    var damp = st.wake * (1 - 0.55 * calm);
+
+    // --- CAMERA GRAMMAR: this section's pose, easing into the next one over its last 40% ---
+    var a = poseOf(ids[st.index]), b = poseOf(ids[st.index + 1]);
+    var k = smooth01((st.progress - 0.6) / 0.4);
+    var auth = (TIER_CAMERA[tier] == null ? 1 : TIER_CAMERA[tier]) * (compact ? COMPACT_CAMERA : 1) * (1 - calm);
+    var pan = (a.pan + (b.pan - a.pan) * k + a.sweep * (st.progress - 0.5) * (1 - k)) * auth;
+    var tilt = (a.tilt + (b.tilt - a.tilt) * k) * auth;
+    var roll = (a.roll + (b.roll - a.roll) * k) * auth;
+    var dolly = (a.dolly + (b.dolly - a.dolly) * k) * auth;
+    var zk = (a.z + (b.z - a.z) * k) * (1 - 0.6 * calm);
+
+    // --- AUDIO MASS: pressure is the low end's weight (ζ = 1); a kick loads it, it never bounces ---
+    if (s.beatFired) this.press.v += 5 * clamp01(0.3 + 0.7 * (s.kick || 0)) * damp;
+    var press = clamp(this.press.step(0.35 * st.low, dt), 0, 1);
+    st.pressure = press;
+
+    // --- HERO MOMENT: once per visit, the first strong kick after the stage is awake (intro/hero) ---
+    this.heroFiredNow = false;
+    if (!this.heroFired && st.wake >= 1 && s.beatFired && (s.kick || 0) >= 0.55 && (s.energy || 0) >= 0.3 &&
+        (ids[st.index] === 'intro' || ids[st.index] === 'hero') && tier !== 'lite' && tier !== 'static') {
+      this.heroFired = true;
+      this.heroFiredNow = true;
+      this.momentT = 0;
+    }
+    var moment = 0;
+    if (this.momentT < MOMENT_DUR) {
+      this.momentT += dt;
+      var mt = this.momentT;
+      moment = mt < 0.07 ? mt / 0.07 : Math.exp(-(mt - 0.07) * 9) * (1 - smooth01((mt - 0.3) / (MOMENT_DUR - 0.3)));
+    }
+    st.heroMoment = clamp01(moment);
+
+    // Camera: the pose, compressed by pressure and the hero moment, followed critically damped.
+    st.camPan = clamp(this.pan.step(pan, dt), -LIMITS.pan, LIMITS.pan);
+    st.camTilt = clamp(this.tilt.step(tilt, dt), -LIMITS.tilt, LIMITS.tilt);
+    st.camRoll = clamp(this.roll.step(roll, dt), -LIMITS.roll, LIMITS.roll);
+    var dTarget = dolly - 0.006 * press * (compact ? 0.5 : 1) - 0.01 * st.heroMoment;
+    st.dolly = clamp(this.dolly.step(dTarget, dt), -LIMITS.dolly, LIMITS.dolly);
+    st.zk = clamp(this.z.step(zk, dt), 0.1, 1) * (compact ? 0.45 : 1);
+
+    // --- HEAD / FIGURE: slow orientation to rest; pointer + camera + section focus + mids ---
+    var headK = (compact ? COMPACT_HEAD : 1) * (tier === 'static' ? 0 : 1) * (1 - 0.6 * calm);
+    var ptr = inp.pointerActive ? 1 : 0;
+    var yawT = (0.55 * st.pointerX * ptr + 0.3 * (st.camPan / LIMITS.pan) + 0.15 * (st.focus - 0.5) * (a.pan >= 0 ? 1 : -1)) * headK;
+    var pitchT = (-0.45 * st.pointerY * ptr + 0.35 * st.mid - 0.15 * (st.camTilt / LIMITS.tilt)) * headK;
+    st.headYaw = clamp(this.yaw.step(yawT, dt), -1, 1) * LIMITS.headYaw;
+    st.headPitch = clamp(this.pitch.step(pitchT, dt), -1, 1) * LIMITS.headPitch;
+
+    // --- POINTER GRAVITY: soft attack, softer release, neutral at rest; fine pointer, HIGH/BALANCED only ---
+    var gAuth = inp.pointerActive && !compact && (tier === 'high' || tier === 'balanced') ? (1 - 0.7 * calm) : 0;
+    this.gx.w = gAuth > 0 ? 4 : 2.5;
+    this.gy.w = this.gx.w;
+    st.gravityX = clamp(this.gx.step(st.pointerX * gAuth, dt), -LIMITS.gravity, LIMITS.gravity);
+    st.gravityY = clamp(this.gy.step(st.pointerY * gAuth, dt), -LIMITS.gravity, LIMITS.gravity);
+
+    // --- ONE LIGHT SOURCE: crosses the whole page with scroll, nudged by pointer, speed and HIGH ---
+    var lx = 0.5 + 0.34 * Math.sin(2 * Math.PI * 1.25 * clamp01(inp.docProgress || 0)) + 0.1 * st.pointerX * ptr + 0.08 * st.velocity + 0.05 * st.high;
+    st.lightX = clamp(this.light.step(lx, dt), -0.1, 1.1);
+
+    // --- AFTERIMAGE: the section left behind leaves one brief trace; the next one absorbs it ---
+    if (st.gateId !== this.seenGate) {
+      this.seenGate = st.gateId;
+      if ((tier === 'high' || tier === 'balanced') && calm < 0.9) {
+        this.afterT = 0;
+        this.afterDur = AFTER_DUR[tier];
+        this.afterAmp = AFTER_AMP[tier] * (compact ? 0.6 : 1);
+        st.afterId++;
+        st.afterFrom = st.prevIndex == null ? 0 : st.prevIndex;
+      }
+    }
+    var after = 0;
+    if (this.afterT < this.afterDur) {
+      this.afterT += dt;
+      var at = this.afterT / this.afterDur;
+      after = this.afterAmp * Math.min(1, at / 0.1) * Math.pow(1 - clamp01(at), 1.6);
+    }
+    if (tier !== 'high' && tier !== 'balanced') { after = 0; this.afterT = 9; }
+    st.afterimage = clamp01(after);
+    return st;
+  };
+
+  // A still composition: every camera term at rest, nothing transient.
+  DMFSpatialNarrative.prototype.compose = function (st) {
+    st.camPan = 0; st.camTilt = 0; st.camRoll = 0; st.dolly = 0; st.zk = 0.5; st.pressure = 0;
+    st.headYaw = 0; st.headPitch = 0; st.gravityX = 0; st.gravityY = 0; st.lightX = 0.5;
+    st.afterimage = 0; st.heroMoment = 0;
+    return st;
+  };
+
+  var api = {
+    LIMITS: LIMITS,
+    POSES: POSES,
+    TIER_CAMERA: TIER_CAMERA,
+    COMPACT_CAMERA: COMPACT_CAMERA,
+    COMPACT_HEAD: COMPACT_HEAD,
+    AFTER_DUR: AFTER_DUR,
+    MOMENT_DUR: MOMENT_DUR,
+    DMFCritical: DMFCritical,
+    DMFSpatialNarrative: DMFSpatialNarrative
+  };
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.DMFSpatialNarrative = api;
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
 /* DMF EVENT HORIZON — one director for the landing's audiovisual world.
  * It owns no loop, no audio graph and no renderer. It listens to the DMF Signal Bus clock (hub.onFrame),
  * folds scroll, section, audio, pointer, visibility and the governor tier into one stage state
@@ -3979,6 +4209,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
  * signal-bus.js and before relic.js. */
 (function (root) {
   'use strict';
+
+  // V2 Spatial Narrative: a pure mapping layer the director steps with its own state (no clock of its own).
+  var SN = typeof module === 'object' && module.exports ? require('./spatial-narrative.js') : root.DMFSpatialNarrative;
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
@@ -4040,8 +4273,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       transition: 0, gate: 0, gateId: 0, calm: 0, light: 1, wake: 0,
       low: 0, mid: 0, high: 0, kick: 0,
       pointerX: 0, pointerY: 0,
-      performanceTier: 'high', compact: false, running: false
+      performanceTier: 'high', compact: false, running: false,
+      // V2 Spatial Narrative (written by DMFSpatialNarrative.update)
+      camPan: 0, camTilt: 0, camRoll: 0, dolly: 0, zk: 0.5, pressure: 0,
+      headYaw: 0, headPitch: 0, gravityX: 0, gravityY: 0, lightX: 0.5,
+      afterimage: 0, afterId: 0, afterFrom: 0, heroMoment: 0, prevIndex: 0
     };
+    this.narrative = SN ? new SN.DMFSpatialNarrative() : null;
     this._depthV = 0;
     this._gateT = 9;
     this._sinceGate = 9;
@@ -4090,6 +4328,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     this._sinceGate += dt;
     if (idx !== st.index) {
       var wasMeasured = st.running;
+      st.prevIndex = st.index;     // the section being left (either scroll direction)
       st.index = idx;
       st.section = this.ids[idx] || 'intro';
       if (wasMeasured && this._sinceGate >= GATE_GAP && TIERS[inp.tier].gates && (this.calms[idx] || 0) < 0.9) {
@@ -4116,7 +4355,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     // CALM + LIGHT — the conversion area pulls everything down; the field follows the section's light.
     st.calm = approach(st.calm, this.calms[idx] || 0, 2.5, dt);
     st.light = approach(st.light, this.lights[idx] == null ? 1 : this.lights[idx], 1.5, dt);
-    var damp = st.wake * (1 - 0.55 * st.calm);
+    // Conversion sanctuary: in the offer the stage keeps only ~30% of its audio response.
+    var damp = st.wake * (1 - 0.7 * st.calm);
 
     // AUDIO — ENERGY is an envelope; LOW/MID/HIGH arrive from the bus force matrix (already physical).
     st.energy = envelope(st.energy, clamp01(s.energy || 0) * damp, 3, 0.8, dt);
@@ -4138,6 +4378,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     // POINTER — damped, never a direct follow.
     st.pointerX = approach(st.pointerX, clamp(inp.pointerX || 0, -1, 1), 5, dt);
     st.pointerY = approach(st.pointerY, clamp(inp.pointerY || 0, -1, 1), 5, dt);
+    if (this.narrative) this.narrative.update(st, inp, this.ids, dt);
     return st;
   };
 
@@ -4150,6 +4391,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     st.depth = 0; st.tension = 0; st.transition = 0; st.gate = 0; st.velocity = 0; st.speed = 0; st.focus = 1;
     st.calm = this.calms[st.index] || 0;
     st.light = this.lights[st.index] == null ? 1 : this.lights[st.index];
+    if (this.narrative) this.narrative.compose(st);
     return st;
   };
 
@@ -4173,7 +4415,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
   // Blocks that receive per-section variables while visible (never the whole document).
   var MAGNETS = '.hero-cta, .hero-cta-2, .tier-cta, .lab-gate, .tips-cta, .acad-cta, .acad-cta-free, .dmf-signal-cta, .nav-logo';
-  var SECTION_VARS = ['--eh-focus', '--eh-rel', '--eh-split', '--eh-energy', '--eh-mid', '--eh-high', '--eh-speed', '--eh-vel', '--eh-sheen'];
+  var SECTION_VARS = ['--eh-focus', '--eh-rel', '--eh-split', '--eh-energy', '--eh-mid', '--eh-high', '--eh-speed', '--eh-vel', '--eh-lx',
+    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk'];
+  function freshCache(n) { var c = []; for (var i = 0; i < n; i++) c.push(-9); return c; }
 
   function mount() {
     var hub = root.DMFSignal;
@@ -4211,6 +4455,15 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         el.__ehIdx = secEls.length - 1;
       }
       eh.setMarkers(tops, ids, lights, calms, doc.documentElement.scrollHeight);
+      // REFLECTION CONTINUITY: each framed surface learns where it sits across the viewport, so the one
+      // light source (--eh-lx) lands on it at the right place — the band continues from frame to frame.
+      var vw = root.innerWidth || 1;
+      var sheens = doc.querySelectorAll('.eh-sheen');
+      for (var q = 0; q < sheens.length; q++) {
+        var host = sheens[q].parentNode.getBoundingClientRect();
+        sheens[q].style.setProperty('--eh-l', (Math.round(host.left / vw * 1000) / 1000).toString());
+        sheens[q].style.setProperty('--eh-w', (Math.max(0.05, Math.round(host.width / vw * 1000) / 1000)).toString());
+      }
       for (var j = 0; j < secEls.length; j++) if (!secEls[j].__ehSeen) { secEls[j].__ehSeen = true; if (io) io.observe(secEls[j]); }
     }
 
@@ -4223,7 +4476,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         el.__ehTop = entries[i].boundingClientRect.top + (root.pageYOffset || 0);
         el.__ehH = entries[i].boundingClientRect.height || 1;
         if (entries[i].isIntersecting) {
-          if (at < 0) { visible.push(el); el.__ehVals = el.__ehVals || [-9, -9, -9, -9, -9, -9, -9, -9, -9]; }
+          if (at < 0) { visible.push(el); el.__ehVals = el.__ehVals || freshCache(SECTION_VARS.length); }
         } else if (at >= 0) {
           visible.splice(at, 1);
           for (var k = 0; k < SECTION_VARS.length; k++) el.style.removeProperty(SECTION_VARS[k]);
@@ -4236,10 +4489,29 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     // Decorative layers that live in the source markup.
     var field = doc.querySelector('.eh-field');
     var intro = doc.getElementById('concertIntro');
-    var fieldVals = [-9, -9, -9, -9, -9, -9, -9, -9];
+    var fieldVals = freshCache(12);
     // Intro variables go to the few elements that read them (never the intro, whose subtree holds the SVG).
     var introEls = doc.querySelectorAll('#concertIntro .eh-stack, #concertIntro .eh-floor, #concertIntro .eh-halo');
-    for (var ie = 0; ie < introEls.length; ie++) introEls[ie].__ehVals = [-9, -9, -9, -9, -9, -9];
+    for (var ie = 0; ie < introEls.length; ie++) introEls[ie].__ehVals = freshCache(8);
+    // The logo only hears the hero moment and pointer gravity (both rare), never the per-frame audio.
+    var logoWrap = doc.querySelector('#concertIntro .concert-logo-wrap');
+    var logoVals = freshCache(3);
+    // AFTERIMAGE: one shared transient layer, reused; max one active.
+    var afterEl = doc.querySelector('.eh-after');
+    var afterVals = freshCache(1), seenAfter = 0, afterOn = false;
+    // HERO MOMENT: once per visit.
+    var HERO_KEY = 'dmf_eh_moment';
+    if (eh.narrative) { try { if (root.sessionStorage.getItem(HERO_KEY) === '1') eh.narrative.heroFired = true; } catch (e) { eh.narrative.heroFired = true; } }
+
+    // Once per crossing (never per frame): the trace carries the title of the section being left.
+    function setAfterText() {
+      var from = secEls[st.afterFrom];
+      var t = from ? from.querySelector('.section-title, .acad-title, .dmf-signal-title, h1, .band-text p') : null;
+      var txt = t ? String(t.textContent || '').replace(/\s+/g, ' ').trim() : '';
+      // Whole words only, ≤ 28 characters: a trace, not a quote.
+      if (txt.length > 28) { txt = txt.slice(0, 28); txt = txt.slice(0, Math.max(txt.lastIndexOf(' '), 8)); }
+      afterEl.textContent = txt || 'DMF';
+    }
 
     function put(el, cache, i, name, v, q) {
       v = Math.round(v * q) / q;
@@ -4306,8 +4578,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         put(el, c, 5, '--eh-high', st.high, 50);
         put(el, c, 6, '--eh-speed', st.speed * depthK, 100);
         put(el, c, 7, '--eh-vel', st.velocity * depthK, 100);
-        // The shared specular band travels with the block through the viewport, nudged by the pointer.
-        put(el, c, 8, '--eh-sheen', clamp01(0.5 - rel * 0.8 + st.pointerX * 0.12), 200);
+        // V2: one light source for the whole page; each framed surface resolves it against its own place.
+        put(el, c, 8, '--eh-lx', st.lightX, 400);
+        // V2 camera grammar.
+        put(el, c, 9, '--eh-pan', st.camPan, 100);
+        put(el, c, 10, '--eh-tilt', st.camTilt, 100);
+        put(el, c, 11, '--eh-dolly', st.dolly, 2000);
+        put(el, c, 12, '--eh-zk', st.zk * tierK.depth, 100);
       }
       if (field) {
         put(field, fieldVals, 0, '--eh-energy', st.energy, 50);
@@ -4318,6 +4595,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         put(field, fieldVals, 5, '--eh-depth', st.depth * depthK, 100);
         put(field, fieldVals, 6, '--eh-high', st.high, 50);
         put(field, fieldVals, 7, '--eh-scroll', clamp01(y / Math.max(1, eh.docH - vh)), 500);
+        put(field, fieldVals, 8, '--eh-pan', st.camPan, 100);
+        put(field, fieldVals, 9, '--eh-tilt', st.camTilt, 100);
+        put(field, fieldVals, 10, '--eh-roll', st.camRoll, 200);
+        put(field, fieldVals, 11, '--eh-dolly', st.dolly, 2000);
       }
       if (intro && !intro.classList.contains('eh-off')) {
         for (var n = 0; n < introEls.length; n++) {
@@ -4328,11 +4609,27 @@ if (window.__DMF_FIREBASE_CONFIG__) {
           put(ie2, iv, 3, '--eh-depth', st.depth, 50);
           put(ie2, iv, 4, '--eh-px', st.pointerX, 50);
           put(ie2, iv, 5, '--eh-py', st.pointerY, 50);
+          put(ie2, iv, 6, '--eh-press', st.pressure, 50);
+          put(ie2, iv, 7, '--eh-moment', st.heroMoment, 50);
+        }
+        if (logoWrap) {
+          put(logoWrap, logoVals, 0, '--eh-moment', st.heroMoment, 50);
+          put(logoWrap, logoVals, 1, '--eh-gx', st.gravityX, 50);
+          put(logoWrap, logoVals, 2, '--eh-gy', st.gravityY, 50);
         }
       }
+      if (afterEl) {
+        if (st.afterId !== seenAfter) { seenAfter = st.afterId; setAfterText(); }
+        var on = st.afterimage > 0.005;
+        if (on !== afterOn) { afterOn = on; field.classList.toggle('eh-after-on', on); }
+        if (on) put(afterEl, afterVals, 0, '--eh-after', st.afterimage, 100);
+      }
       if (magnet) {
-        magnetX = approach(magnetX, magnetTX, 10, 0.033);
-        magnetY = approach(magnetY, magnetTY, 10, 0.033);
+        var gk = st.performanceTier === 'lite' ? 0 : 1 - 0.7 * st.calm;
+        // Soft attack, softer release.
+        var rate = magnetTX !== 0 || magnetTY !== 0 ? 6 : 3;
+        magnetX = approach(magnetX, magnetTX * gk, rate, 0.033);
+        magnetY = approach(magnetY, magnetTY * gk, rate, 0.033);
         magnet.style.setProperty('--eh-mx', magnetX.toFixed(2));
         magnet.style.setProperty('--eh-my', magnetY.toFixed(2));
       }
@@ -4366,12 +4663,21 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       if (doc.getElementById('smoke-canvas')) systems.push('smoke');
       perf.activeSystems = systems.join(',');
       perf.webglScenes = doc.querySelectorAll('.dmf-signal-visual canvas, .dmf-stage-layer canvas, .dmf-mixer-canvas').length;
+      perf.spatialNarrative = {
+        cameraPan: +st.camPan.toFixed(3), cameraTilt: +st.camTilt.toFixed(3), cameraRoll: +st.camRoll.toFixed(3),
+        dolly: +st.dolly.toFixed(4), pressure: +st.pressure.toFixed(2), afterimage: +st.afterimage.toFixed(2),
+        afterimages: st.afterId, pointerGravity: +Math.max(Math.abs(st.gravityX), Math.abs(st.gravityY)).toFixed(2),
+        heroMoment: eh.narrative ? (eh.narrative.heroFired ? 'fired' : 'armed') : 'off',
+        headYaw: +st.headYaw.toFixed(4), headPitch: +st.headPitch.toFixed(4), lightX: +st.lightX.toFixed(2),
+        activeSection: st.section, tier: st.performanceTier
+      };
       perf.dprCaps = { receiver: hub.renderScale || 1, mixer: perf.mixerFit ? perf.mixerFit.dpr : null, smoke: Math.min(root.devicePixelRatio || 1, 1.5) };
     }
 
     var frameN = 0, acc = 0;
     // One input record, reused every frame (the director reads it; nothing is allocated per frame).
-    var input = { scrollY: 0, vh: 800, velocity: 0, s: null, forces: null, pointerX: 0, pointerY: 0, tier: 'high', compact: compact, wakeT: -1, pre: 0 };
+    var input = { scrollY: 0, vh: 800, velocity: 0, s: null, forces: null, pointerX: 0, pointerY: 0, tier: 'high', compact: compact, wakeT: -1, pre: 0,
+      docProgress: 0, pointerActive: false };
     function tick(s, dt, raw, bus) {
       var tier = tierOf(bus.qualityTier, compact);
       applyTier(tier);
@@ -4396,7 +4702,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       input.velocity = bus.stage && bus.stage.scroll ? bus.stage.scroll.velocity : 0;
       input.s = s; input.forces = bus.forces; input.pointerX = ptrX; input.pointerY = ptrY;
       input.tier = tier; input.wakeT = wakeT; input.pre = pre;
+      input.docProgress = clamp01(input.scrollY / Math.max(1, eh.docH - input.vh));
+      input.pointerActive = ptrClientX >= 0;
       eh.update(input, step);
+      if (eh.narrative && eh.narrative.heroFiredNow) { try { root.sessionStorage.setItem(HERO_KEY, '1'); } catch (e) { /* once per page then */ } }
       // DOM at ~30 Hz, except on a gate or a kick so the page lands on the beat.
       writeT += step;
       if (writeT >= 0.033 || st.transition > 0.01 || s.beatFired) { writeT = 0; write(false); }
@@ -5769,6 +6078,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var ehQuiet = eh ? 1 - 0.45 * eh.calm : 1;
       var ehFocus = eh && eh.section === 'relic' ? eh.focus : 0;
       var ehDepth = eh ? Math.max(0, eh.depth) : 0;
+      // V2 Spatial Narrative: the director's camera, acoustic pressure and figure orientation.
+      var ehPress = eh ? eh.pressure || 0 : 0;
+      var ehPan = eh ? eh.camPan || 0 : 0, ehTilt = eh ? eh.camTilt || 0 : 0, ehDolly = eh ? eh.dolly || 0 : 0;
+      var ehYaw = eh ? eh.headYaw || 0 : 0, ehPitch = eh ? eh.headPitch || 0 : 0;
       // PRECOMPRESSION: the Receiver's groove almost freezes while pressure builds.
       var freeze = 1 - 0.85 * sPre;
       liveTime += dt;
@@ -5823,7 +6136,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       // IGNITION preloads the cones inward; LOW pressure loads the cabinets (right side detuned).
       coneL.step(-0.35 * sIgn, dt);
       coneR.step(-0.35 * sIgn, dt);
-      var cabPress = -0.008 * f.cabinet * f.amp * ehQuiet * (1 + 0.6 * ehDepth);
+      var cabPress = -0.008 * f.cabinet * f.amp * ehQuiet * (1 + 0.6 * ehDepth + 0.4 * ehPress);
       cabL.step(cabPress, dt);
       cabR.step(cabPress * 0.85, dt);
       U.uConeL.value = coneL.x;
@@ -5841,7 +6154,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       // shoulders answer the mids; the torso counter-rotates on IGNITION.
       var beats = s.beatIndex + s.beatPhase;
       var nodBase = (0.05 + 0.03 * od) * (0.5 + 0.5 * Math.cos(2 * Math.PI * (s.beatPhase - 0.18))) * s.energy * freeze;
-      headK.step(nodBase - 0.03 * pressure, dt);
+      headK.step(nodBase - 0.03 * pressure + ehPitch, dt);
       headSlow.step(headK.x, dt);
       U.uNod.value = clamp(headK.x - 0.3 * headSlow.x, -0.06, 0.22);
       var groove = Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * s.beatPhase), 3);
@@ -5849,7 +6162,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       U.uBounce.value = torsoK.x;
       var swayWave = Math.sin(Math.PI * beats);
       U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze;
-      twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet, -0.05, 0.05), dt);
+      twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet + ehYaw, -0.05, 0.05), dt);
       U.uTwist.value = twistK.x;
       shoulderK.step(0.022 * f.shoulder * f.amp * swayWave * freeze, dt);
       U.uShoulder.value = shoulderK.x;
@@ -5970,7 +6283,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       }
       // The HYPERDRIVE pre-impact pullback lives in the dolly too, so its release is a push with mass,
       // never a one-frame jump.
-      dollyAim = (od * 0.25 - 0.45 * hdPre - 0.55 * sPre + 0.9 * sIgn + 2.2 * sBrk - 0.08 * pressure) * ms;
+      dollyAim = (od * 0.25 - 0.45 * hdPre - 0.55 * sPre + 0.9 * sIgn + 2.2 * sBrk - 0.08 * pressure) * ms + ehDolly * 4;
       dollyK.step(dollyAim, dt);
       lensSpring.step((hdPre * 1.2 + sPre * 1.4) * ms, dt);
       rollSpring.step(0, dt);
@@ -5985,8 +6298,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         twistK.impulse(0.004 * pv * ms);
         ptrSpin = pv;
       } else ptrSpin *= Math.exp(-dt * 8);
-      latK.step(auto ? (0.035 * f.torque * f.travel * Math.sin(Math.PI * beats / 2) * freeze + parallaxX * 0.08) * ms : 0, dt);
-      parYK.step(auto ? -parallaxY * 0.22 : 0, dt);
+      latK.step(auto ? (0.035 * f.torque * f.travel * Math.sin(Math.PI * beats / 2) * freeze + parallaxX * 0.08) * ms + ehPan * 0.0175 : 0, dt);
+      parYK.step(auto ? -parallaxY * 0.22 + ehTilt * 0.06 : 0, dt);
     }
 
     // VELOCITY FIELD, reflection acceleration, temporal echo, tunnel and telemetry.
@@ -6171,7 +6484,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var approach = clamp((vh * 1.25 - (visTop - sy)) / (vh * 0.25), 0, 1);
       stageVisible = approach > 0;
       var lift = wgt > 0.05 ? 0.3 * tr.level + 0.25 * Math.abs(stageHub.scroll.velocity) : 0;
-      var op = Math.min(P.opacity + lift, 1) * approach;
+      // V2 conversion sanctuary: behind the offer the Receiver recedes to a trace (never gone, never competing).
+      var ehCalm = hub.eventHorizon ? hub.eventHorizon.calm : 0;
+      var op = Math.min(P.opacity + lift, 1) * approach * (1 - 0.65 * ehCalm);
       // Mask: in ARRIVAL the stage shows only through the band (feathered); docking opens it to the page.
       var open = clamp(wgt, 0, 1);
       var mTop = (visTop - sy) * (1 - open) - vh * 0.3 * open;
@@ -6513,7 +6828,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var drive = { lift: 0, scale: 0, punch: 0, punchV: 0, mid: 0, high: 0, energy: 0.3, halo: 0 };
       var ptr = { x: 0, y: 0, yaw: 0, pitch: 0 };
       // Event Horizon layer: section focus (dolly, edge light), scroll inertia (lean), hover focus.
-      var stage = { focus: 0, dolly: 0, lean: 0, hover: 0, hoverTarget: 0 };
+      var stage = { focus: 0, dolly: 0, lean: 0, hover: 0, hoverTarget: 0, low: 0 };
       var clock = 0;
 
       new THREE.GLTFLoader().load(MODEL_URL, function (gltf) {
@@ -6601,10 +6916,12 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
       function placeCamera() {
         var d = baseDist * (1 - 0.012 * drive.punch) * (1 + 0.04 * stage.dolly);
-        var ce = Math.cos(VIEW_ELEVATION);
+        // V2 camera grammar: in the mixer's section the camera sits up to ~3° lower.
+        var elev = VIEW_ELEVATION - 0.05 * stage.low;
+        var ce = Math.cos(elev);
         camera.position.set(
           target.x + d * ce * Math.sin(VIEW_AZIMUTH),
-          target.y + d * Math.sin(VIEW_ELEVATION),
+          target.y + d * Math.sin(elev),
           target.z + d * ce * Math.cos(VIEW_AZIMUTH));
         camera.lookAt(target);
       }
@@ -6704,6 +7021,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         stage.dolly = approach(stage.dolly, 1 - ehFocus, 2, dt);
         stage.lean = approach(stage.lean, eh ? eh.velocity : 0, 5, dt);
         stage.hover = approach(stage.hover, stage.hoverTarget, 4, dt);
+        stage.low = approach(stage.low, eh && eh.section === 'tips' ? clamp01(-(eh.camTilt || 0) / 0.8) : 0, 1.5, dt);
 
         ptr.yaw = approach(ptr.yaw, ptr.x * POINTER_MAX, 4, dt);
         ptr.pitch = approach(ptr.pitch, ptr.y * POINTER_MAX * 0.6, 4, dt);

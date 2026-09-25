@@ -10,6 +10,9 @@
 (function (root) {
   'use strict';
 
+  // V2 Spatial Narrative: a pure mapping layer the director steps with its own state (no clock of its own).
+  var SN = typeof module === 'object' && module.exports ? require('./spatial-narrative.js') : root.DMFSpatialNarrative;
+
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
   function smooth01(t) { t = clamp01(t); return t * t * (3 - 2 * t); }
@@ -70,8 +73,13 @@
       transition: 0, gate: 0, gateId: 0, calm: 0, light: 1, wake: 0,
       low: 0, mid: 0, high: 0, kick: 0,
       pointerX: 0, pointerY: 0,
-      performanceTier: 'high', compact: false, running: false
+      performanceTier: 'high', compact: false, running: false,
+      // V2 Spatial Narrative (written by DMFSpatialNarrative.update)
+      camPan: 0, camTilt: 0, camRoll: 0, dolly: 0, zk: 0.5, pressure: 0,
+      headYaw: 0, headPitch: 0, gravityX: 0, gravityY: 0, lightX: 0.5,
+      afterimage: 0, afterId: 0, afterFrom: 0, heroMoment: 0, prevIndex: 0
     };
+    this.narrative = SN ? new SN.DMFSpatialNarrative() : null;
     this._depthV = 0;
     this._gateT = 9;
     this._sinceGate = 9;
@@ -120,6 +128,7 @@
     this._sinceGate += dt;
     if (idx !== st.index) {
       var wasMeasured = st.running;
+      st.prevIndex = st.index;     // the section being left (either scroll direction)
       st.index = idx;
       st.section = this.ids[idx] || 'intro';
       if (wasMeasured && this._sinceGate >= GATE_GAP && TIERS[inp.tier].gates && (this.calms[idx] || 0) < 0.9) {
@@ -146,7 +155,8 @@
     // CALM + LIGHT — the conversion area pulls everything down; the field follows the section's light.
     st.calm = approach(st.calm, this.calms[idx] || 0, 2.5, dt);
     st.light = approach(st.light, this.lights[idx] == null ? 1 : this.lights[idx], 1.5, dt);
-    var damp = st.wake * (1 - 0.55 * st.calm);
+    // Conversion sanctuary: in the offer the stage keeps only ~30% of its audio response.
+    var damp = st.wake * (1 - 0.7 * st.calm);
 
     // AUDIO — ENERGY is an envelope; LOW/MID/HIGH arrive from the bus force matrix (already physical).
     st.energy = envelope(st.energy, clamp01(s.energy || 0) * damp, 3, 0.8, dt);
@@ -168,6 +178,7 @@
     // POINTER — damped, never a direct follow.
     st.pointerX = approach(st.pointerX, clamp(inp.pointerX || 0, -1, 1), 5, dt);
     st.pointerY = approach(st.pointerY, clamp(inp.pointerY || 0, -1, 1), 5, dt);
+    if (this.narrative) this.narrative.update(st, inp, this.ids, dt);
     return st;
   };
 
@@ -180,6 +191,7 @@
     st.depth = 0; st.tension = 0; st.transition = 0; st.gate = 0; st.velocity = 0; st.speed = 0; st.focus = 1;
     st.calm = this.calms[st.index] || 0;
     st.light = this.lights[st.index] == null ? 1 : this.lights[st.index];
+    if (this.narrative) this.narrative.compose(st);
     return st;
   };
 
@@ -203,7 +215,9 @@
 
   // Blocks that receive per-section variables while visible (never the whole document).
   var MAGNETS = '.hero-cta, .hero-cta-2, .tier-cta, .lab-gate, .tips-cta, .acad-cta, .acad-cta-free, .dmf-signal-cta, .nav-logo';
-  var SECTION_VARS = ['--eh-focus', '--eh-rel', '--eh-split', '--eh-energy', '--eh-mid', '--eh-high', '--eh-speed', '--eh-vel', '--eh-sheen'];
+  var SECTION_VARS = ['--eh-focus', '--eh-rel', '--eh-split', '--eh-energy', '--eh-mid', '--eh-high', '--eh-speed', '--eh-vel', '--eh-lx',
+    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk'];
+  function freshCache(n) { var c = []; for (var i = 0; i < n; i++) c.push(-9); return c; }
 
   function mount() {
     var hub = root.DMFSignal;
@@ -241,6 +255,15 @@
         el.__ehIdx = secEls.length - 1;
       }
       eh.setMarkers(tops, ids, lights, calms, doc.documentElement.scrollHeight);
+      // REFLECTION CONTINUITY: each framed surface learns where it sits across the viewport, so the one
+      // light source (--eh-lx) lands on it at the right place — the band continues from frame to frame.
+      var vw = root.innerWidth || 1;
+      var sheens = doc.querySelectorAll('.eh-sheen');
+      for (var q = 0; q < sheens.length; q++) {
+        var host = sheens[q].parentNode.getBoundingClientRect();
+        sheens[q].style.setProperty('--eh-l', (Math.round(host.left / vw * 1000) / 1000).toString());
+        sheens[q].style.setProperty('--eh-w', (Math.max(0.05, Math.round(host.width / vw * 1000) / 1000)).toString());
+      }
       for (var j = 0; j < secEls.length; j++) if (!secEls[j].__ehSeen) { secEls[j].__ehSeen = true; if (io) io.observe(secEls[j]); }
     }
 
@@ -253,7 +276,7 @@
         el.__ehTop = entries[i].boundingClientRect.top + (root.pageYOffset || 0);
         el.__ehH = entries[i].boundingClientRect.height || 1;
         if (entries[i].isIntersecting) {
-          if (at < 0) { visible.push(el); el.__ehVals = el.__ehVals || [-9, -9, -9, -9, -9, -9, -9, -9, -9]; }
+          if (at < 0) { visible.push(el); el.__ehVals = el.__ehVals || freshCache(SECTION_VARS.length); }
         } else if (at >= 0) {
           visible.splice(at, 1);
           for (var k = 0; k < SECTION_VARS.length; k++) el.style.removeProperty(SECTION_VARS[k]);
@@ -266,10 +289,29 @@
     // Decorative layers that live in the source markup.
     var field = doc.querySelector('.eh-field');
     var intro = doc.getElementById('concertIntro');
-    var fieldVals = [-9, -9, -9, -9, -9, -9, -9, -9];
+    var fieldVals = freshCache(12);
     // Intro variables go to the few elements that read them (never the intro, whose subtree holds the SVG).
     var introEls = doc.querySelectorAll('#concertIntro .eh-stack, #concertIntro .eh-floor, #concertIntro .eh-halo');
-    for (var ie = 0; ie < introEls.length; ie++) introEls[ie].__ehVals = [-9, -9, -9, -9, -9, -9];
+    for (var ie = 0; ie < introEls.length; ie++) introEls[ie].__ehVals = freshCache(8);
+    // The logo only hears the hero moment and pointer gravity (both rare), never the per-frame audio.
+    var logoWrap = doc.querySelector('#concertIntro .concert-logo-wrap');
+    var logoVals = freshCache(3);
+    // AFTERIMAGE: one shared transient layer, reused; max one active.
+    var afterEl = doc.querySelector('.eh-after');
+    var afterVals = freshCache(1), seenAfter = 0, afterOn = false;
+    // HERO MOMENT: once per visit.
+    var HERO_KEY = 'dmf_eh_moment';
+    if (eh.narrative) { try { if (root.sessionStorage.getItem(HERO_KEY) === '1') eh.narrative.heroFired = true; } catch (e) { eh.narrative.heroFired = true; } }
+
+    // Once per crossing (never per frame): the trace carries the title of the section being left.
+    function setAfterText() {
+      var from = secEls[st.afterFrom];
+      var t = from ? from.querySelector('.section-title, .acad-title, .dmf-signal-title, h1, .band-text p') : null;
+      var txt = t ? String(t.textContent || '').replace(/\s+/g, ' ').trim() : '';
+      // Whole words only, ≤ 28 characters: a trace, not a quote.
+      if (txt.length > 28) { txt = txt.slice(0, 28); txt = txt.slice(0, Math.max(txt.lastIndexOf(' '), 8)); }
+      afterEl.textContent = txt || 'DMF';
+    }
 
     function put(el, cache, i, name, v, q) {
       v = Math.round(v * q) / q;
@@ -336,8 +378,13 @@
         put(el, c, 5, '--eh-high', st.high, 50);
         put(el, c, 6, '--eh-speed', st.speed * depthK, 100);
         put(el, c, 7, '--eh-vel', st.velocity * depthK, 100);
-        // The shared specular band travels with the block through the viewport, nudged by the pointer.
-        put(el, c, 8, '--eh-sheen', clamp01(0.5 - rel * 0.8 + st.pointerX * 0.12), 200);
+        // V2: one light source for the whole page; each framed surface resolves it against its own place.
+        put(el, c, 8, '--eh-lx', st.lightX, 400);
+        // V2 camera grammar.
+        put(el, c, 9, '--eh-pan', st.camPan, 100);
+        put(el, c, 10, '--eh-tilt', st.camTilt, 100);
+        put(el, c, 11, '--eh-dolly', st.dolly, 2000);
+        put(el, c, 12, '--eh-zk', st.zk * tierK.depth, 100);
       }
       if (field) {
         put(field, fieldVals, 0, '--eh-energy', st.energy, 50);
@@ -348,6 +395,10 @@
         put(field, fieldVals, 5, '--eh-depth', st.depth * depthK, 100);
         put(field, fieldVals, 6, '--eh-high', st.high, 50);
         put(field, fieldVals, 7, '--eh-scroll', clamp01(y / Math.max(1, eh.docH - vh)), 500);
+        put(field, fieldVals, 8, '--eh-pan', st.camPan, 100);
+        put(field, fieldVals, 9, '--eh-tilt', st.camTilt, 100);
+        put(field, fieldVals, 10, '--eh-roll', st.camRoll, 200);
+        put(field, fieldVals, 11, '--eh-dolly', st.dolly, 2000);
       }
       if (intro && !intro.classList.contains('eh-off')) {
         for (var n = 0; n < introEls.length; n++) {
@@ -358,11 +409,27 @@
           put(ie2, iv, 3, '--eh-depth', st.depth, 50);
           put(ie2, iv, 4, '--eh-px', st.pointerX, 50);
           put(ie2, iv, 5, '--eh-py', st.pointerY, 50);
+          put(ie2, iv, 6, '--eh-press', st.pressure, 50);
+          put(ie2, iv, 7, '--eh-moment', st.heroMoment, 50);
+        }
+        if (logoWrap) {
+          put(logoWrap, logoVals, 0, '--eh-moment', st.heroMoment, 50);
+          put(logoWrap, logoVals, 1, '--eh-gx', st.gravityX, 50);
+          put(logoWrap, logoVals, 2, '--eh-gy', st.gravityY, 50);
         }
       }
+      if (afterEl) {
+        if (st.afterId !== seenAfter) { seenAfter = st.afterId; setAfterText(); }
+        var on = st.afterimage > 0.005;
+        if (on !== afterOn) { afterOn = on; field.classList.toggle('eh-after-on', on); }
+        if (on) put(afterEl, afterVals, 0, '--eh-after', st.afterimage, 100);
+      }
       if (magnet) {
-        magnetX = approach(magnetX, magnetTX, 10, 0.033);
-        magnetY = approach(magnetY, magnetTY, 10, 0.033);
+        var gk = st.performanceTier === 'lite' ? 0 : 1 - 0.7 * st.calm;
+        // Soft attack, softer release.
+        var rate = magnetTX !== 0 || magnetTY !== 0 ? 6 : 3;
+        magnetX = approach(magnetX, magnetTX * gk, rate, 0.033);
+        magnetY = approach(magnetY, magnetTY * gk, rate, 0.033);
         magnet.style.setProperty('--eh-mx', magnetX.toFixed(2));
         magnet.style.setProperty('--eh-my', magnetY.toFixed(2));
       }
@@ -396,12 +463,21 @@
       if (doc.getElementById('smoke-canvas')) systems.push('smoke');
       perf.activeSystems = systems.join(',');
       perf.webglScenes = doc.querySelectorAll('.dmf-signal-visual canvas, .dmf-stage-layer canvas, .dmf-mixer-canvas').length;
+      perf.spatialNarrative = {
+        cameraPan: +st.camPan.toFixed(3), cameraTilt: +st.camTilt.toFixed(3), cameraRoll: +st.camRoll.toFixed(3),
+        dolly: +st.dolly.toFixed(4), pressure: +st.pressure.toFixed(2), afterimage: +st.afterimage.toFixed(2),
+        afterimages: st.afterId, pointerGravity: +Math.max(Math.abs(st.gravityX), Math.abs(st.gravityY)).toFixed(2),
+        heroMoment: eh.narrative ? (eh.narrative.heroFired ? 'fired' : 'armed') : 'off',
+        headYaw: +st.headYaw.toFixed(4), headPitch: +st.headPitch.toFixed(4), lightX: +st.lightX.toFixed(2),
+        activeSection: st.section, tier: st.performanceTier
+      };
       perf.dprCaps = { receiver: hub.renderScale || 1, mixer: perf.mixerFit ? perf.mixerFit.dpr : null, smoke: Math.min(root.devicePixelRatio || 1, 1.5) };
     }
 
     var frameN = 0, acc = 0;
     // One input record, reused every frame (the director reads it; nothing is allocated per frame).
-    var input = { scrollY: 0, vh: 800, velocity: 0, s: null, forces: null, pointerX: 0, pointerY: 0, tier: 'high', compact: compact, wakeT: -1, pre: 0 };
+    var input = { scrollY: 0, vh: 800, velocity: 0, s: null, forces: null, pointerX: 0, pointerY: 0, tier: 'high', compact: compact, wakeT: -1, pre: 0,
+      docProgress: 0, pointerActive: false };
     function tick(s, dt, raw, bus) {
       var tier = tierOf(bus.qualityTier, compact);
       applyTier(tier);
@@ -426,7 +502,10 @@
       input.velocity = bus.stage && bus.stage.scroll ? bus.stage.scroll.velocity : 0;
       input.s = s; input.forces = bus.forces; input.pointerX = ptrX; input.pointerY = ptrY;
       input.tier = tier; input.wakeT = wakeT; input.pre = pre;
+      input.docProgress = clamp01(input.scrollY / Math.max(1, eh.docH - input.vh));
+      input.pointerActive = ptrClientX >= 0;
       eh.update(input, step);
+      if (eh.narrative && eh.narrative.heroFiredNow) { try { root.sessionStorage.setItem(HERO_KEY, '1'); } catch (e) { /* once per page then */ } }
       // DOM at ~30 Hz, except on a gate or a kick so the page lands on the beat.
       writeT += step;
       if (writeT >= 0.033 || st.transition > 0.01 || s.beatFired) { writeT = 0; write(false); }
