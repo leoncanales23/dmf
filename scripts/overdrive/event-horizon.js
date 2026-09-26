@@ -18,6 +18,8 @@
   var BS = typeof module === 'object' && module.exports ? require('./black-sun.js') : root.DMFBlackSun;
   // V5 Mass Driver: acceleration, stepped after the Black Sun on the same state (no clock of its own).
   var MD = typeof module === 'object' && module.exports ? require('./mass-driver.js') : root.DMFMassDriver;
+  // V6 Lightspeed: the threshold crossing, stepped after the Mass Driver and triggered only by it.
+  var LS = typeof module === 'object' && module.exports ? require('./lightspeed.js') : root.DMFLightspeed;
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
@@ -95,12 +97,17 @@
       // V5 Mass Driver (written by DMFMassDriver.update)
       charge: 0, precompress: 0, drive: 0, driveDolly: 0, driveLift: 0, driveRoll: 0, driveLateral: 0,
       driveMass: 0, driveSettle: 0, driveHead: 0, driveShoulder: 0, driveTorso: 0, wavefront: 0, floorWave: 0,
-      lightVelocity: 0, lightCompression: 0, typeVelocity: 0, typeSettle: 0
+      lightVelocity: 0, lightCompression: 0, typeVelocity: 0, typeSettle: 0,
+      // V6 Lightspeed (written by DMFLightspeed.update)
+      lightspeed: 0, spaceCompression: 0, lensPressure: 0, velocityField: 0, fovKick: 0, fovDeg: 0, depthStretch: 0,
+      depthDolly: 0, receiverAnchor: 0, reflectionVelocity: 0, bladeVelocity: 0, floorVelocity: 0, titleTrail: 0,
+      titleSnap: 0, lsIgnition: 0, lsHead: 0, lsShoulder: 0, lsTorso: 0, speakerHold: 0, speakerRelease: 0
     };
     this.narrative = SN ? new SN.DMFSpatialNarrative() : null;
     this.overdrive = SO && this.narrative ? new SO.DMFStageOverdrive() : null;
     this.blackSun = BS && this.overdrive ? new BS.DMFBlackSun() : null;
     this.massDriver = MD && this.blackSun ? new MD.DMFMassDriver() : null;
+    this.lightspeed = LS && this.massDriver ? new LS.DMFLightspeed() : null;
     this._depthV = 0;
     this._gateT = 9;
     this._sinceGate = 9;
@@ -203,6 +210,7 @@
     if (this.overdrive) this.overdrive.update(st, inp, this.ids, dt);
     if (this.blackSun) this.blackSun.update(st, inp, this.ids, dt);
     if (this.massDriver) this.massDriver.update(st, inp, this.ids, dt);
+    if (this.lightspeed) this.lightspeed.update(st, inp, this.ids, dt);
     return st;
   };
 
@@ -219,6 +227,7 @@
     if (this.overdrive) this.overdrive.compose(st);
     if (this.blackSun) this.blackSun.compose(st);
     if (this.massDriver) this.massDriver.compose(st);
+    if (this.lightspeed) this.lightspeed.compose(st);
     return st;
   };
 
@@ -243,7 +252,7 @@
   // Blocks that receive per-section variables while visible (never the whole document).
   var MAGNETS = '.hero-cta, .hero-cta-2, .tier-cta, .lab-gate, .tips-cta, .acad-cta, .acad-cta-free, .dmf-signal-cta, .nav-logo';
   var SECTION_VARS = ['--eh-focus', '--eh-rel', '--eh-split', '--eh-energy', '--eh-mid', '--eh-high', '--eh-speed', '--eh-vel', '--eh-lx',
-    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk', '--eh-tp', '--eh-chroma', '--eh-reveal', '--eh-tv', '--eh-ts'];
+    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk', '--eh-tp', '--eh-chroma', '--eh-reveal', '--eh-tv', '--eh-ts', '--eh-tt', '--eh-tsn', '--eh-rv'];
   function freshCache(n) { var c = []; for (var i = 0; i < n; i++) c.push(-9); return c; }
 
   function mount() {
@@ -316,7 +325,7 @@
     // Decorative layers that live in the source markup.
     var field = doc.querySelector('.eh-field');
     var intro = doc.getElementById('concertIntro');
-    var fieldVals = freshCache(19);
+    var fieldVals = freshCache(20);
     // Intro variables go to the few elements that read them (never the intro, whose subtree holds the SVG).
     var introEls = doc.querySelectorAll('#concertIntro .eh-stack, #concertIntro .eh-floor, #concertIntro .eh-halo');
     for (var ie = 0; ie < introEls.length; ie++) introEls[ie].__ehVals = freshCache(11);
@@ -423,6 +432,10 @@
         // V5: titles feel the acceleration (stretch along it), then settle.
         put(el, c, 17, '--eh-tv', st.typeVelocity, 20);
         put(el, c, 18, '--eh-ts', st.typeSettle, 20);
+        // V6: a 1–2 px directional title trail, its snap back, and reflections streaking with the velocity front.
+        put(el, c, 19, '--eh-tt', st.titleTrail, 20);
+        put(el, c, 20, '--eh-tsn', st.titleSnap, 20);
+        put(el, c, 21, '--eh-rv', st.reflectionVelocity, 20);
       }
       // V3: in the offer the background holds still (only its light and calm keep settling).
       var frozen = st.calm > 0.85;
@@ -438,6 +451,7 @@
         // V5: the blades acquire velocity (narrower, more directional) and narrow under precompression.
         put(field, fieldVals, 17, '--eh-lv', st.lightVelocity, 50);
         put(field, fieldVals, 18, '--eh-lc', st.lightCompression, 50);
+        put(field, fieldVals, 19, '--eh-bv', st.bladeVelocity, 50);   // V6: blades align with the travel
       }
       if (field && !frozen) {
         put(field, fieldVals, 0, '--eh-energy', st.energy, 50);
@@ -545,6 +559,11 @@
         driveLateral: +st.driveLateral.toFixed(3), driveMass: +st.driveMass.toFixed(2), driveSettle: +st.driveSettle.toFixed(2),
         wavefront: +st.wavefront.toFixed(2), floorWave: +st.floorWave.toFixed(2), lightVelocity: +st.lightVelocity.toFixed(2),
         typeVelocity: +st.typeVelocity.toFixed(2), shots: eh.massDriver ? eh.massDriver.shots : 0
+      };
+      perf.lightspeed = {
+        active: st.lightspeed > 0.001, compression: +st.spaceCompression.toFixed(2), velocity: +st.velocityField.toFixed(2),
+        fovKick: +st.fovDeg.toFixed(2), depthStretch: +st.depthStretch.toFixed(2), reflectionVelocity: +st.reflectionVelocity.toFixed(2),
+        bladeVelocity: +st.bladeVelocity.toFixed(2), titleTrail: +st.titleTrail.toFixed(2), shots: eh.lightspeed ? eh.lightspeed.shots : 0
       };
       perf.dprCaps = { receiver: hub.renderScale || 1, mixer: perf.mixerFit ? perf.mixerFit.dpr : null, smoke: Math.min(root.devicePixelRatio || 1, 1.5) };
     }
