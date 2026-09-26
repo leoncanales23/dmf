@@ -594,7 +594,7 @@ ul{list-style:none}
 .eh-compact{--eh-z3:-6px;--eh-z4:4px}
 
 /* Z0 — the field: a fixed light falloff and nine sparse specks behind everything. */
-.eh-field{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden;opacity:calc(.3 + var(--eh-light,1) * .7 * (1 - var(--eh-calm,0) * .65))}
+.eh-field{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden;opacity:calc((.3 + var(--eh-light,1) * .7 * (1 - var(--eh-calm,0) * .65)) * (1 - var(--eh-hold,0) * .35))}
 .eh-field::before{content:'';position:absolute;left:-20%;top:-10%;width:90%;height:80%;background:radial-gradient(50% 50% at 50% 50%,rgba(255,91,30,.045),transparent 70%);opacity:calc(.55 + var(--eh-energy,0) * .45);transform:translate3d(calc(var(--eh-scroll,0) * 40vw - var(--eh-pan,0) * 9px),calc(var(--eh-depth,0) * 6px - var(--eh-tilt,0) * 6px),0) rotate(calc(var(--eh-roll,0) * 1deg)) scale(calc(1 - var(--eh-dolly,0) * .8))}
 .eh-field i{position:absolute;left:var(--x);top:var(--y);width:2px;height:2px;border-radius:50%;background:#ffb08a;opacity:calc(.1 + var(--eh-high,0) * .35);transform:translate3d(calc(var(--eh-pan,0) * var(--p) * -12px),calc(var(--eh-scroll,0) * var(--p) * -55vh - var(--eh-tilt,0) * 3px),0)}
 .eh-field i:nth-child(3n){width:1px;height:1px}
@@ -664,7 +664,7 @@ html.eh-woken .concert-logo-wrap,html.eh-woken .concert-tagline{animation:none}
 
 /* Z4 — typography as material: titles sit slightly forward of the copy, compress a few percent with scroll
    inertia, and split into an orange echo for an instant when their section arrives through a gate. */
-.section-title,.acad-title{transform-origin:0 50%;translate:calc(var(--eh-pan,0) * 4px * var(--eh-zk,1)) calc(var(--eh-rel,0) * var(--eh-z4) * var(--eh-zk,1) + var(--eh-vel,0) * 5px);scale:calc(1 - var(--eh-speed,0) * .025) 1;text-shadow:calc(var(--eh-split,0) * 7px) 0 0 rgba(255,91,30,calc(var(--eh-split,0) * .4)),calc(var(--eh-split,0) * -4px) 0 0 rgba(242,237,230,calc(var(--eh-split,0) * .1)),0 -1px 0 rgba(255,214,190,calc(var(--eh-high,0) * .22))}
+.section-title,.acad-title{transform-origin:0 50%;translate:calc(var(--eh-pan,0) * 4px * var(--eh-zk,1)) calc(var(--eh-rel,0) * var(--eh-z4) * var(--eh-zk,1) + var(--eh-vel,0) * 5px);scale:calc(1 - var(--eh-speed,0) * .025 - var(--eh-tp,0) * .012) calc(1 - var(--eh-tp,0) * .01);text-shadow:calc(var(--eh-split,0) * 7px) 0 0 rgba(255,91,30,calc(var(--eh-split,0) * .4)),calc(var(--eh-split,0) * -4px) 0 0 rgba(242,237,230,calc(var(--eh-split,0) * .1)),0 -1px 0 rgba(255,214,190,calc(var(--eh-high,0) * .22)),0 calc(var(--eh-tp,0) * 2px) calc(var(--eh-tp,0) * 16px) rgba(255,91,30,calc(var(--eh-tp,0) * .16)),calc(var(--eh-chroma,0) * 1.5px) 0 0 rgba(255,91,30,calc(var(--eh-chroma,0) * .28))}
 
 /* POINTER FIELD — CTAs and the logo lean ≤3 px toward a fine pointer; touch never depends on it. */
 .hero-cta,.hero-cta-2,.tier-cta,.lab-gate,.tips-cta,.acad-cta,.acad-cta-free,.dmf-signal-cta,.nav-logo{translate:calc(var(--eh-mx,0) * 1px) calc(var(--eh-my,0) * 1px)}
@@ -714,9 +714,28 @@ html.eh-calm .eh-sheen::before{opacity:.2}
 html.eh-calm .section-title,html.eh-calm .acad-title{scale:none}
 html.eh-calm .tier-card{border-color:rgba(242,237,230,.2)}
 
+/* ===================================================================================================
+   V4 BLACK SUN (scripts/overdrive/black-sun.js). The Black Sun itself is one quad in the Receiver's scene.
+   Here: two architectural light blades and a vignette in the Z0 field (behind every block, above the
+   stage), the section cut's hold, typographic pressure (above, in the title grammar) and the Receiver
+   title's once-per-session reveal. Transform/opacity only; all values arrive already bounded.
+   =================================================================================================== */
+.eh-blade{position:absolute;left:0;bottom:-12vh;width:16vw;height:125vh;pointer-events:none;background:linear-gradient(to top,rgba(255,91,30,.16),rgba(255,140,90,.05) 38%,transparent 78%);-webkit-clip-path:polygon(44% 100%,56% 100%,100% 0,0 0);clip-path:polygon(44% 100%,56% 100%,100% 0,0 0);transform-origin:50% 100%;opacity:calc((.05 + var(--eh-beam,0) * .5) * (1 - var(--eh-calm,0)));transform:translate3d(calc(var(--eh-bx,.5) * 100vw - 8vw + var(--o,0vw)),0,0) rotate(calc(var(--r) + var(--s) * var(--eh-beam,0) * 4deg)) scaleX(calc(.7 + var(--eh-beam,0) * .45))}
+.eh-blade--1{--r:-14deg;--s:-1;--o:-6vw}
+.eh-blade--2{--r:12deg;--s:1;--o:6vw}
+.eh-compact .eh-blade{width:34vw}
+.eh-compact .eh-blade--2,.eh-tier-lite .eh-blade--2{display:none}
+.eh-vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 92% at 50% 50%,transparent 52%,rgba(4,3,3,.9) 100%);opacity:calc((var(--eh-vig,0) * .55 + var(--eh-shadow,0) * .22) * (1 - var(--eh-calm,0)))}
+.eh-still .eh-blade,.eh-tier-static .eh-blade,.eh-still .eh-vig,.eh-tier-static .eh-vig{display:none}
+/* The Receiver's title resolves last in its reveal, then carries the same pressure as every title. */
+.dmf-signal-title{transform-origin:0 100%;opacity:calc(.35 + var(--eh-reveal,1) * .65);translate:0 calc((1 - var(--eh-reveal,1)) * 14px + var(--eh-tp,0) * 1.5px);scale:calc(1 - var(--eh-tp,0) * .012) calc(1 - var(--eh-tp,0) * .01);text-shadow:0 calc(var(--eh-tp,0) * 2px) calc(var(--eh-tp,0) * 16px) rgba(255,91,30,calc(var(--eh-tp,0) * .16)),calc(var(--eh-chroma,0) * 1.5px) 0 0 rgba(255,91,30,calc(var(--eh-chroma,0) * .28))}
+html.eh-calm .dmf-signal-title{scale:none}
+
 @media(prefers-reduced-motion:reduce){
   .hero-ghost,.hero-img,.hero-img img,.band img,.release-card,.set-card,.label-item,.concert-logo-wrap,.eh-stack{translate:none;scale:none}
   .eh-after{display:none}
+  .eh-blade,.eh-vig{display:none}
+  .dmf-signal-title{opacity:1;translate:none;scale:none}
 }
 </style>
 <!-- DMF_MESHY_3D_HEAD -->
@@ -1120,7 +1139,7 @@ html.eh-calm .tier-card{border-color:rgba(242,237,230,.2)}
 
 <canvas id="smoke-canvas"></canvas>
 <div class="radial-overlay"></div>
-<div class="eh-field" aria-hidden="true"><i style="--x:12%;--y:22%;--p:.2"></i><i style="--x:84%;--y:14%;--p:.45"></i><i style="--x:67%;--y:61%;--p:.3"></i><i style="--x:27%;--y:78%;--p:.6"></i><i style="--x:91%;--y:83%;--p:.15"></i><i style="--x:46%;--y:9%;--p:.5"></i><i style="--x:6%;--y:52%;--p:.35"></i><i style="--x:58%;--y:36%;--p:.25"></i><i style="--x:36%;--y:47%;--p:.4"></i><span class="eh-gate"></span><span class="eh-after"></span></div>
+<div class="eh-field" aria-hidden="true"><i style="--x:12%;--y:22%;--p:.2"></i><i style="--x:84%;--y:14%;--p:.45"></i><i style="--x:67%;--y:61%;--p:.3"></i><i style="--x:27%;--y:78%;--p:.6"></i><i style="--x:91%;--y:83%;--p:.15"></i><i style="--x:46%;--y:9%;--p:.5"></i><i style="--x:6%;--y:52%;--p:.35"></i><i style="--x:58%;--y:36%;--p:.25"></i><i style="--x:36%;--y:47%;--p:.4"></i><span class="eh-blade eh-blade--1"></span><span class="eh-blade eh-blade--2"></span><span class="eh-vig"></span><span class="eh-gate"></span><span class="eh-after"></span></div>
 
 
 <!-- CONCERT INTRO -->
@@ -4345,6 +4364,199 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
 </script>
 <script>
+/* DMF BLACK SUN — pure cinematic layer for the Event Horizon director (V4). ES5, no DOM, no clock, no timers.
+ * The director steps it after the V3 Stage Overdrive with the same state object. It turns the existing
+ * signal (LOW / MID / HIGH / KICK, calm, section, scroll) into the terms that make the page one instrument:
+ * the Black Sun behind the Receiver, one impact shot per meaningful kick, two architectural light blades,
+ * a delayed reflection shock, typographic pressure, a compress → hold → open section cut, a once-per-session
+ * reveal of the Receiver, and silence as an effect. Every term is hard-clamped here; the offer is a sanctuary.
+ * Inlined into public/index.html by scripts/build-3d.cjs after stage-overdrive.js; required by tests. */
+(function (root) {
+  'use strict';
+
+  var node = typeof module === 'object' && module.exports;
+  var SN = node ? require('./spatial-narrative.js') : root.DMFSpatialNarrative;
+  var SO = node ? require('./stage-overdrive.js') : root.DMFStageOverdrive;
+  var Critical = SN.DMFCritical;
+  var Mass = SO.DMFMass;
+
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+  function smooth01(t) { t = clamp01(t); return t * t * (3 - 2 * t); }
+  function win(t, a, b) { return smooth01((t - a) / (b - a)); }
+  function envelope(cur, target, attack, release, dt) {
+    return cur + (target - cur) * (1 - Math.exp(-(target > cur ? attack : release) * dt));
+  }
+
+  var LIMITS = {
+    sunScale: 0.03,        // the disc breathes at most ±3%
+    kickCompress: 0.025,   // one kick compresses it 2.5%, then a heavy return
+    impactDur: 0.26,       // an impact shot lasts 260 ms (180–320 ms brief)
+    impactGap: 0.9,        // and never more often than this
+    impactKick: 0.6,       // only meaningful kicks
+    transDur: 0.45,        // compress → near-black hold → depth opening
+    revealDur: 1.4,        // dark → silhouette → Black Sun edge → material light → typography
+    torsoLag: 0.03,
+    liftMin: -0.3,
+    liftMax: 1
+  };
+  // Sections where the stage may take an impact shot and the blades may open.
+  var ENERGETIC = { hero: 1, relic: 1, band: 1, releases: 1, sets: 1 };
+  // Crossings between neighbouring major sections get the cinematic cut.
+  var MAJOR = { intro: 1, hero: 1, relic: 1, bio: 1, band: 1, releases: 1, sets: 1, academy: 1 };
+  var QUIET = 0.06, QUIET_IN = 0.6, QUIET_FULL = 2.0;   // silence starts after 0.6 s of quiet, full at 2 s
+
+  function DMFBlackSun() {
+    this.sunLow = 0; this.iris = 0; this.halo = 0;
+    this.kEnv = 0; this.kOut = 0;            // kick compression: instant hit, exponential return, eased
+    this.gEnv = 0; this.gOut = 0;            // Receiver glow kick: shorter
+    this.impactT = 9; this.impactK = 0; this.sinceImpact = 9;
+    this.lift = new Mass(8, 0.8);            // the Receiver settles into frame after the push
+    this.refl = new Critical(7);             // the reflection answers the impact late (critically damped follow)
+    this.torso = new Critical(0.8);          // torso follows the shoulders, later still
+    this.beam = 0; this.tp = 0;
+    this.quietT = 0;
+    this.transT = 9; this.sinceTrans = 9; this._idx = -1;
+    this.revealed = false; this.revealT = -1; this.revealNow = false;
+    this._ids = null; this._relicIdx = -1;
+  }
+
+  // st: the Event Horizon state (read and written in place), after DMFStageOverdrive.update.
+  DMFBlackSun.prototype.update = function (st, inp, ids, dt) {
+    var s = inp.s || st;
+    var tier = st.performanceTier;
+    var still = tier === 'static';
+    var lite = tier === 'lite';
+    var compact = !!st.compact;
+    var calm = st.calm;
+    var sanct = clamp01((calm - 0.6) / 0.25);                 // 1 inside the offer (calm > 0.85)
+    var section = ids[st.index];
+    var i;
+    if (ids !== this._ids) {
+      this._ids = ids; this._relicIdx = -1;
+      for (i = 0; i < ids.length; i++) if (ids[i] === 'relic') { this._relicIdx = i; break; }
+    }
+
+    // --- SILENCE: after a short quiet the whole stage settles, heavily, on purpose ---
+    var loud = (s.energy || 0) >= QUIET || !!s.beatFired;
+    this.quietT = loud ? Math.max(0, Math.min(this.quietT, QUIET_FULL) - 4 * dt) : Math.min(this.quietT + dt, QUIET_FULL + 1);
+    st.silence = smooth01((this.quietT - QUIET_IN) / (QUIET_FULL - QUIET_IN));
+
+    // Authority: phones 45%, LITE 60%; silence and the offer take it away; STATIC has none.
+    var devK = (compact ? 0.45 : 1) * (lite ? 0.6 : 1);
+    var auth = st.wake * (1 - st.silence) * (1 - 0.95 * sanct) * (still ? 0 : 1);
+    var energetic = ENERGETIC[section] ? 1 : 0;
+
+    // --- REVEAL: once per session, the first time the Receiver's band arrives (or is already passed) ---
+    this.revealNow = false;
+    if (!this.revealed && this.revealT < 0 && st.running && this._relicIdx >= 0 && st.index >= this._relicIdx) {
+      this.revealT = 0; this.revealNow = true;
+    }
+    if (this.revealT >= 0 && !this.revealed) { this.revealT += dt; if (this.revealT >= LIMITS.revealDur) this.revealed = true; }
+    var rt = this.revealed || still ? LIMITS.revealDur : Math.max(0, this.revealT);
+    st.reveal = clamp01(rt / LIMITS.revealDur);
+    st.revealEdge = win(rt, 0.3, 0.75);
+    st.revealLight = 0.25 + 0.75 * win(rt, 0.55, 1.1);
+    st.revealType = win(rt, 0.85, 1.4);
+
+    // --- BLACK SUN: LOW expands and deepens, MID draws the inner circumference, HIGH the thin edge ---
+    this.sunLow = envelope(this.sunLow, st.low * auth, 6, 1.4, dt);
+    this.iris = envelope(this.iris, st.mid * auth, 5, 1.6, dt);
+    this.halo = envelope(this.halo, st.high * auth, 12, 3, dt);
+    var kickHit = s.beatFired ? clamp01(0.35 + 0.65 * (s.kick || 0)) * auth : 0;
+    // KICK: one fast compression, then a heavy return. Never a bounce, never a standing oscillation.
+    this.kEnv = kickHit > this.kEnv ? kickHit : this.kEnv * Math.exp(-4 * dt);
+    this.kOut = envelope(this.kOut, this.kEnv, 30, 30, dt);
+    this.gEnv = kickHit > this.gEnv ? kickHit : this.gEnv * Math.exp(-7 * dt);
+    this.gOut = envelope(this.gOut, this.gEnv, 30, 30, dt);
+    st.blackSun = clamp01(this.sunLow) * devK;
+    st.iris = clamp01(this.iris) * devK;
+    st.gravity = clamp01(this.kOut) * devK;
+    st.sunScale = clamp(0.02 * st.blackSun - LIMITS.kickCompress * st.gravity, -LIMITS.sunScale, LIMITS.sunScale);
+
+    // --- IMPACT SHOT: meaningful kicks, energetic sections, never in calm areas, rate-limited ---
+    this.sinceImpact += dt;
+    if (s.beatFired && (s.kick || 0) >= LIMITS.impactKick && energetic && calm < 0.3 && !still && st.silence < 0.5 &&
+        st.wake > 0.95 && st.running && this.sinceImpact >= LIMITS.impactGap) {
+      this.impactT = 0; this.sinceImpact = 0;
+      this.impactK = clamp01(0.5 + 0.5 * (s.kick || 0)) * devK;
+      this.lift.v += 4 * this.impactK;
+    }
+    var imp = 0;
+    if (this.impactT < LIMITS.impactDur) {
+      this.impactT += dt;
+      var t = this.impactT;
+      imp = t < 0.04 ? t / 0.04 : Math.pow(clamp01(1 - (t - 0.04) / (LIMITS.impactDur - 0.04)), 2);
+      if (t >= LIMITS.impactDur) imp = 0;
+    }
+    st.impact = clamp01(imp * this.impactK);
+    st.halo = clamp01(clamp01(this.halo) * devK + 0.5 * st.impact);
+    st.stageLift = clamp(this.lift.step(0, dt), LIMITS.liftMin, LIMITS.liftMax);
+    // The model moves first; its reflection answers later (a critically damped follow of the impact).
+    st.reflectionShock = clamp01(1.8 * this.refl.step(st.impact, dt));
+    st.sheenK = (st.sheenK == null ? 1 : st.sheenK) * (1 + 0.35 * st.reflectionShock);
+
+    // --- LIGHT BLADES: architectural light, almost always dark; HIGH and scroll open them a little ---
+    var beamT = energetic * auth * (0.55 * st.high + 0.35 * st.speed / 0.8) + 0.5 * st.impact;
+    this.beam = envelope(this.beam, clamp01(beamT), 5, 1.2, dt);
+    st.beam = clamp01(this.beam) * (lite ? 0.5 : 1) * (1 - sanct);
+
+    // --- SECTION CUT: compress → near-black hold → depth opening (≤ 450 ms, never blocks scroll) ---
+    if (this._idx < 0) this._idx = st.index;
+    this.sinceTrans += dt;
+    if (st.index !== this._idx) {
+      var from = ids[this._idx];
+      if (st.running && !still && MAJOR[from] && MAJOR[section] && Math.abs(st.index - this._idx) === 1 && this.sinceTrans > 0.3 && calm < 0.5) {
+        this.transT = 0; this.sinceTrans = 0;
+      }
+      this._idx = st.index;
+    }
+    var hold = 0, open = 0;
+    if (this.transT < LIMITS.transDur) {
+      this.transT += dt;
+      var u = this.transT;
+      hold = u < 0.12 ? smooth01(u / 0.12) : (u < 0.2 ? 1 : 1 - smooth01((u - 0.2) / 0.25));
+      open = u < 0.2 ? 0 : Math.sin(Math.PI * clamp01((u - 0.2) / 0.25));
+      if (u >= LIMITS.transDur) { hold = 0; open = 0; }
+    }
+    var cutK = (compact ? 0.6 : 1) * (1 - sanct);
+    st.hold = clamp01(hold * cutK);
+    st.open = clamp01(open * cutK);
+    st.vignette = clamp01(Math.max(0.7 * st.impact, 0.85 * st.hold));
+    st.shadowDepth = clamp01(0.4 * st.blackSun + 0.6 * st.hold);
+    st.zk = clamp((st.zk == null ? 0.5 : st.zk) * (1 - 0.25 * st.hold + 0.3 * st.open), 0.05, 1);
+
+    // --- TYPOGRAPHIC PRESSURE: LOW / KICK press the titles, barely; neutral in the offer ---
+    this.tp = envelope(this.tp, Math.max(0.6 * st.low * auth, st.gravity), 18, 3, dt);
+    st.titlePressure = clamp01(this.tp) * (compact ? 0.5 : 1) * (1 - sanct);
+    st.chromatic = clamp01(0.8 * st.impact + 0.15 * st.titlePressure);
+
+    // --- RECEIVER MATERIAL LIFE: LOW warmth + a short KICK impulse, only once its light is revealed ---
+    st.receiverGlow = clamp01(0.55 * clamp01(this.sunLow) + 0.45 * clamp01(this.gOut)) * devK * st.revealLight;
+
+    // --- FIGURE INERTIA: head → shoulders (V3 bodyLag) → torso, later still; silence returns it to rest ---
+    st.torsoLag = clamp(this.torso.step(st.bodyLag || 0, dt), -LIMITS.torsoLag, LIMITS.torsoLag);
+    st.breath = (st.breath || 0) * (1 - st.silence);
+    return st;
+  };
+
+  // A composed, motionless frame (reduced motion, Save-Data, STATIC): revealed, nothing reacting.
+  DMFBlackSun.prototype.compose = function (st) {
+    st.blackSun = 0; st.iris = 0; st.gravity = 0; st.sunScale = 0; st.halo = 0;
+    st.impact = 0; st.stageLift = 0; st.reflectionShock = 0; st.beam = 0;
+    st.hold = 0; st.open = 0; st.vignette = 0; st.shadowDepth = 0;
+    st.titlePressure = 0; st.chromatic = 0; st.receiverGlow = 0; st.torsoLag = 0; st.silence = 0;
+    st.reveal = 1; st.revealEdge = 1; st.revealLight = 1; st.revealType = 1;
+    return st;
+  };
+
+  var api = { LIMITS: LIMITS, ENERGETIC: ENERGETIC, MAJOR: MAJOR, DMFBlackSun: DMFBlackSun };
+  if (node) module.exports = api;
+  else root.DMFBlackSun = api;
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
 /* DMF EVENT HORIZON — one director for the landing's audiovisual world.
  * It owns no loop, no audio graph and no renderer. It listens to the DMF Signal Bus clock (hub.onFrame),
  * folds scroll, section, audio, pointer, visibility and the governor tier into one stage state
@@ -4361,6 +4573,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   var SN = typeof module === 'object' && module.exports ? require('./spatial-narrative.js') : root.DMFSpatialNarrative;
   // V3 Overdrive: the weight layer, stepped after the narrative on the same state (no clock of its own).
   var SO = typeof module === 'object' && module.exports ? require('./stage-overdrive.js') : root.DMFStageOverdrive;
+  // V4 Black Sun: the cinematic layer, stepped after the overdrive on the same state (no clock of its own).
+  var BS = typeof module === 'object' && module.exports ? require('./black-sun.js') : root.DMFBlackSun;
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
@@ -4430,10 +4644,15 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       // V3 Overdrive (written by DMFStageOverdrive.update)
       modelMass: 1, modelNear: 0, modelYaw: 0, modelPitch: 0, modelPush: 0, modelSpec: 0,
       wooferLow: 0, wooferKick: 0, woofer: 0, cabinet: 0, floorPress: 0,
-      breath: 0, bodyLag: 0, sheenK: 1, compress: 0
+      breath: 0, bodyLag: 0, sheenK: 1, compress: 0,
+      // V4 Black Sun (written by DMFBlackSun.update)
+      blackSun: 0, iris: 0, gravity: 0, sunScale: 0, halo: 0, impact: 0, stageLift: 0, reflectionShock: 0,
+      beam: 0, hold: 0, open: 0, vignette: 0, shadowDepth: 0, titlePressure: 0, chromatic: 0,
+      receiverGlow: 0, torsoLag: 0, silence: 0, reveal: 1, revealEdge: 1, revealLight: 1, revealType: 1
     };
     this.narrative = SN ? new SN.DMFSpatialNarrative() : null;
     this.overdrive = SO && this.narrative ? new SO.DMFStageOverdrive() : null;
+    this.blackSun = BS && this.overdrive ? new BS.DMFBlackSun() : null;
     this._depthV = 0;
     this._gateT = 9;
     this._sinceGate = 9;
@@ -4534,6 +4753,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     st.pointerY = approach(st.pointerY, clamp(inp.pointerY || 0, -1, 1), 5, dt);
     if (this.narrative) this.narrative.update(st, inp, this.ids, dt);
     if (this.overdrive) this.overdrive.update(st, inp, this.ids, dt);
+    if (this.blackSun) this.blackSun.update(st, inp, this.ids, dt);
     return st;
   };
 
@@ -4548,6 +4768,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     st.light = this.lights[st.index] == null ? 1 : this.lights[st.index];
     if (this.narrative) this.narrative.compose(st);
     if (this.overdrive) this.overdrive.compose(st);
+    if (this.blackSun) this.blackSun.compose(st);
     return st;
   };
 
@@ -4572,7 +4793,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   // Blocks that receive per-section variables while visible (never the whole document).
   var MAGNETS = '.hero-cta, .hero-cta-2, .tier-cta, .lab-gate, .tips-cta, .acad-cta, .acad-cta-free, .dmf-signal-cta, .nav-logo';
   var SECTION_VARS = ['--eh-focus', '--eh-rel', '--eh-split', '--eh-energy', '--eh-mid', '--eh-high', '--eh-speed', '--eh-vel', '--eh-lx',
-    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk'];
+    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk', '--eh-tp', '--eh-chroma', '--eh-reveal'];
   function freshCache(n) { var c = []; for (var i = 0; i < n; i++) c.push(-9); return c; }
 
   function mount() {
@@ -4645,7 +4866,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     // Decorative layers that live in the source markup.
     var field = doc.querySelector('.eh-field');
     var intro = doc.getElementById('concertIntro');
-    var fieldVals = freshCache(12);
+    var fieldVals = freshCache(17);
     // Intro variables go to the few elements that read them (never the intro, whose subtree holds the SVG).
     var introEls = doc.querySelectorAll('#concertIntro .eh-stack, #concertIntro .eh-floor, #concertIntro .eh-halo');
     for (var ie = 0; ie < introEls.length; ie++) introEls[ie].__ehVals = freshCache(11);
@@ -4658,6 +4879,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     // HERO MOMENT: once per visit.
     var HERO_KEY = 'dmf_eh_moment';
     if (eh.narrative) { try { if (root.sessionStorage.getItem(HERO_KEY) === '1') eh.narrative.heroFired = true; } catch (e) { eh.narrative.heroFired = true; } }
+    // V4 REVEAL: the Receiver's first appearance plays once per session.
+    var REVEAL_KEY = 'dmf_eh_reveal';
+    if (eh.blackSun) { try { if (root.sessionStorage.getItem(REVEAL_KEY) === '1') eh.blackSun.revealed = true; } catch (e) { eh.blackSun.revealed = true; } }
 
     // Once per crossing (never per frame): the trace carries the title of the section being left.
     function setAfterText() {
@@ -4742,12 +4966,22 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         put(el, c, 11, '--eh-dolly', st.dolly, 2000);
         put(el, c, 12, '--eh-zk', st.zk * tierK.depth, 100);
         put(el, c, 13, '--eh-sheenk', st.sheenK, 50);     // V3: reflections read more across hero → releases → sets
+        // V4: typographic pressure (LOW / KICK), the impact's warm fringe, and the Receiver's reveal.
+        put(el, c, 14, '--eh-tp', st.titlePressure, 20);
+        put(el, c, 15, '--eh-chroma', st.chromatic, 20);
+        put(el, c, 16, '--eh-reveal', st.revealType, 20);
       }
       // V3: in the offer the background holds still (only its light and calm keep settling).
       var frozen = st.calm > 0.85;
       if (field) {
         put(field, fieldVals, 1, '--eh-light', st.light * tierK.ambient, 50);
         put(field, fieldVals, 2, '--eh-calm', st.calm, 50);
+        // V4: blades, vignette and the section cut keep settling in the offer (their CSS multiplies by calm).
+        put(field, fieldVals, 12, '--eh-beam', st.beam, 100);
+        put(field, fieldVals, 13, '--eh-bx', st.lightX, 200);
+        put(field, fieldVals, 14, '--eh-vig', st.vignette, 100);
+        put(field, fieldVals, 15, '--eh-shadow', st.shadowDepth, 50);
+        put(field, fieldVals, 16, '--eh-hold', st.hold, 50);
       }
       if (field && !frozen) {
         put(field, fieldVals, 0, '--eh-energy', st.energy, 50);
@@ -4775,7 +5009,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
           // V3 acoustic pressure: woofer excursion (≤ 4%, already bounded), cabinet settle, floor pressure.
           put(ie2, iv, 8, '--eh-woofer', st.woofer, 1000);
           put(ie2, iv, 9, '--eh-settle', st.cabinet, 50);
-          put(ie2, iv, 10, '--eh-floorp', st.floorPress, 50);
+          put(ie2, iv, 10, '--eh-floorp', Math.max(st.floorPress, 0.8 * st.impact), 50);
         }
         if (logoWrap) {
           put(logoWrap, logoVals, 0, '--eh-moment', st.heroMoment, 50);
@@ -4842,6 +5076,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         cabinet: +st.cabinet.toFixed(3), floorPress: +st.floorPress.toFixed(2), breath: +st.breath.toFixed(2),
         bodyLag: +st.bodyLag.toFixed(4), sheenK: +st.sheenK.toFixed(2), compress: +st.compress.toFixed(2)
       };
+      perf.blackSun = {
+        blackSun: +st.blackSun.toFixed(2), iris: +st.iris.toFixed(2), halo: +st.halo.toFixed(2), gravity: +st.gravity.toFixed(2),
+        sunScale: +st.sunScale.toFixed(4), impact: +st.impact.toFixed(2), beam: +st.beam.toFixed(2), vignette: +st.vignette.toFixed(2),
+        titlePressure: +st.titlePressure.toFixed(2), reflectionShock: +st.reflectionShock.toFixed(2), receiverGlow: +st.receiverGlow.toFixed(2),
+        stageLift: +st.stageLift.toFixed(3), torsoLag: +st.torsoLag.toFixed(4), silence: +st.silence.toFixed(2), reveal: +st.reveal.toFixed(2),
+        revealed: eh.blackSun ? eh.blackSun.revealed : true
+      };
       perf.dprCaps = { receiver: hub.renderScale || 1, mixer: perf.mixerFit ? perf.mixerFit.dpr : null, smoke: Math.min(root.devicePixelRatio || 1, 1.5) };
     }
 
@@ -4877,6 +5118,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       input.pointerActive = ptrClientX >= 0;
       eh.update(input, step);
       if (eh.narrative && eh.narrative.heroFiredNow) { try { root.sessionStorage.setItem(HERO_KEY, '1'); } catch (e) { /* once per page then */ } }
+      if (eh.blackSun && eh.blackSun.revealNow) { try { root.sessionStorage.setItem(REVEAL_KEY, '1'); } catch (e) { /* once per page then */ } }
       // DOM at ~30 Hz, except on a gate or a kick so the page lands on the beat.
       writeT += step;
       if (writeT >= 0.033 || st.transition > 0.01 || s.beatFired) { writeT = 0; write(false); }
@@ -5135,6 +5377,54 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var haloLight = new THREE.PointLight(0xff5b1e, 0.15, 8);
     haloLight.position.set(0, 2, -3);
     scene.add(haloLight);
+
+    // === V4 BLACK SUN — one quad behind the Receiver, turned to the camera. A warm-black void at rest; LOW
+    // deepens it, MID draws the inner circumference, HIGH the thin edge, KICK compresses it (director terms,
+    // already bounded). Created once; per frame only uniforms and one placement are written. ===
+    var sunU = { uSun: { value: 0 }, uIris: { value: 0 }, uHalo: { value: 0 }, uEdge: { value: 1 }, uAlpha: { value: 1 } };
+    var sunMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({
+      uniforms: sunU,
+      transparent: true,
+      depthWrite: false,
+      fog: false,
+      vertexShader: 'varying vec2 vUv;\nvoid main(){ vUv = uv * 2.0 - 1.0; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: [
+        'varying vec2 vUv;',
+        'uniform float uSun; uniform float uIris; uniform float uHalo; uniform float uEdge; uniform float uAlpha;',
+        'void main(){',
+        '  float r = length(vUv);',
+        '  if (r > 1.0) discard;',
+        '  float disc = 1.0 - smoothstep(0.86, 0.98, r);',
+        '  float core = (1.0 - smoothstep(0.0, 0.8, r)) * (0.35 + 0.65 * uSun);',
+        '  vec3 col = mix(vec3(0.034, 0.02, 0.013), vec3(0.008, 0.005, 0.004), core);',
+        '  float iris = exp(-pow((r - 0.8) / 0.035, 2.0)) * uIris * 0.32 * uEdge;',
+        '  float edge = exp(-pow((r - 0.965) / 0.012, 2.0)) * (0.05 + 0.4 * uHalo) * uEdge;',
+        '  float cor = exp(-pow((r - 0.99) / 0.05, 2.0)) * (0.03 + 0.06 * uSun) * uEdge;',
+        '  col += vec3(1.0, 0.36, 0.12) * (iris + cor) + vec3(1.0, 0.78, 0.6) * edge;',
+        '  float a = max(disc * (0.55 + 0.25 * uSun), iris + edge + cor);',
+        '  gl_FragColor = vec4(col, clamp(a, 0.0, 1.0) * uAlpha);',
+        '}'
+      ].join('\n')
+    }));
+    sunMesh.renderOrder = -1;
+    sunMesh.frustumCulled = false;
+    scene.add(sunMesh);
+    var SUN_C = new THREE.Vector3(0, 1.6, 0);
+    var sunDir = new THREE.Vector3();
+    // Behind the Receiver along the camera ray, facing the camera. Reads the director's state only.
+    function placeSun() {
+      var e4 = hub.eventHorizon;
+      sunDir.copy(camera.position).sub(SUN_C);
+      sunDir.multiplyScalar(1 / (sunDir.length() || 1));
+      sunMesh.position.copy(SUN_C).addScaledVector(sunDir, -3.4);
+      sunMesh.quaternion.copy(camera.quaternion);
+      sunMesh.scale.setScalar(7.6 * (1 + (e4 ? e4.sunScale || 0 : 0)));
+      sunU.uSun.value = e4 ? e4.blackSun || 0 : 0;
+      sunU.uIris.value = e4 ? e4.iris || 0 : 0;
+      sunU.uHalo.value = e4 ? e4.halo || 0 : 0;
+      sunU.uEdge.value = e4 && e4.revealEdge != null ? e4.revealEdge : 1;
+      sunU.uAlpha.value = quality === 'lite' ? 0.7 : 1;
+    }
 
     // === FLOOR — dark altar base ===
     var floor = new THREE.Mesh(
@@ -5426,6 +5716,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var edgeRef = null;
     var relicMatRef = null;
     var baseRoughness = 1;
+    // V4 material life: every Receiver material that safely supports it, cached once at load with its own
+    // base values (identity preserved; the frame loop never traverses the GLB).
+    var relicMats = [], relicRoughBase = [], relicEnvBase = [], relicEmisBase = [];
     var modelWorldMinY = 0, modelWorldMaxY = 3;
     var modelWorldMinX = -2, modelWorldMaxX = 2;
     var modelWorldMinZ = -2, modelWorldMaxZ = 2;
@@ -5452,6 +5745,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         modelWorldMaxX = size.x * s / 2;
         modelWorldMinZ = -size.z * s / 2;
         modelWorldMaxZ = size.z * s / 2;
+        SUN_C.set(0, (modelWorldMinY + modelWorldMaxY) * 0.5, 0);
 
         model.traverse(function (child) {
           if (!child.isMesh || !child.geometry) return;
@@ -5602,6 +5896,12 @@ if (window.__DMF_FIREBASE_CONFIG__) {
           child.material = relicMat;
           relicMatRef = relicMat;
           baseRoughness = relicMat.roughness;
+          if ((relicMat.isMeshStandardMaterial || relicMat.isMeshPhysicalMaterial) && relicMat.emissive) {
+            relicMats.push(relicMat);
+            relicRoughBase.push(relicMat.roughness);
+            relicEnvBase.push(relicMat.envMapIntensity);
+            relicEmisBase.push(relicMat.emissiveIntensity);
+          }
           child.castShadow = true;
           child.receiveShadow = true;
 
@@ -6152,6 +6452,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       staticMode = true;
       if (resizePending) doResize();
       applyCamera(0);
+      placeSun();
       renderer.render(scene, camera);
     }
 
@@ -6215,7 +6516,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     function applyReceiverTransform() {
       var cx = camera.position.x, cz = camera.position.z;
       var cl = Math.sqrt(cx * cx + cz * cz) || 1;
-      var sink = 0.12 * pedK.x;
+      var ehL = hub.eventHorizon;
+      var sink = 0.12 * pedK.x + 0.02 * (ehL ? ehL.stageLift || 0 : 0);
       // RECEIVER CONTINUITY: each ACT gives it an orientation, a size and an advance; MID adds torque.
       var sp = staged ? follower.pose : null;
       var adv = depthK.x + (sp ? sp.depth : 0);
@@ -6261,6 +6563,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var ehWoofL = eh ? eh.wooferLow || 0 : 0, ehWoofK = eh ? eh.wooferKick || 0 : 0, ehSettle = eh ? eh.cabinet || 0 : 0;
       var ehBreath = eh ? eh.breath || 0 : 0, ehLag = eh ? eh.bodyLag || 0 : 0;
       var ehPush = eh ? eh.modelPush || 0 : 0, ehSpec = eh ? eh.modelSpec || 0 : 0;
+      // V4 Black Sun: impact shot, settle after the push, torso inertia, silence, reveal light.
+      var ehImpact = eh ? eh.impact || 0 : 0, ehTorso = eh ? eh.torsoLag || 0 : 0;
+      var ehSilence = eh ? eh.silence || 0 : 0, ehReveal = eh && eh.revealLight != null ? eh.revealLight : 1;
       // PRECOMPRESSION: the Receiver's groove almost freezes while pressure builds.
       var freeze = 1 - 0.85 * sPre;
       liveTime += dt;
@@ -6342,7 +6647,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       U.uBounce.value = torsoK.x;
       var swayWave = Math.sin(Math.PI * beats);
       U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze;
-      twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet + ehYaw, -0.05, 0.05), dt);
+      twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet * (1 - ehSilence) + 0.7 * ehYaw + 0.3 * ehTorso, -0.05, 0.05), dt);
       U.uTwist.value = twistK.x;
       shoulderK.step(0.022 * f.shoulder * f.amp * swayWave * freeze + 0.25 * ehLag, dt);
       U.uShoulder.value = shoulderK.x;
@@ -6352,7 +6657,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       if (sHit) { depthK.impulse(0.7 * ms); scaleK.impulse(0.35); }
       depthK.step((0.05 * f.depth * f.amp - 0.03 * sPre) * ms, dt);
       scaleK.step(-0.012 * sPre, dt);
-      pedK.step(0.05 * f.floor * f.amp + 0.03 * sPre, dt);
+      pedK.step(0.05 * f.floor * f.amp + 0.03 * sPre + 0.03 * ehImpact, dt);
       applyReceiverTransform();
 
       // Logo — five segments with peak hold; mids articulate the inner bars; PRECOMPRESSION concentrates
@@ -6399,7 +6704,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       gridHelper.material.opacity = 0.06 + Math.sin(autoAngle) * 0.03 + pulseAt(sinceHit, 0.32, 0.12) * 0.05 * wv + 0.02 * f.floor;
 
       // Scene orbit with mass; the key light is pushed around by hits in OVERDRIVE / HYPERDRIVE.
-      orbitSpring.step(0.072 * (1 + 1.6 * s.dropEnergy) * (1 - 0.5 * hdPre) * freeze, dt);
+      orbitSpring.step(0.072 * (1 + 1.6 * s.dropEnergy) * (1 - 0.5 * hdPre) * freeze * (1 - 0.5 * ehSilence), dt);
       autoAngle += dt * clamp(orbitSpring.x, 0.02, 0.4);
       lightSpring.step(0.675 + 0.25 * Math.sin(autoAngle * 1.3), dt);
       if (hit > 0 && (od > 0.3 || hdLevel > 0 || sHit)) lightSpring.impulse((s.beatIndex % 2 ? 1 : -1) * (0.9 * od + 1.2 * hdLevel + (sHit ? 1.4 : 0)));
@@ -6408,9 +6713,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       // BODY lights; HIGH drives the light edges; each ACT sets its own key/rim emphasis.
       var stageLight = staged ? follower.pose.light : 0;
       midTorque = staged ? 0.035 * f.forceMid * f.amp * Math.sin(Math.PI * beats / 2) * freeze : 0;
-      keyLight.intensity = 2.4 * (1 + 0.35 * stageLight) * (0.7 + 0.3 * ehQuiet);
-      rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 + s.body * 0.3 * (1 + 0.6 * od) + hdLevel * 0.4 + sLvl * 0.5 + 0.3 * stageLight + 0.25 * ehFocus;
-      accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15 + f.edge * 0.2 + 0.3 * ehSpec;
+      keyLight.intensity = 2.4 * (1 + 0.35 * stageLight) * (0.7 + 0.3 * ehQuiet) * ehReveal;
+      rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 * (1 - ehSilence) + s.body * 0.3 * (1 + 0.6 * od) + hdLevel * 0.4 + sLvl * 0.5 + 0.3 * stageLight + 0.25 * ehFocus;
+      accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15 + f.edge * 0.2 + 0.3 * ehSpec + 0.35 * ehImpact;
       fillLight.intensity = 0.3 + Math.sin(autoAngle + 2) * 0.06;
       underGlow.intensity = (0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.body * 0.35 * (1 + od) + hdLevel * 0.3 + sLvl * 0.4) * ehQuiet;
       haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1 + hdLevel * 0.2 + sLvl * 0.25;
@@ -6418,7 +6723,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       coneMat.opacity = (0.012 + Math.sin(autoAngle * 1.3) * 0.005 + od * 0.008 + hdLevel * 0.01) * ehQuiet;
 
       // Embers slow down while the scene contracts, then surge; HIGH adds small detail speed.
-      var speedMul = (1 + s.energy * 1.2 + od * 0.8 + hdLevel * 1.5 + sLvl * 2 + f.detail * 0.6) * (1 - 0.6 * hdPre) * (1 - 0.8 * sPre);
+      var speedMul = (1 + s.energy * 1.2 + od * 0.8 + hdLevel * 1.5 + sLvl * 2 + f.detail * 0.6) * (1 - 0.6 * hdPre) * (1 - 0.8 * sPre) * (1 - 0.6 * ehSilence);
       var pos = pGeom.attributes.position.array;
       for (var i = 0; i < particleActive; i++) {
         pos[i * 3 + 1] += pSpeeds[i] * speedMul * dt * 60;
@@ -6463,7 +6768,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       }
       // The HYPERDRIVE pre-impact pullback lives in the dolly too, so its release is a push with mass,
       // never a one-frame jump.
-      dollyAim = (od * 0.25 - 0.45 * hdPre - 0.55 * sPre + 0.9 * sIgn + 2.2 * sBrk - 0.08 * pressure) * ms + ehDolly * 4 + ehPush * 0.12;
+      dollyAim = (od * 0.25 - 0.45 * hdPre - 0.55 * sPre + 0.9 * sIgn + 2.2 * sBrk - 0.08 * pressure) * ms + ehDolly * 4 + ehPush * 0.12 + ehImpact * 0.16;
       dollyK.step(dollyAim, dt);
       lensSpring.step((hdPre * 1.2 + sPre * 1.4) * ms, dt);
       rollSpring.step(0, dt);
@@ -6521,6 +6826,20 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         relicMatRef.envMapIntensity = 0.55 * (1 + 0.8 * vf.reflect) * (1 - 0.35 * sPre);
         relicMatRef.emissiveIntensity = 0.008 + 0.02 * s.body * s.energy + 0.015 * hub.overdriveMix +
           0.02 * (hub.hyper && hub.hyper.active ? hub.hyper.level : 0) + 0.03 * (sg ? sg.level : 0);
+      }
+      // V4 MATERIAL LIFE: LOW warmth + a short KICK impulse (never neon), HIGH a fine edge lift, and the
+      // reflection answering the impact late. Cached materials, each from its own base; no allocation.
+      var e4m = hub.eventHorizon;
+      if (e4m && relicMats.length) {
+        var glow4 = 0.018 * (e4m.receiverGlow || 0), rough4 = 1 - 0.08 * (e4m.halo || 0), env4 = 1 + 0.5 * (e4m.reflectionShock || 0);
+        for (var mi = 0; mi < relicMats.length; mi++) {
+          var m4 = relicMats[mi];
+          if (m4 === relicMatRef) {
+            m4.roughness *= rough4; m4.envMapIntensity *= env4; m4.emissiveIntensity += glow4;
+          } else {
+            m4.roughness = relicRoughBase[mi] * rough4; m4.envMapIntensity = relicEnvBase[mi] * env4; m4.emissiveIntensity = relicEmisBase[mi] + glow4;
+          }
+        }
       }
       var over = vf.reflect > 0.55;
       if (over && !reflectHigh && sweepCooldown <= 0) {
@@ -6833,6 +7152,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       if (sgOn !== shownSg) { shownSg = sgOn; band.classList.toggle('is-singularity', sgOn); }
       updateHud(s, performance.now());
 
+      placeSun();
       renderer.render(scene, camera);
       if (perf) {
         perf.drawCalls = renderer.info.render.calls;
