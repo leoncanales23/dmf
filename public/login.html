@@ -1,9 +1,118 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DMF Academy — Login</title>
+<title>DMF Academy — Acceso estudiantes</title>
+<meta name="description" content="Acceso al portal de estudiantes de DMF Academy: inicia sesión o crea tu cuenta.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a0806">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230a0806'/%3E%3Cpath d='M13 49V15h8l11 17 11-17h8v34h-8V30L32 46 21 30v19z' fill='%23ff5b1e'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Demian Muller">
+<meta property="og:url" content="https://dmf.vibraalto.cl/login">
+<meta property="og:title" content="DMF Academy — Acceso estudiantes">
+<meta property="og:description" content="Acceso al portal de estudiantes de DMF Academy: inicia sesión o crea tu cuenta.">
+<meta property="og:image" content="https://dmf.vibraalto.cl/assets/images/jpg_0_19kb.jpg">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<script>
+/* DMF language: Spanish by default; the visitor's choice (here or on the landing) persists as dmf_lang ('es' | 'en').
+   Presentation only: nothing below touches authentication, payments or course access. */
+(function(){var l='es';try{var s=localStorage.getItem('dmf_lang');if(s==='en'||s==='es')l=s;}catch(e){}document.documentElement.lang=l;})();
+window.DMF_I18N = (function () {
+  var lang = document.documentElement.lang === 'en' ? 'en' : 'es';
+  var UI = {
+    "es": {
+      "pageTitle": "DMF Academy — Acceso estudiantes",
+      "brandSub": "DMF Academy // Portal del estudiante",
+      "demoBadge": "Modo demo activo",
+      "titleLogin": "Acceso estudiantes",
+      "subLogin": "Ingresa tus credenciales para acceder al portal de formación",
+      "btnLogin": "Entrar al portal",
+      "toSignupText": "¿No tienes cuenta?",
+      "toSignupLink": "Crear una",
+      "titleSignup": "Crear cuenta",
+      "subSignup": "Crea tu cuenta de estudiante para acceder a DMF Academy",
+      "btnSignup": "Crear cuenta",
+      "toLoginText": "¿Ya tienes cuenta?",
+      "toLoginLink": "Iniciar sesión",
+      "labelEmail": "Email",
+      "labelPassword": "Contraseña",
+      "labelConfirm": "Confirmar contraseña",
+      "placeholderEmail": "estudiante@email.com",
+      "back": "← Volver a DMF",
+      "connecting": "Conectando…",
+      "redirecting": "Redirigiendo al pago…",
+      "errMissing": "Ingresa tu email y tu contraseña.",
+      "errMismatch": "Las contraseñas no coinciden.",
+      "errShort": "La contraseña debe tener al menos 6 caracteres.",
+      "errNoAuth": "El servicio de autenticación no está configurado.",
+      "errInvalid": "Email o contraseña incorrectos.",
+      "errTooMany": "Demasiados intentos. Inténtalo más tarde.",
+      "errBadEmail": "Ingresa un email válido.",
+      "errInUse": "Ya existe una cuenta con este email. Intenta iniciar sesión.",
+      "langSwitch": "English",
+      "langSwitchAria": "Ver esta página en inglés"
+    },
+    "en": {
+      "pageTitle": "DMF Academy — Login",
+      "brandSub": "DMF Academy // Student Portal",
+      "demoBadge": "Demo Mode Active",
+      "titleLogin": "Student Access",
+      "subLogin": "Enter your credentials to access the training portal",
+      "btnLogin": "Enter Portal",
+      "toSignupText": "Don't have an account?",
+      "toSignupLink": "Create one",
+      "titleSignup": "Create Account",
+      "subSignup": "Set up your student account to access DMF Academy",
+      "btnSignup": "Create Account",
+      "toLoginText": "Already have an account?",
+      "toLoginLink": "Sign in",
+      "labelEmail": "Email",
+      "labelPassword": "Password",
+      "labelConfirm": "Confirm Password",
+      "placeholderEmail": "student@email.com",
+      "back": "← Back to DMF",
+      "connecting": "Connecting…",
+      "redirecting": "Redirecting to payment…",
+      "errMissing": "Please enter email and password.",
+      "errMismatch": "Passwords do not match.",
+      "errShort": "Password must be at least 6 characters.",
+      "errNoAuth": "Authentication service is not configured.",
+      "errInvalid": "Invalid email or password.",
+      "errTooMany": "Too many attempts. Try again later.",
+      "errBadEmail": "Please enter a valid email address.",
+      "errInUse": "An account with this email already exists. Try signing in.",
+      "langSwitch": "Español",
+      "langSwitchAria": "View this page in Spanish"
+    }
+  };
+  function t(key) {
+    if (Object.prototype.hasOwnProperty.call(UI[lang], key)) return UI[lang][key];
+    return Object.prototype.hasOwnProperty.call(UI.es, key) ? UI.es[key] : key;
+  }
+  function apply() {
+    var i, els = document.querySelectorAll('[data-i18n]');
+    for (i = 0; i < els.length; i++) els[i].textContent = t(els[i].getAttribute('data-i18n'));
+    els = document.querySelectorAll('[data-i18n-placeholder]');
+    for (i = 0; i < els.length; i++) els[i].setAttribute('placeholder', t(els[i].getAttribute('data-i18n-placeholder')));
+    els = document.querySelectorAll('[data-lang-switch]');
+    for (i = 0; i < els.length; i++) {
+      els[i].textContent = t('langSwitch');
+      els[i].setAttribute('aria-label', t('langSwitchAria'));
+      els[i].setAttribute('lang', lang === 'es' ? 'en' : 'es');
+      els[i].onclick = function () {
+        try { localStorage.setItem('dmf_lang', lang === 'es' ? 'en' : 'es'); } catch (e) { /* ignore */ }
+        window.location.reload();
+      };
+    }
+    document.title = t('pageTitle');
+  }
+  return { lang: lang, t: t, apply: apply };
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -33,6 +142,8 @@ a:hover{color:#ff7a45}
 .login-error{display:none;margin-top:16px;padding:12px 16px;background:rgba(255,60,60,.1);border:1px solid rgba(255,60,60,.3);font-size:13px;color:#ff6b6b}
 .login-footer{text-align:center;margin-top:32px;font-size:12px;color:#665f58;letter-spacing:.04em}
 .login-footer a{font-size:12px}
+.dmf-lang-switch{background:none;border:0;padding:0;margin-left:18px;font-family:'Archivo',sans-serif;font-size:12px;letter-spacing:.04em;color:#8a8178;cursor:pointer;text-decoration:underline;text-underline-offset:3px;transition:color .2s}
+.dmf-lang-switch:hover{color:#ff5b1e}
 .login-toggle{text-align:center;margin-top:20px;font-size:12px;color:#665f58;letter-spacing:.02em}
 .login-toggle a{font-size:12px;cursor:pointer}
 .login-demo-badge{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:24px;padding:10px 16px;border:1px solid rgba(255,91,30,.3);background:rgba(255,91,30,.05)}
@@ -46,45 +157,47 @@ a:hover{color:#ff7a45}
 <div class="login-container">
   <div class="login-brand">
     <div class="login-brand-name">Demian Muller</div>
-    <div class="login-brand-sub">DMF Academy // Student Portal</div>
+    <div class="login-brand-sub" data-i18n="brandSub">DMF Academy // Portal del estudiante</div>
   </div>
 
   <div id="demoBadge" class="login-demo-badge" style="display:none">
     <span class="login-demo-badge-dot"></span>
-    <span class="login-demo-badge-text">Demo Mode Active</span>
+    <span class="login-demo-badge-text" data-i18n="demoBadge">Modo demo activo</span>
   </div>
 
   <div class="login-card">
-    <div class="login-title" id="formTitle">Student Access</div>
-    <div class="login-subtitle" id="formSubtitle">Enter your credentials to access the training portal</div>
+    <div class="login-title" id="formTitle">Acceso estudiantes</div>
+    <div class="login-subtitle" id="formSubtitle">Ingresa tus credenciales para acceder al portal de formación</div>
 
     <form id="loginForm" autocomplete="on">
       <div class="login-field">
-        <label class="login-label" for="loginEmail">Email</label>
-        <input class="login-input" type="email" id="loginEmail" name="email" placeholder="student@email.com" required autocomplete="email">
+        <label class="login-label" for="loginEmail" data-i18n="labelEmail">Email</label>
+        <input class="login-input" type="email" id="loginEmail" name="email" placeholder="estudiante@email.com" data-i18n-placeholder="placeholderEmail" required autocomplete="email">
       </div>
       <div class="login-field">
-        <label class="login-label" for="loginPassword">Password</label>
+        <label class="login-label" for="loginPassword" data-i18n="labelPassword">Contraseña</label>
         <input class="login-input" type="password" id="loginPassword" name="password" placeholder="••••••••" required autocomplete="current-password">
       </div>
       <div class="login-field" id="confirmField" style="display:none">
-        <label class="login-label" for="loginConfirm">Confirm Password</label>
+        <label class="login-label" for="loginConfirm" data-i18n="labelConfirm">Confirmar contraseña</label>
         <input class="login-input" type="password" id="loginConfirm" name="confirm" placeholder="••••••••" autocomplete="new-password">
       </div>
-      <button class="login-btn" type="submit" id="loginBtn">Enter Portal</button>
+      <button class="login-btn" type="submit" id="loginBtn">Entrar al portal</button>
     </form>
 
     <div class="login-error" id="loginError"></div>
 
     <div class="login-toggle" id="toggleMode">
-      <span id="toggleText">Don't have an account?</span> <a id="toggleLink" onclick="window.__dmfToggleMode()">Create one</a>
+      <span id="toggleText">¿No tienes cuenta?</span> <a id="toggleLink" onclick="window.__dmfToggleMode()">Crear una</a>
     </div>
   </div>
 
   <div class="login-footer">
-    <a href="/">← Back to DMF</a>
+    <a href="/" data-i18n="back">← Volver a DMF</a><button class="dmf-lang-switch" type="button" data-lang-switch>English</button>
   </div>
 </div>
+
+<script>window.DMF_I18N.apply();</script>
 
 <script src="/academy-env.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -106,6 +219,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 (function () {
   'use strict';
 
+  var T = window.DMF_I18N.t;
   var DEMO_MODE = !!(window.__DMF_ACADEMY_DEMO__);
   var purchaseEnvironment = 'production';
   try {
@@ -140,21 +254,21 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   function updateMode() {
     hideError();
     if (isSignUp) {
-      formTitle.textContent = 'Create Account';
-      formSubtitle.textContent = 'Set up your student account to access DMF Academy';
-      btn.textContent = 'CREATE ACCOUNT';
+      formTitle.textContent = T('titleSignup');
+      formSubtitle.textContent = T('subSignup');
+      btn.textContent = T('btnSignup');
       confirmField.style.display = 'block';
       document.getElementById('loginConfirm').required = true;
-      toggleText.textContent = 'Already have an account?';
-      toggleLink.textContent = 'Sign in';
+      toggleText.textContent = T('toLoginText');
+      toggleLink.textContent = T('toLoginLink');
     } else {
-      formTitle.textContent = 'Student Access';
-      formSubtitle.textContent = 'Enter your credentials to access the training portal';
-      btn.textContent = 'ENTER PORTAL';
+      formTitle.textContent = T('titleLogin');
+      formSubtitle.textContent = T('subLogin');
+      btn.textContent = T('btnLogin');
       confirmField.style.display = 'none';
       document.getElementById('loginConfirm').required = false;
-      toggleText.textContent = "Don't have an account?";
-      toggleLink.textContent = 'Create one';
+      toggleText.textContent = T('toSignupText');
+      toggleLink.textContent = T('toSignupLink');
     }
   }
 
@@ -188,24 +302,24 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var password = document.getElementById('loginPassword').value;
 
     if (!email || !password) {
-      showError('Please enter email and password.');
+      showError(T('errMissing'));
       return;
     }
 
     if (isSignUp) {
       var confirm = document.getElementById('loginConfirm').value;
       if (password !== confirm) {
-        showError('Passwords do not match.');
+        showError(T('errMismatch'));
         return;
       }
       if (password.length < 6) {
-        showError('Password must be at least 6 characters.');
+        showError(T('errShort'));
         return;
       }
     }
 
     btn.disabled = true;
-    btn.textContent = 'CONNECTING...';
+    btn.textContent = T('connecting');
 
     if (DEMO_MODE) {
       setTimeout(function () {
@@ -218,8 +332,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
     if (!__dmfFirebaseReady) {
       btn.disabled = false;
-      btn.textContent = isSignUp ? 'CREATE ACCOUNT' : 'ENTER PORTAL';
-      showError('Authentication service is not configured.');
+      btn.textContent = isSignUp ? T('btnSignup') : T('btnLogin');
+      showError(T('errNoAuth'));
       return;
     }
 
@@ -234,7 +348,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       .then(function () {
         var intent = consumePurchaseIntent();
         if (intent) {
-          btn.textContent = 'REDIRECTING TO PAYMENT...';
+          btn.textContent = T('redirecting');
           firebase.auth().currentUser.getIdToken()
             .then(function (idToken) {
               return fetch(PAYMENTS_URL + '/create-preference', {
@@ -263,12 +377,12 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       })
       .catch(function (err) {
         btn.disabled = false;
-        btn.textContent = isSignUp ? 'CREATE ACCOUNT' : 'ENTER PORTAL';
-        var msg = 'Invalid email or password.';
-        if (err.code === 'auth/too-many-requests') msg = 'Too many attempts. Try again later.';
-        else if (err.code === 'auth/invalid-email') msg = 'Please enter a valid email address.';
-        else if (err.code === 'auth/email-already-in-use') msg = 'An account with this email already exists. Try signing in.';
-        else if (err.code === 'auth/weak-password') msg = 'Password must be at least 6 characters.';
+        btn.textContent = isSignUp ? T('btnSignup') : T('btnLogin');
+        var msg = T('errInvalid');
+        if (err.code === 'auth/too-many-requests') msg = T('errTooMany');
+        else if (err.code === 'auth/invalid-email') msg = T('errBadEmail');
+        else if (err.code === 'auth/email-already-in-use') msg = T('errInUse');
+        else if (err.code === 'auth/weak-password') msg = T('errShort');
         showError(msg);
       });
   });

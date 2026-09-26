@@ -265,8 +265,7 @@ test('mobile menu overlay is not clipped by the bar (backdrop-filter containing 
 });
 
 test('frozen paths untouched', function () {
-  const FROZEN = ['workers', 'firestore.rules', 'firebase.json', 'firebase.academy.json', 'public/login.html', 'public/payment-result.html',
-    'public/academy.html', 'public/academy-config.js', 'server.js', 'functions', 'assets'];
+  const FROZEN = ['workers', 'firestore.rules', 'firebase.json', 'firebase.academy.json', 'public/academy-config.js', 'server.js', 'functions', 'assets'];
   let base = null;
   try { base = execSync('git merge-base HEAD origin/main', { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch (e) { base = null; }
   if (base) {

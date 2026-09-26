@@ -1,9 +1,130 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DMF Academy — Payment</title>
+<title>DMF Academy — Resultado del pago</title>
+<meta name="description" content="Estado de tu pago en DMF Academy, verificado de forma segura con el servidor.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a0806">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230a0806'/%3E%3Cpath d='M13 49V15h8l11 17 11-17h8v34h-8V30L32 46 21 30v19z' fill='%23ff5b1e'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Demian Muller">
+<meta property="og:url" content="https://dmf.vibraalto.cl/payment-result">
+<meta property="og:title" content="DMF Academy — Resultado del pago">
+<meta property="og:description" content="Estado de tu pago en DMF Academy, verificado de forma segura con el servidor.">
+<meta property="og:image" content="https://dmf.vibraalto.cl/assets/images/jpg_0_19kb.jpg">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<script>
+/* DMF language: Spanish by default; the visitor's choice (here or on the landing) persists as dmf_lang ('es' | 'en').
+   Presentation only: nothing below touches authentication, payments or course access. */
+(function(){var l='es';try{var s=localStorage.getItem('dmf_lang');if(s==='en'||s==='es')l=s;}catch(e){}document.documentElement.lang=l;})();
+window.DMF_I18N = (function () {
+  var lang = document.documentElement.lang === 'en' ? 'en' : 'es';
+  var UI = {
+    "es": {
+      "pageTitle": "DMF Academy — Resultado del pago",
+      "processingTitle": "Procesando pago",
+      "processingMsg": "Estamos verificando el estado de tu pago. Esto puede tardar un momento…",
+      "checking": "Verificando",
+      "stApproved": "Aprobado",
+      "stDeclined": "Rechazado",
+      "stPending": "Pendiente",
+      "activating": "Activando…",
+      "btnEnter": "Entrar a la Academy →",
+      "btnRetry": "Intentar de nuevo →",
+      "btnBack": "Volver a DMF →",
+      "btnSignIn": "Iniciar sesión →",
+      "invalidTitle": "Enlace no válido",
+      "invalidMsg": "Este enlace de pago no es válido. Inicia una nueva compra desde el sitio de DMF.",
+      "expiredTitle": "Sesión expirada",
+      "signInMsg": "Inicia sesión para ver el estado de tu pago.",
+      "inProcessTitle": "Pago en proceso",
+      "inProcessMsg": "Tu pago se está procesando. Tendrás acceso en cuanto se confirme. Vuelve a revisar más tarde.",
+      "welcomeTitle": "Te damos la bienvenida a DMF Academy",
+      "welcomeMsg": "Tu pago fue confirmado y tu cuenta ya está activa. Ya puedes acceder al portal de formación completo.",
+      "confirmedTitle": "Pago confirmado",
+      "confirmedMsg": "Tu pago está confirmado. Estamos activando tu acceso: intenta iniciar sesión en unos minutos.",
+      "declinedTitle": "Pago rechazado",
+      "declinedMsg": "No pudimos procesar tu pago y no se realizó ningún cargo. Inténtalo de nuevo o usa otro medio de pago.",
+      "pendingTitle": "Pago pendiente",
+      "pendingMsg": "Tu pago está en revisión. Con algunos medios de pago puede tardar unos minutos. Activaremos tu cuenta en cuanto se confirme.",
+      "genericTitle": "Procesando",
+      "genericMsg": "Tu pago se está procesando. Vuelve a revisar pronto.",
+      "connTitle": "Problema de conexión",
+      "connMsg": "No pudimos verificar el estado del pago. Revisa tu email o intenta entrar a la Academy más tarde.",
+      "authTitle": "Inicio de sesión requerido",
+      "configTitle": "Error de configuración",
+      "configMsg": "El servicio de autenticación no está disponible. Inténtalo más tarde.",
+      "back": "← Volver a DMF",
+      "langSwitch": "English",
+      "langSwitchAria": "Ver esta página en inglés"
+    },
+    "en": {
+      "pageTitle": "DMF Academy — Payment",
+      "processingTitle": "Processing Payment",
+      "processingMsg": "Verifying your payment status. This may take a moment...",
+      "checking": "Checking",
+      "stApproved": "Approved",
+      "stDeclined": "Declined",
+      "stPending": "Pending",
+      "activating": "Activating...",
+      "btnEnter": "Enter Academy →",
+      "btnRetry": "Try Again →",
+      "btnBack": "Back to DMF →",
+      "btnSignIn": "Sign In →",
+      "invalidTitle": "Invalid Link",
+      "invalidMsg": "This payment link is not valid. Please start a new purchase from the DMF website.",
+      "expiredTitle": "Session Expired",
+      "signInMsg": "Please sign in to view your payment status.",
+      "inProcessTitle": "Payment Processing",
+      "inProcessMsg": "Your payment is being processed. You will receive access once it is confirmed. Check back later.",
+      "welcomeTitle": "Welcome to DMF Academy",
+      "welcomeMsg": "Your payment has been confirmed and your account is now active. You can access the full training portal.",
+      "confirmedTitle": "Payment Confirmed",
+      "confirmedMsg": "Your payment is confirmed. Access is being activated — please try logging in shortly.",
+      "declinedTitle": "Payment Declined",
+      "declinedMsg": "Your payment could not be processed. No charge was made. Please try again or use a different payment method.",
+      "pendingTitle": "Payment Pending",
+      "pendingMsg": "Your payment is being reviewed. This can take a few minutes for some payment methods. We will activate your account once confirmed.",
+      "genericTitle": "Processing",
+      "genericMsg": "Your payment is being processed. Check back soon.",
+      "connTitle": "Connection Issue",
+      "connMsg": "Could not verify payment status. Please check your email or try accessing the academy later.",
+      "authTitle": "Authentication Required",
+      "configTitle": "Configuration Error",
+      "configMsg": "Authentication service is not available. Please try again later.",
+      "back": "← Back to DMF",
+      "langSwitch": "Español",
+      "langSwitchAria": "View this page in Spanish"
+    }
+  };
+  function t(key) {
+    if (Object.prototype.hasOwnProperty.call(UI[lang], key)) return UI[lang][key];
+    return Object.prototype.hasOwnProperty.call(UI.es, key) ? UI.es[key] : key;
+  }
+  function apply() {
+    var i, els = document.querySelectorAll('[data-i18n]');
+    for (i = 0; i < els.length; i++) els[i].textContent = t(els[i].getAttribute('data-i18n'));
+    els = document.querySelectorAll('[data-i18n-placeholder]');
+    for (i = 0; i < els.length; i++) els[i].setAttribute('placeholder', t(els[i].getAttribute('data-i18n-placeholder')));
+    els = document.querySelectorAll('[data-lang-switch]');
+    for (i = 0; i < els.length; i++) {
+      els[i].textContent = t('langSwitch');
+      els[i].setAttribute('aria-label', t('langSwitchAria'));
+      els[i].setAttribute('lang', lang === 'es' ? 'en' : 'es');
+      els[i].onclick = function () {
+        try { localStorage.setItem('dmf_lang', lang === 'es' ? 'en' : 'es'); } catch (e) { /* ignore */ }
+        window.location.reload();
+      };
+    }
+    document.title = t('pageTitle');
+  }
+  return { lang: lang, t: t, apply: apply };
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -32,6 +153,8 @@ a:hover{color:#ff7a45}
 .result-btn:hover{background:#ff7a45;color:#0a0806}
 .result-footer{text-align:center;margin-top:32px;font-size:12px;color:#665f58;letter-spacing:.04em}
 .result-footer a{font-size:12px}
+.dmf-lang-switch{background:none;border:0;padding:0;margin-left:18px;font-family:'Archivo',sans-serif;font-size:12px;letter-spacing:.04em;color:#8a8178;cursor:pointer;text-decoration:underline;text-underline-offset:3px;transition:color .2s}
+.dmf-lang-switch:hover{color:#ff5b1e}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner{display:inline-block;width:24px;height:24px;border:2px solid rgba(255,170,50,.3);border-top-color:#ffaa32;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px}
 </style>
@@ -46,15 +169,17 @@ a:hover{color:#ff7a45}
 
   <div class="result-card" id="resultCard">
     <div class="spinner" id="resultSpinner"></div>
-    <div class="result-title" id="resultTitle">Processing Payment</div>
-    <div class="result-msg" id="resultMsg">Verifying your payment status. This may take a moment...</div>
-    <div class="result-status polling" id="resultStatus">Checking</div>
+    <div class="result-title" id="resultTitle" data-i18n="processingTitle">Procesando pago</div>
+    <div class="result-msg" id="resultMsg" data-i18n="processingMsg">Estamos verificando el estado de tu pago. Esto puede tardar un momento…</div>
+    <div class="result-status polling" id="resultStatus" data-i18n="checking">Verificando</div>
   </div>
 
   <div class="result-footer">
-    <a href="/">← Back to DMF</a>
+    <a href="/" data-i18n="back">← Volver a DMF</a><button class="dmf-lang-switch" type="button" data-lang-switch>English</button>
   </div>
 </div>
+
+<script>window.DMF_I18N.apply();</script>
 
 <script src="/academy-env.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -63,6 +188,7 @@ a:hover{color:#ff7a45}
 (function () {
   'use strict';
 
+  var T = window.DMF_I18N.t;
   var params = new URLSearchParams(window.location.search);
   var purchaseId = params.get('purchaseId');
   var paymentEnvironment = params.get('paymentEnvironment') === 'sandbox' ? 'sandbox' : 'production';
@@ -76,6 +202,16 @@ a:hover{color:#ff7a45}
   var spinnerEl = document.getElementById('resultSpinner');
   var cardEl = document.getElementById('resultCard');
 
+  function addButton(href, label, background) {
+    var a = document.createElement('a');
+    a.className = 'result-btn';
+    a.href = href;
+    a.style.marginTop = '12px';
+    if (background) a.style.background = background;
+    a.textContent = label;
+    cardEl.appendChild(a);
+  }
+
   function showState(state, title, msg) {
     spinnerEl.style.display = 'none';
     titleEl.textContent = title;
@@ -83,25 +219,19 @@ a:hover{color:#ff7a45}
     statusEl.className = 'result-status ' + state;
 
     if (state === 'approved') {
-      statusEl.textContent = 'Approved';
-      cardEl.insertAdjacentHTML('beforeend',
-        '<a class="result-btn" href="/academy" style="margin-top:12px">Enter Academy →</a>'
-      );
+      statusEl.textContent = T('stApproved');
+      addButton('/academy', T('btnEnter'));
     } else if (state === 'rejected') {
-      statusEl.textContent = 'Declined';
-      cardEl.insertAdjacentHTML('beforeend',
-        '<a class="result-btn" href="/" style="margin-top:12px">Try Again →</a>'
-      );
+      statusEl.textContent = T('stDeclined');
+      addButton('/', T('btnRetry'));
     } else if (state === 'pending') {
-      statusEl.textContent = 'Pending';
-      cardEl.insertAdjacentHTML('beforeend',
-        '<a class="result-btn" href="/" style="margin-top:12px;background:#665f58">Back to DMF →</a>'
-      );
+      statusEl.textContent = T('stPending');
+      addButton('/', T('btnBack'), '#665f58');
     }
   }
 
   if (!purchaseId) {
-    showState('rejected', 'Invalid Link', 'This payment link is not valid. Please start a new purchase from the DMF website.');
+    showState('rejected', T('invalidTitle'), T('invalidMsg'));
     return;
   }
 
@@ -122,10 +252,8 @@ a:hover{color:#ff7a45}
 
     var user = typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser;
     if (!user) {
-      showState('rejected', 'Session Expired', 'Please sign in to view your payment status.');
-      cardEl.insertAdjacentHTML('beforeend',
-        '<a class="result-btn" href="/login" style="margin-top:12px;background:#665f58">Sign In →</a>'
-      );
+      showState('rejected', T('expiredTitle'), T('signInMsg'));
+      addButton('/login', T('btnSignIn'), '#665f58');
       return;
     }
 
@@ -139,28 +267,28 @@ a:hover{color:#ff7a45}
             if (attempts < maxAttempts) {
               setTimeout(poll, pollInterval);
             } else {
-              showState('pending', 'Payment Processing', 'Your payment is being processed. You will receive access once it is confirmed. Check back later.');
+              showState('pending', T('inProcessTitle'), T('inProcessMsg'));
             }
             return;
           }
 
           if (data.enrolled) {
-            showState('approved', 'Welcome to DMF Academy', 'Your payment has been confirmed and your account is now active. You can access the full training portal.');
+            showState('approved', T('welcomeTitle'), T('welcomeMsg'));
             return;
           }
 
           if (data.status === 'approved') {
             if (attempts < maxAttempts) {
-              statusEl.textContent = 'Activating...';
+              statusEl.textContent = T('activating');
               setTimeout(poll, pollInterval);
             } else {
-              showState('approved', 'Payment Confirmed', 'Your payment is confirmed. Access is being activated — please try logging in shortly.');
+              showState('approved', T('confirmedTitle'), T('confirmedMsg'));
             }
             return;
           }
 
           if (data.status === 'rejected' || data.status === 'cancelled' || data.status === 'refunded') {
-            showState('rejected', 'Payment Declined', 'Your payment could not be processed. No charge was made. Please try again or use a different payment method.');
+            showState('rejected', T('declinedTitle'), T('declinedMsg'));
             return;
           }
 
@@ -168,7 +296,7 @@ a:hover{color:#ff7a45}
             if (attempts < maxAttempts) {
               setTimeout(poll, pollInterval);
             } else {
-              showState('pending', 'Payment Pending', 'Your payment is being reviewed. This can take a few minutes for some payment methods. We will activate your account once confirmed.');
+              showState('pending', T('pendingTitle'), T('pendingMsg'));
             }
             return;
           }
@@ -176,14 +304,14 @@ a:hover{color:#ff7a45}
           if (attempts < maxAttempts) {
             setTimeout(poll, pollInterval);
           } else {
-            showState('pending', 'Processing', 'Your payment is being processed. Check back soon.');
+            showState('pending', T('genericTitle'), T('genericMsg'));
           }
         })
         .catch(function () {
           if (attempts < maxAttempts) {
             setTimeout(poll, pollInterval);
           } else {
-            showState('pending', 'Connection Issue', 'Could not verify payment status. Please check your email or try accessing the academy later.');
+            showState('pending', T('connTitle'), T('connMsg'));
           }
         });
     });
@@ -194,14 +322,12 @@ a:hover{color:#ff7a45}
       if (user) {
         poll();
       } else {
-        showState('rejected', 'Authentication Required', 'Please sign in to view your payment status.');
-        cardEl.insertAdjacentHTML('beforeend',
-          '<a class="result-btn" href="/login" style="margin-top:12px;background:#665f58">Sign In →</a>'
-        );
+        showState('rejected', T('authTitle'), T('signInMsg'));
+        addButton('/login', T('btnSignIn'), '#665f58');
       }
     });
   } else {
-    showState('rejected', 'Configuration Error', 'Authentication service is not available. Please try again later.');
+    showState('rejected', T('configTitle'), T('configMsg'));
   }
 })();
 </script>
