@@ -659,12 +659,12 @@ html.eh-woken .concert-logo-wrap,html.eh-woken .concert-tagline{animation:none}
 /* Z5 — shared reflection language: one warm specular band per framed image, travelling with the block
    through the viewport, nudged by the pointer, brighter on HIGH and on fast scroll. Never a mirror. */
 .eh-sheen{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-.eh-sheen::before{content:'';position:absolute;top:-20%;bottom:-20%;left:0;width:36%;background:linear-gradient(90deg,transparent,rgba(255,214,192,.06) 42%,rgba(255,232,220,.1) 50%,rgba(255,214,192,.06) 58%,transparent);opacity:calc((.35 + var(--eh-high,0) * .5 + var(--eh-speed,0) * .7) * var(--eh-sheenk,1));transform:translate3d(calc((var(--eh-lx,.5) - var(--eh-l,0)) / var(--eh-w,1) * 277.8% - 50%),0,0) skewX(-16deg);will-change:transform}
+.eh-sheen::before{content:'';position:absolute;top:-20%;bottom:-20%;left:0;width:36%;background:linear-gradient(90deg,transparent,rgba(255,214,192,.06) 42%,rgba(255,232,220,.1) 50%,rgba(255,214,192,.06) 58%,transparent);opacity:calc((.35 + var(--eh-high,0) * .5 + var(--eh-speed,0) * .7) * var(--eh-sheenk,1));transform:translate3d(calc((var(--eh-lx,.5) - var(--eh-l,0)) / var(--eh-w,1) * 277.8% - 50%),0,0) skewX(-16deg) scaleX(calc(1 + var(--eh-rv,0) * .6));will-change:transform}
 .eh-tier-lite .eh-sheen,.eh-tier-static .eh-sheen{display:none}
 
 /* Z4 — typography as material: titles sit slightly forward of the copy, compress a few percent with scroll
    inertia, and split into an orange echo for an instant when their section arrives through a gate. */
-.section-title,.acad-title{transform-origin:0 50%;translate:calc(var(--eh-pan,0) * 4px * var(--eh-zk,1)) calc(var(--eh-rel,0) * var(--eh-z4) * var(--eh-zk,1) + var(--eh-vel,0) * 5px - var(--eh-tv,0) * 2px + var(--eh-ts,0) * 1px);scale:calc(1 - var(--eh-speed,0) * .025 - var(--eh-tp,0) * .012 - var(--eh-tv,0) * .006) calc(1 - var(--eh-tp,0) * .01 + var(--eh-tv,0) * .01);text-shadow:calc(var(--eh-split,0) * 7px) 0 0 rgba(255,91,30,calc(var(--eh-split,0) * .4)),calc(var(--eh-split,0) * -4px) 0 0 rgba(242,237,230,calc(var(--eh-split,0) * .1)),0 -1px 0 rgba(255,214,190,calc(var(--eh-high,0) * .22)),0 calc(var(--eh-tp,0) * 2px) calc(var(--eh-tp,0) * 16px) rgba(255,91,30,calc(var(--eh-tp,0) * .16)),calc(var(--eh-chroma,0) * 1.5px) 0 0 rgba(255,91,30,calc(var(--eh-chroma,0) * .28))}
+.section-title,.acad-title{transform-origin:0 50%;translate:calc(var(--eh-pan,0) * 4px * var(--eh-zk,1)) calc(var(--eh-rel,0) * var(--eh-z4) * var(--eh-zk,1) + var(--eh-vel,0) * 5px - var(--eh-tv,0) * 2px + var(--eh-ts,0) * 1px - var(--eh-tsn,0) * .5px);scale:calc(1 - var(--eh-speed,0) * .025 - var(--eh-tp,0) * .012 - var(--eh-tv,0) * .006 - var(--eh-tt,0) * .004) calc(1 - var(--eh-tp,0) * .01 + var(--eh-tv,0) * .01 + var(--eh-tt,0) * .006);text-shadow:calc(var(--eh-split,0) * 7px) 0 0 rgba(255,91,30,calc(var(--eh-split,0) * .4)),calc(var(--eh-split,0) * -4px) 0 0 rgba(242,237,230,calc(var(--eh-split,0) * .1)),0 -1px 0 rgba(255,214,190,calc(var(--eh-high,0) * .22)),0 calc(var(--eh-tp,0) * 2px) calc(var(--eh-tp,0) * 16px) rgba(255,91,30,calc(var(--eh-tp,0) * .16)),calc(var(--eh-chroma,0) * 1.5px) 0 0 rgba(255,91,30,calc(var(--eh-chroma,0) * .28)),calc(var(--eh-tt,0) * -2px) 0 0 rgba(242,237,230,calc(var(--eh-tt,0) * .16))}
 
 /* POINTER FIELD — CTAs and the logo lean ≤3 px toward a fine pointer; touch never depends on it. */
 .hero-cta,.hero-cta-2,.tier-cta,.lab-gate,.tips-cta,.acad-cta,.acad-cta-free,.dmf-signal-cta,.nav-logo{translate:calc(var(--eh-mx,0) * 1px) calc(var(--eh-my,0) * 1px)}
@@ -720,7 +720,7 @@ html.eh-calm .tier-card{border-color:rgba(242,237,230,.2)}
    stage), the section cut's hold, typographic pressure (above, in the title grammar) and the Receiver
    title's once-per-session reveal. Transform/opacity only; all values arrive already bounded.
    =================================================================================================== */
-.eh-blade{position:absolute;left:0;bottom:-12vh;width:16vw;height:125vh;pointer-events:none;background:linear-gradient(to top,rgba(255,91,30,.16),rgba(255,140,90,.05) 38%,transparent 78%);-webkit-clip-path:polygon(44% 100%,56% 100%,100% 0,0 0);clip-path:polygon(44% 100%,56% 100%,100% 0,0 0);transform-origin:50% 100%;opacity:calc((.05 + var(--eh-beam,0) * .5 + var(--eh-lv,0) * .12) * (1 - var(--eh-calm,0)));transform:translate3d(calc(var(--eh-bx,.5) * 100vw - 8vw + var(--o,0vw)),0,0) rotate(calc(var(--r) * (1 - var(--eh-lv,0) * .4) + var(--s) * var(--eh-beam,0) * 4deg)) scaleX(calc((.7 + var(--eh-beam,0) * .45) * (1 - var(--eh-lv,0) * .35 - var(--eh-lc,0) * .2)))}
+.eh-blade{position:absolute;left:0;bottom:-12vh;width:16vw;height:125vh;pointer-events:none;background:linear-gradient(to top,rgba(255,91,30,.16),rgba(255,140,90,.05) 38%,transparent 78%);-webkit-clip-path:polygon(44% 100%,56% 100%,100% 0,0 0);clip-path:polygon(44% 100%,56% 100%,100% 0,0 0);transform-origin:50% 100%;opacity:calc((.05 + var(--eh-beam,0) * .5 + var(--eh-lv,0) * .12) * (1 - var(--eh-calm,0)));transform:translate3d(calc(var(--eh-bx,.5) * 100vw - 8vw + var(--o,0vw)),0,0) rotate(calc(var(--r) * (1 - var(--eh-lv,0) * .4) + var(--s) * var(--eh-beam,0) * 4deg)) scaleX(calc((.7 + var(--eh-beam,0) * .45) * (1 - var(--eh-lv,0) * .35 - var(--eh-lc,0) * .2) * (1 - var(--eh-bv,0) * .1)))}
 .eh-blade--1{--r:-14deg;--s:-1;--o:-6vw}
 .eh-blade--2{--r:12deg;--s:1;--o:6vw}
 .eh-compact .eh-blade{width:34vw}
@@ -728,7 +728,7 @@ html.eh-calm .tier-card{border-color:rgba(242,237,230,.2)}
 .eh-vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 92% at 50% 50%,transparent 52%,rgba(4,3,3,.9) 100%);opacity:calc((var(--eh-vig,0) * .55 + var(--eh-shadow,0) * .22) * (1 - var(--eh-calm,0)))}
 .eh-still .eh-blade,.eh-tier-static .eh-blade,.eh-still .eh-vig,.eh-tier-static .eh-vig{display:none}
 /* The Receiver's title resolves last in its reveal, then carries the same pressure as every title. */
-.dmf-signal-title{transform-origin:0 100%;opacity:calc(.35 + var(--eh-reveal,1) * .65);translate:0 calc((1 - var(--eh-reveal,1)) * 14px + var(--eh-tp,0) * 1.5px - var(--eh-tv,0) * 2px + var(--eh-ts,0) * 1px);scale:calc(1 - var(--eh-tp,0) * .012 - var(--eh-tv,0) * .006) calc(1 - var(--eh-tp,0) * .01 + var(--eh-tv,0) * .01);text-shadow:0 calc(var(--eh-tp,0) * 2px) calc(var(--eh-tp,0) * 16px) rgba(255,91,30,calc(var(--eh-tp,0) * .16)),calc(var(--eh-chroma,0) * 1.5px) 0 0 rgba(255,91,30,calc(var(--eh-chroma,0) * .28))}
+.dmf-signal-title{transform-origin:0 100%;opacity:calc(.35 + var(--eh-reveal,1) * .65);translate:0 calc((1 - var(--eh-reveal,1)) * 14px + var(--eh-tp,0) * 1.5px - var(--eh-tv,0) * 2px + var(--eh-ts,0) * 1px - var(--eh-tsn,0) * .5px);scale:calc(1 - var(--eh-tp,0) * .012 - var(--eh-tv,0) * .006 - var(--eh-tt,0) * .004) calc(1 - var(--eh-tp,0) * .01 + var(--eh-tv,0) * .01 + var(--eh-tt,0) * .006);text-shadow:0 calc(var(--eh-tp,0) * 2px) calc(var(--eh-tp,0) * 16px) rgba(255,91,30,calc(var(--eh-tp,0) * .16)),calc(var(--eh-chroma,0) * 1.5px) 0 0 rgba(255,91,30,calc(var(--eh-chroma,0) * .28)),calc(var(--eh-tt,0) * -2px) 0 0 rgba(242,237,230,calc(var(--eh-tt,0) * .16))}
 html.eh-calm .dmf-signal-title{scale:none}
 
 @media(prefers-reduced-motion:reduce){
@@ -4733,6 +4733,165 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
 </script>
 <script>
+/* DMF LIGHTSPEED — pure threshold layer for the Event Horizon director (V6). ES5, no DOM, no clock, no timers.
+ * The director steps it after the V5 Mass Driver with the same state object. It never detects a beat: a
+ * LIGHTSPEED event starts only on the onset of a Mass Driver release (st.drive rising from 0), at most once
+ * per 6 s, and turns that one shot into a threshold crossing for the whole stage:
+ *   T −120..0   SPACE COMPRESSION  (Mass Driver's precompression: FOV tightens, sun contracts, speakers hold)
+ *   T +0..70    IGNITION           (head leads, camera pushes, centre light, speakers release)
+ *   T +70..180  VELOCITY FRONT     (depth stretches, reflections streak, blades align, titles peak, floor wave)
+ *   T +180..450 LIGHTSPEED         (FOV opens within bound, Receiver anchored, sun edge after the model)
+ *   T +450..850 MASSIVE DECELERATION (heavy, no bounce; every term lands at exactly 0 — the authored pose)
+ * Every term is hard-clamped here. The offer never sees an event. Inlined into public/index.html by
+ * scripts/build-3d.cjs after mass-driver.js; required by tests. */
+(function (root) {
+  'use strict';
+
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+  function smooth01(t) { t = clamp01(t); return t * t * (3 - 2 * t); }
+  // Silent until `delay`, smooth attack, coast, smooth heavy return to exactly 0 at `end` (no overshoot).
+  function pulse(t, delay, attack, end) {
+    if (t < delay || t >= end) return 0;
+    var u = t - delay;
+    if (u < attack) return smooth01(u / attack);
+    return 1 - smooth01((u - attack) / (end - delay - attack));
+  }
+
+  var LIMITS = {
+    end: 0.85,            // the event is over (exactly zero) 850 ms after ignition
+    gap: 6,               // one major LIGHTSPEED event per ≥ 6 s, whatever the music
+    fovDesktop: 3.5,      // degrees
+    fovMobile: 1.2,
+    dollyDesktop: 0.18,   // world units
+    dollyMobile: 0.07,
+    compressFov: 0.35,    // the compression tightens FOV by ≤ 35% of the open bound
+    sunContract: 0.006,   // extra sun contraction / expansion (the V4 ±3% clamp still wins)
+    sunExpand: 0.008,
+    wooferHold: 0.25,     // speakers hold tension (−25% travel) …
+    wooferRelease: 0.15   // … then release (+15%), inside the V3 4% budget
+  };
+  // Timeline from ignition (drive onset): [delay, attack, end].
+  var T = {
+    ignition: [0, 0.03, 0.12],
+    head: [0, 0.05, 0.35],
+    shoulder: [0.06, 0.07, 0.45],
+    torso: [0.12, 0.1, 0.6],
+    front: [0.07, 0.08, 0.6],
+    depth: [0.03, 0.15, 0.8],
+    fov: [0.03, 0.3, 0.85],
+    core: [0, 0.3, 0.85],
+    edge: [0.1, 0.06, 0.5],
+    reflection: [0.12, 0.1, 0.7],
+    blade: [0.1, 0.1, 0.75],
+    floor: [0.14, 0.08, 0.6],
+    title: [0.1, 0.1, 0.6],
+    snap: [0.45, 0.1, 0.85]
+  };
+  function at(t, k) { return pulse(t, k[0], k[1], k[2]); }
+  var ENERGETIC = { hero: 1, relic: 1, band: 1, releases: 1, sets: 1 };
+
+  // Authority per tier and device (the V6 governor contract).
+  function authority(tier, compact) {
+    if (tier === 'static') return { cam: 0, refl: 0, type: 0, light: 0, body: 0 };
+    var a = tier === 'lite' ? { cam: 0.4, refl: 0.35, type: 0.3, light: 0.4, body: 0.45 }
+      : tier === 'balanced' ? { cam: 0.75, refl: 0.65, type: 0.6, light: 0.7, body: 1 }
+      : { cam: 1, refl: 1, type: 1, light: 1, body: 1 };
+    if (compact) { a.cam = Math.min(a.cam, 0.35); a.refl = Math.min(a.refl, 0.4); a.body = Math.min(a.body, 0.42); a.type = Math.min(a.type, 0.42); a.light = Math.min(a.light, 0.42); }
+    return a;
+  }
+  var AUTH = {
+    high: authority('high', false), balanced: authority('balanced', false), lite: authority('lite', false), static: authority('static', false),
+    highC: authority('high', true), balancedC: authority('balanced', true), liteC: authority('lite', true), staticC: authority('static', true)
+  };
+
+  function DMFLightspeed() {
+    this.t = 9;            // time since ignition (≥ end: idle)
+    this.since = 99;       // time since the last event
+    this.prevDrive = 0;
+    this.shots = 0;
+    this.firedNow = false;
+  }
+
+  // st: the Event Horizon state (read and written in place), after DMFMassDriver.update.
+  DMFLightspeed.prototype.update = function (st, inp, ids, dt) {
+    var tier = st.performanceTier;
+    var compact = !!st.compact;
+    var a = AUTH[(tier === 'balanced' || tier === 'lite' || tier === 'static' ? tier : 'high') + (compact ? 'C' : '')];
+    var calm = st.calm;
+    var silence = st.silence || 0;
+    var still = tier === 'static';
+    var drive = st.drive || 0;
+
+    // --- TRIGGER: only a Mass Driver release, only where the stage is energetic, ≥ 6 s apart ---
+    this.since += dt;
+    this.firedNow = false;
+    if (drive > 0 && this.prevDrive <= 0 && ENERGETIC[ids[st.index]] && calm < 0.3 && !still && silence < 0.3 && this.since >= LIMITS.gap) {
+      this.t = 0; this.since = 0; this.shots++; this.firedNow = true;
+    }
+    this.prevDrive = drive;
+    var t = -1;
+    if (this.t < LIMITS.end) { this.t += dt; t = this.t; }
+    var live = (1 - silence) * (1 - clamp01((calm - 0.3) / 0.3)) * (still ? 0 : 1);
+    var on = t >= 0 && t < LIMITS.end ? live : 0;
+
+    // --- SPACE COMPRESSION: rides the Mass Driver precompression (before and at ignition) ---
+    var compression = clamp01(st.precompress || 0) * live * (still ? 0 : 1);
+    st.spaceCompression = clamp01(compression * Math.max(a.cam, a.light));
+    st.lensPressure = clamp01(compression * a.cam);
+
+    // --- THE EVENT ---
+    var ign = on * at(t, T.ignition);
+    st.lightspeed = clamp01(on * at(t, T.core));
+    st.velocityField = clamp01(on * at(t, T.front) * Math.max(a.refl, a.light));
+    // Camera: desktop bound × camera authority, then the device's own hard bound (phones ≤ 1.2°, ≤ 0.07 u).
+    var fovMax = compact ? LIMITS.fovMobile : LIMITS.fovDesktop;
+    st.fovKick = clamp(a.cam * (on * at(t, T.fov) - LIMITS.compressFov * compression), -LIMITS.compressFov, 1);
+    st.fovDeg = clamp(st.fovKick * LIMITS.fovDesktop, -LIMITS.compressFov * fovMax, fovMax);
+    var dollyMax = compact ? LIMITS.dollyMobile : LIMITS.dollyDesktop;
+    st.depthStretch = clamp01(a.cam * on * at(t, T.depth));
+    st.depthDolly = clamp(st.depthStretch * LIMITS.dollyDesktop, 0, dollyMax);
+    st.receiverAnchor = clamp01(0.7 * st.lightspeed * a.cam);
+    st.reflectionVelocity = clamp01(a.refl * on * at(t, T.reflection));
+    st.bladeVelocity = clamp01(a.light * on * at(t, T.blade));
+    st.floorVelocity = clamp01(a.body * on * at(t, T.floor));
+    st.titleTrail = clamp01(a.type * on * at(t, T.title));
+    st.titleSnap = clamp01(a.type * on * at(t, T.snap));
+    st.lsIgnition = clamp01(ign * a.light);
+    st.lsHead = clamp01(a.body * on * at(t, T.head));
+    st.lsShoulder = clamp01(a.body * on * at(t, T.shoulder));
+    st.lsTorso = clamp01(a.body * on * at(t, T.torso));
+    st.speakerHold = clamp01(compression * a.body);
+    st.speakerRelease = clamp01(ign * a.body);
+
+    // --- V3–V5 terms answer inside their own bounds (modulated, never rewritten) ---
+    var edge = on * at(t, T.edge) * a.light;
+    st.woofer = Math.min(0.04, (st.woofer || 0) * (1 - LIMITS.wooferHold * st.speakerHold + LIMITS.wooferRelease * st.speakerRelease));
+    st.floorPress = clamp01(Math.max(st.floorPress || 0, st.floorVelocity));
+    st.halo = clamp01(Math.max(st.halo || 0, 0.5 * edge, 0.35 * st.lightspeed * a.light));
+    st.gravity = clamp01((st.gravity || 0) * (1 - 0.5 * st.lightspeed));
+    st.sunScale = clamp((st.sunScale || 0) - LIMITS.sunContract * st.spaceCompression + LIMITS.sunExpand * st.lightspeed * a.light, -0.03, 0.03);
+    st.reflectionShock = clamp01(Math.max(st.reflectionShock || 0, 0.6 * st.reflectionVelocity));
+    st.lightVelocity = clamp01(Math.max(st.lightVelocity || 0, st.bladeVelocity));
+    return st;
+  };
+
+  // Composed and motionless: every LIGHTSPEED term at rest (the authored pose).
+  DMFLightspeed.prototype.compose = function (st) {
+    st.lightspeed = 0; st.spaceCompression = 0; st.lensPressure = 0; st.velocityField = 0; st.fovKick = 0; st.fovDeg = 0;
+    st.depthStretch = 0; st.depthDolly = 0; st.receiverAnchor = 0; st.reflectionVelocity = 0; st.bladeVelocity = 0;
+    st.floorVelocity = 0; st.titleTrail = 0; st.titleSnap = 0; st.lsIgnition = 0; st.lsHead = 0; st.lsShoulder = 0;
+    st.lsTorso = 0; st.speakerHold = 0; st.speakerRelease = 0;
+    return st;
+  };
+
+  var api = { LIMITS: LIMITS, TIMELINE: T, ENERGETIC: ENERGETIC, AUTH: AUTH, pulse: pulse, DMFLightspeed: DMFLightspeed };
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.DMFLightspeed = api;
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
 /* DMF EVENT HORIZON — one director for the landing's audiovisual world.
  * It owns no loop, no audio graph and no renderer. It listens to the DMF Signal Bus clock (hub.onFrame),
  * folds scroll, section, audio, pointer, visibility and the governor tier into one stage state
@@ -4753,6 +4912,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   var BS = typeof module === 'object' && module.exports ? require('./black-sun.js') : root.DMFBlackSun;
   // V5 Mass Driver: acceleration, stepped after the Black Sun on the same state (no clock of its own).
   var MD = typeof module === 'object' && module.exports ? require('./mass-driver.js') : root.DMFMassDriver;
+  // V6 Lightspeed: the threshold crossing, stepped after the Mass Driver and triggered only by it.
+  var LS = typeof module === 'object' && module.exports ? require('./lightspeed.js') : root.DMFLightspeed;
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
@@ -4830,12 +4991,17 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       // V5 Mass Driver (written by DMFMassDriver.update)
       charge: 0, precompress: 0, drive: 0, driveDolly: 0, driveLift: 0, driveRoll: 0, driveLateral: 0,
       driveMass: 0, driveSettle: 0, driveHead: 0, driveShoulder: 0, driveTorso: 0, wavefront: 0, floorWave: 0,
-      lightVelocity: 0, lightCompression: 0, typeVelocity: 0, typeSettle: 0
+      lightVelocity: 0, lightCompression: 0, typeVelocity: 0, typeSettle: 0,
+      // V6 Lightspeed (written by DMFLightspeed.update)
+      lightspeed: 0, spaceCompression: 0, lensPressure: 0, velocityField: 0, fovKick: 0, fovDeg: 0, depthStretch: 0,
+      depthDolly: 0, receiverAnchor: 0, reflectionVelocity: 0, bladeVelocity: 0, floorVelocity: 0, titleTrail: 0,
+      titleSnap: 0, lsIgnition: 0, lsHead: 0, lsShoulder: 0, lsTorso: 0, speakerHold: 0, speakerRelease: 0
     };
     this.narrative = SN ? new SN.DMFSpatialNarrative() : null;
     this.overdrive = SO && this.narrative ? new SO.DMFStageOverdrive() : null;
     this.blackSun = BS && this.overdrive ? new BS.DMFBlackSun() : null;
     this.massDriver = MD && this.blackSun ? new MD.DMFMassDriver() : null;
+    this.lightspeed = LS && this.massDriver ? new LS.DMFLightspeed() : null;
     this._depthV = 0;
     this._gateT = 9;
     this._sinceGate = 9;
@@ -4938,6 +5104,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     if (this.overdrive) this.overdrive.update(st, inp, this.ids, dt);
     if (this.blackSun) this.blackSun.update(st, inp, this.ids, dt);
     if (this.massDriver) this.massDriver.update(st, inp, this.ids, dt);
+    if (this.lightspeed) this.lightspeed.update(st, inp, this.ids, dt);
     return st;
   };
 
@@ -4954,6 +5121,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     if (this.overdrive) this.overdrive.compose(st);
     if (this.blackSun) this.blackSun.compose(st);
     if (this.massDriver) this.massDriver.compose(st);
+    if (this.lightspeed) this.lightspeed.compose(st);
     return st;
   };
 
@@ -4978,7 +5146,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   // Blocks that receive per-section variables while visible (never the whole document).
   var MAGNETS = '.hero-cta, .hero-cta-2, .tier-cta, .lab-gate, .tips-cta, .acad-cta, .acad-cta-free, .dmf-signal-cta, .nav-logo';
   var SECTION_VARS = ['--eh-focus', '--eh-rel', '--eh-split', '--eh-energy', '--eh-mid', '--eh-high', '--eh-speed', '--eh-vel', '--eh-lx',
-    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk', '--eh-tp', '--eh-chroma', '--eh-reveal', '--eh-tv', '--eh-ts'];
+    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk', '--eh-tp', '--eh-chroma', '--eh-reveal', '--eh-tv', '--eh-ts', '--eh-tt', '--eh-tsn', '--eh-rv'];
   function freshCache(n) { var c = []; for (var i = 0; i < n; i++) c.push(-9); return c; }
 
   function mount() {
@@ -5051,7 +5219,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     // Decorative layers that live in the source markup.
     var field = doc.querySelector('.eh-field');
     var intro = doc.getElementById('concertIntro');
-    var fieldVals = freshCache(19);
+    var fieldVals = freshCache(20);
     // Intro variables go to the few elements that read them (never the intro, whose subtree holds the SVG).
     var introEls = doc.querySelectorAll('#concertIntro .eh-stack, #concertIntro .eh-floor, #concertIntro .eh-halo');
     for (var ie = 0; ie < introEls.length; ie++) introEls[ie].__ehVals = freshCache(11);
@@ -5158,6 +5326,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         // V5: titles feel the acceleration (stretch along it), then settle.
         put(el, c, 17, '--eh-tv', st.typeVelocity, 20);
         put(el, c, 18, '--eh-ts', st.typeSettle, 20);
+        // V6: a 1–2 px directional title trail, its snap back, and reflections streaking with the velocity front.
+        put(el, c, 19, '--eh-tt', st.titleTrail, 20);
+        put(el, c, 20, '--eh-tsn', st.titleSnap, 20);
+        put(el, c, 21, '--eh-rv', st.reflectionVelocity, 20);
       }
       // V3: in the offer the background holds still (only its light and calm keep settling).
       var frozen = st.calm > 0.85;
@@ -5173,6 +5345,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         // V5: the blades acquire velocity (narrower, more directional) and narrow under precompression.
         put(field, fieldVals, 17, '--eh-lv', st.lightVelocity, 50);
         put(field, fieldVals, 18, '--eh-lc', st.lightCompression, 50);
+        put(field, fieldVals, 19, '--eh-bv', st.bladeVelocity, 50);   // V6: blades align with the travel
       }
       if (field && !frozen) {
         put(field, fieldVals, 0, '--eh-energy', st.energy, 50);
@@ -5280,6 +5453,11 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         driveLateral: +st.driveLateral.toFixed(3), driveMass: +st.driveMass.toFixed(2), driveSettle: +st.driveSettle.toFixed(2),
         wavefront: +st.wavefront.toFixed(2), floorWave: +st.floorWave.toFixed(2), lightVelocity: +st.lightVelocity.toFixed(2),
         typeVelocity: +st.typeVelocity.toFixed(2), shots: eh.massDriver ? eh.massDriver.shots : 0
+      };
+      perf.lightspeed = {
+        active: st.lightspeed > 0.001, compression: +st.spaceCompression.toFixed(2), velocity: +st.velocityField.toFixed(2),
+        fovKick: +st.fovDeg.toFixed(2), depthStretch: +st.depthStretch.toFixed(2), reflectionVelocity: +st.reflectionVelocity.toFixed(2),
+        bladeVelocity: +st.bladeVelocity.toFixed(2), titleTrail: +st.titleTrail.toFixed(2), shots: eh.lightspeed ? eh.lightspeed.shots : 0
       };
       perf.dprCaps = { receiver: hub.renderScale || 1, mixer: perf.mixerFit ? perf.mixerFit.dpr : null, smoke: Math.min(root.devicePixelRatio || 1, 1.5) };
     }
@@ -6337,6 +6515,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var az = cur.az + latK.x + (auto ? Math.sin(autoAngle) * 0.05 * motionScale : 0) + (e5 ? 0.012 * (e5.driveLateral || 0) : 0);
       var r = (cur.r - dolly) * fit;
       r -= (e5 ? 0.28 * (e5.driveDolly || 0) : 0) * fit;
+      r -= (e5 ? e5.depthDolly || 0 : 0) * fit;                      // V6 LIGHTSPEED: depth stretch (≤ 0.18 u; phones ≤ 0.07)
       var y = cur.y + (auto ? parYK.x + Math.sin(autoAngle * 0.8) * 0.08 * motionScale : 0) + (e5 ? 0.05 * (e5.driveLift || 0) : 0);
       // CAMERA JOURNEY: the ACT's authored dolly/orbit/height/target/FOV, followed by kinetic bodies.
       // Scroll speed stretches the lens a little; the kick punches it only while the stage is moving.
@@ -6351,6 +6530,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       }
       camera.position.set(Math.sin(az) * r, y, Math.cos(az) * r);
       var fov = 34 + clamp(lens.fov + stageFov, -3.5, 3.5);
+      fov += e5 ? e5.fovDeg || 0 : 0;                                // V6: compression tightens, lightspeed opens (bounded)
       if (Math.abs(camera.fov - fov) > 0.001) { camera.fov = fov; camera.updateProjectionMatrix(); }
       LOOK.set(cur.tx, cur.ty + lookLift, cur.tz);
       camera.up.set(0, 1, 0);
@@ -6715,6 +6895,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
     // Receiver transform: base + depth drive toward the camera; the pedestal compresses and the
     // Receiver sinks with it (pedestal top = 0.12 × its y-scale), so it reads heavy, not floaty.
+    var HALF_DEG = Math.PI / 360, TAN_17 = Math.tan(17 * Math.PI / 180);
     function applyReceiverTransform() {
       var cx = camera.position.x, cz = camera.position.z;
       var cl = Math.sqrt(cx * cx + cz * cz) || 1;
@@ -6730,7 +6911,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
           // V3 Overdrive: monumental entry (mass with a small overshoot), approach depth, micro rotation.
           var ehv = hub.eventHorizon;
           var mass = ehv ? (ehv.modelMass || 1) * (1 + (ehv.modelNear || 0)) : 1;
-          modelRef.scale.setScalar(modelTargetScale * (1 + scaleK.x) * (sp ? 1 + sp.scale : 1) * mass);
+          // V6: anchored against the FOV opening (screen size ∝ 1/tan(fov/2)), so the Receiver stays heavy and dominant.
+          var anch = ehv && ehv.receiverAnchor ? 1 + ehv.receiverAnchor * (Math.tan((34 + (ehv.fovDeg || 0)) * HALF_DEG) / TAN_17 - 1) : 1;
+          modelRef.scale.setScalar(modelTargetScale * (1 + scaleK.x) * (sp ? 1 + sp.scale : 1) * mass * anch);
           modelRef.rotation.y = (sp ? sp.rotY + midTorque : 0) + (ehv ? ehv.modelYaw || 0 : 0);
           modelRef.rotation.x = ehv ? ehv.modelPitch || 0 : 0;
         }
@@ -6772,6 +6955,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       // V5 Mass Driver: head first, shoulders later, torso last; pressure travels speakers → floor.
       var mdHead = eh ? eh.driveHead || 0 : 0, mdShoulder = eh ? eh.driveShoulder || 0 : 0, mdTorso = eh ? eh.driveTorso || 0 : 0;
       var mdWave = eh ? eh.wavefront || 0 : 0, mdFloor = eh ? eh.floorWave || 0 : 0;
+      // V6 Lightspeed: head resists the acceleration first, shoulders follow, torso catches last; speakers hold, then release.
+      var lsHead = eh ? eh.lsHead || 0 : 0, lsShoulder = eh ? eh.lsShoulder || 0 : 0, lsTorso = eh ? eh.lsTorso || 0 : 0;
+      var lsSpk = eh ? 1 - 0.25 * (eh.speakerHold || 0) + 0.15 * (eh.speakerRelease || 0) : 1;
+      var lsFloor = eh ? eh.floorVelocity || 0 : 0, lsIgn = eh ? eh.lsIgnition || 0 : 0;
       // PRECOMPRESSION: the Receiver's groove almost freezes while pressure builds.
       var freeze = 1 - 0.85 * sPre;
       liveTime += dt;
@@ -6832,6 +7019,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       // Cone excursion: the springs' kick punch plus the sustained LOW push and the director's KICK impulse.
       U.uConeL.value = coneL.x + 0.35 * ehWoofL + 0.25 * ehWoofK + 0.3 * mdWave;
       U.uConeR.value = coneR.x + 0.33 * ehWoofL + 0.25 * ehWoofK + 0.27 * mdWave;
+      U.uConeL.value *= lsSpk;
+      U.uConeR.value *= lsSpk;
       U.uCabL.value = cabL.x * 0.25;
       U.uCabR.value = cabR.x * 0.25;
       U.uDeskT.value = sinceHit;
@@ -6845,17 +7034,17 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       // shoulders answer the mids; the torso counter-rotates on IGNITION.
       var beats = s.beatIndex + s.beatPhase;
       var nodBase = (0.05 + 0.03 * od) * (0.5 + 0.5 * Math.cos(2 * Math.PI * (s.beatPhase - 0.18))) * s.energy * freeze;
-      headK.step(nodBase - 0.03 * pressure + ehPitch + 0.03 * mdHead, dt);
+      headK.step(-0.02 * lsHead + nodBase - 0.03 * pressure + ehPitch + 0.03 * mdHead, dt);
       headSlow.step(headK.x, dt);
       U.uNod.value = clamp(headK.x - 0.3 * headSlow.x, -0.06, 0.22);
       var groove = Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * s.beatPhase), 3);
-      torsoK.step((0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl + 0.0012 * ehBreath + 0.004 * mdTorso, dt);
+      torsoK.step(0.003 * lsTorso + (0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl + 0.0012 * ehBreath + 0.004 * mdTorso, dt);
       U.uBounce.value = torsoK.x;
       var swayWave = Math.sin(Math.PI * beats);
       U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze;
       twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet * (1 - ehSilence) + 0.7 * ehYaw + 0.3 * ehTorso, -0.05, 0.05), dt);
       U.uTwist.value = twistK.x;
-      shoulderK.step(0.022 * f.shoulder * f.amp * swayWave * freeze + 0.25 * ehLag + 0.012 * mdShoulder, dt);
+      shoulderK.step(0.008 * lsShoulder + 0.022 * f.shoulder * f.amp * swayWave * freeze + 0.25 * ehLag + 0.012 * mdShoulder, dt);
       U.uShoulder.value = shoulderK.x;
 
       // RECEIVER DEPTH DRIVE — low energy pushes it toward the camera; PRECOMPRESSION draws it back and
@@ -6863,7 +7052,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       if (sHit) { depthK.impulse(0.7 * ms); scaleK.impulse(0.35); }
       depthK.step((0.05 * f.depth * f.amp - 0.03 * sPre) * ms, dt);
       scaleK.step(-0.012 * sPre, dt);
-      pedK.step(0.05 * f.floor * f.amp + 0.03 * sPre + 0.03 * ehImpact + 0.04 * mdFloor, dt);
+      pedK.step(0.03 * lsFloor + 0.05 * f.floor * f.amp + 0.03 * sPre + 0.03 * ehImpact + 0.04 * mdFloor, dt);
       applyReceiverTransform();
 
       // Logo — five segments with peak hold; mids articulate the inner bars; PRECOMPRESSION concentrates
@@ -6924,7 +7113,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15 + f.edge * 0.2 + 0.3 * ehSpec + 0.35 * ehImpact;
       fillLight.intensity = 0.3 + Math.sin(autoAngle + 2) * 0.06;
       underGlow.intensity = (0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.body * 0.35 * (1 + od) + hdLevel * 0.3 + sLvl * 0.4) * ehQuiet;
-      haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1 + hdLevel * 0.2 + sLvl * 0.25;
+      haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1 + hdLevel * 0.2 + sLvl * 0.25 + 0.3 * lsIgn;
       screenGlow.color.setHSL(0.62 + Math.sin(autoAngle * 0.4) * 0.04, 0.45, 0.35);
       coneMat.opacity = (0.012 + Math.sin(autoAngle * 1.3) * 0.005 + od * 0.008 + hdLevel * 0.01) * ehQuiet;
 
@@ -7022,6 +7211,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       vf.update(vx, vy, vz, ang, s.energy, sp > 1e-4 ? Math.abs(vz) / sp : 0, echoTrig, dt);
       U.uVelView.value.set(vf.dirX, vf.dirY, vf.dirZ);
       U.uVelMag.value = vf.stretch * velDetail;
+      // V6: the reflection field streaks with the velocity front (existing anisotropic shader term; no new pass).
+      var e6 = hub.eventHorizon;
+      if (e6 && e6.reflectionVelocity) U.uVelMag.value += 0.45 * e6.reflectionVelocity * velDetail;
       U.uReflectDrive.value = vf.reflect;
 
       // REFLECTION ACCELERATION — metal answers the rate of change, not only energy: sharper and brighter
