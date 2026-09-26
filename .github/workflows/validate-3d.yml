@@ -87,6 +87,7 @@ jobs:
           grep -q 'DMF SPATIAL NARRATIVE' public/index.html
           grep -q 'DMF STAGE OVERDRIVE' public/index.html
           grep -q 'DMF BLACK SUN' public/index.html
+          grep -q 'DMF MASS DRIVER' public/index.html
           grep -q 'class="eh-field"' public/index.html
           grep -q 'pioneer-djm-900nxs2-mixer-slide.glb' public/index.html
           grep -q "classList.add('dmf-choreo')" public/index.html
@@ -123,6 +124,7 @@ jobs:
           node scripts/overdrive/test/spatial-narrative.test.cjs
           node scripts/overdrive/test/overdrive.test.cjs
           node scripts/overdrive/test/black-sun.test.cjs
+          node scripts/overdrive/test/mass-driver.test.cjs
           node scripts/overdrive/test/dev-hyperdrive.test.cjs
 
   validate-academy:
