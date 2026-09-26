@@ -40,10 +40,10 @@
   // Camera authority per tier / device. COMPACT keeps cameras almost neutral.
   var TIER_CAMERA = { high: 1, balanced: 0.75, lite: 0.5, static: 0 };
   var COMPACT_CAMERA = 0.3;
-  var COMPACT_HEAD = 0.4;
+  var COMPACT_HEAD = 0.38;          // V3: phones at 35–40%
   var AFTER_DUR = { high: 0.55, balanced: 0.42 };
   var AFTER_AMP = { high: 1, balanced: 0.6 };
-  var MOMENT_DUR = 0.45;
+  var MOMENT_DUR = 0.42;            // V3: the one hero event lasts at most 420 ms
 
   // Critically damped spring, semi-implicit, sub-stepped: returns to rest without overshoot.
   function DMFCritical(omega) { this.x = 0; this.v = 0; this.w = omega; }
