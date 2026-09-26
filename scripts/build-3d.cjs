@@ -191,6 +191,7 @@ const bodyInjection = [
   inlineModule('spatial-narrative.js'),
   inlineModule('stage-overdrive.js'),
   inlineModule('black-sun.js'),
+  inlineModule('mass-driver.js'),
   inlineModule('event-horizon.js'),
   inlineModule('relic.js'),
   inlineModule('mixer-stage.js')

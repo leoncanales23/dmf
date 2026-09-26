@@ -984,9 +984,13 @@
       var aspect = staged ? frameAspect : w / h;
       var fit = aspect < 1.1 ? 1 + (1.1 - aspect) * 0.95 : 1;
       var auto = rig.mode === 'auto';
-      var az = cur.az + latK.x + (auto ? Math.sin(autoAngle) * 0.05 * motionScale : 0);
+      // V5 MASS DRIVER: the camera accelerates with the stage — compression, push, coast, heavy recovery.
+      // Already-bounded director terms: ≤ 0.28 dolly units (~4–5% of frame depth), ≤ 0.6° roll, a few px lateral.
+      var e5 = hub.eventHorizon;
+      var az = cur.az + latK.x + (auto ? Math.sin(autoAngle) * 0.05 * motionScale : 0) + (e5 ? 0.012 * (e5.driveLateral || 0) : 0);
       var r = (cur.r - dolly) * fit;
-      var y = cur.y + (auto ? parYK.x + Math.sin(autoAngle * 0.8) * 0.08 * motionScale : 0);
+      r -= (e5 ? 0.28 * (e5.driveDolly || 0) : 0) * fit;
+      var y = cur.y + (auto ? parYK.x + Math.sin(autoAngle * 0.8) * 0.08 * motionScale : 0) + (e5 ? 0.05 * (e5.driveLift || 0) : 0);
       // CAMERA JOURNEY: the ACT's authored dolly/orbit/height/target/FOV, followed by kinetic bodies.
       // Scroll speed stretches the lens a little; the kick punches it only while the stage is moving.
       var sp = staged ? follower.pose : null;
@@ -1004,7 +1008,7 @@
       LOOK.set(cur.tx, cur.ty + lookLift, cur.tz);
       camera.up.set(0, 1, 0);
       camera.lookAt(LOOK);
-      var roll = cur.roll + lens.roll;
+      var roll = cur.roll + lens.roll + (e5 ? 0.0105 * (e5.driveRoll || 0) : 0);
       if (roll) camera.rotateZ(roll);
     }
 
@@ -1368,10 +1372,11 @@
       var cx = camera.position.x, cz = camera.position.z;
       var cl = Math.sqrt(cx * cx + cz * cz) || 1;
       var ehL = hub.eventHorizon;
-      var sink = 0.12 * pedK.x + 0.02 * (ehL ? ehL.stageLift || 0 : 0);
+      var sink = 0.12 * pedK.x + 0.02 * (ehL ? ehL.stageLift || 0 : 0) + 0.015 * (ehL ? ehL.driveSettle || 0 : 0);
       // RECEIVER CONTINUITY: each ACT gives it an orientation, a size and an advance; MID adds torque.
       var sp = staged ? follower.pose : null;
-      var adv = depthK.x + (sp ? sp.depth : 0);
+      // V5: the heavy Receiver briefly resists the drive, then catches up and settles into frame.
+      var adv = depthK.x + (sp ? sp.depth : 0) - (ehL ? 0.05 * (ehL.driveMass || 0) : 0);
       if (modelRef) {
         modelRef.position.set(modelBase.x + cx / cl * adv, modelBase.y - sink, modelBase.z + cz / cl * adv);
         if (modelCurrentScale >= modelTargetScale) {
@@ -1417,6 +1422,9 @@
       // V4 Black Sun: impact shot, settle after the push, torso inertia, silence, reveal light.
       var ehImpact = eh ? eh.impact || 0 : 0, ehTorso = eh ? eh.torsoLag || 0 : 0;
       var ehSilence = eh ? eh.silence || 0 : 0, ehReveal = eh && eh.revealLight != null ? eh.revealLight : 1;
+      // V5 Mass Driver: head first, shoulders later, torso last; pressure travels speakers → floor.
+      var mdHead = eh ? eh.driveHead || 0 : 0, mdShoulder = eh ? eh.driveShoulder || 0 : 0, mdTorso = eh ? eh.driveTorso || 0 : 0;
+      var mdWave = eh ? eh.wavefront || 0 : 0, mdFloor = eh ? eh.floorWave || 0 : 0;
       // PRECOMPRESSION: the Receiver's groove almost freezes while pressure builds.
       var freeze = 1 - 0.85 * sPre;
       liveTime += dt;
@@ -1475,8 +1483,8 @@
       cabL.step(cabPress, dt);
       cabR.step(cabPress * 0.85, dt);
       // Cone excursion: the springs' kick punch plus the sustained LOW push and the director's KICK impulse.
-      U.uConeL.value = coneL.x + 0.35 * ehWoofL + 0.25 * ehWoofK;
-      U.uConeR.value = coneR.x + 0.33 * ehWoofL + 0.25 * ehWoofK;
+      U.uConeL.value = coneL.x + 0.35 * ehWoofL + 0.25 * ehWoofK + 0.3 * mdWave;
+      U.uConeR.value = coneR.x + 0.33 * ehWoofL + 0.25 * ehWoofK + 0.27 * mdWave;
       U.uCabL.value = cabL.x * 0.25;
       U.uCabR.value = cabR.x * 0.25;
       U.uDeskT.value = sinceHit;
@@ -1490,17 +1498,17 @@
       // shoulders answer the mids; the torso counter-rotates on IGNITION.
       var beats = s.beatIndex + s.beatPhase;
       var nodBase = (0.05 + 0.03 * od) * (0.5 + 0.5 * Math.cos(2 * Math.PI * (s.beatPhase - 0.18))) * s.energy * freeze;
-      headK.step(nodBase - 0.03 * pressure + ehPitch, dt);
+      headK.step(nodBase - 0.03 * pressure + ehPitch + 0.03 * mdHead, dt);
       headSlow.step(headK.x, dt);
       U.uNod.value = clamp(headK.x - 0.3 * headSlow.x, -0.06, 0.22);
       var groove = Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * s.beatPhase), 3);
-      torsoK.step((0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl + 0.0012 * ehBreath, dt);
+      torsoK.step((0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl + 0.0012 * ehBreath + 0.004 * mdTorso, dt);
       U.uBounce.value = torsoK.x;
       var swayWave = Math.sin(Math.PI * beats);
       U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze;
       twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet * (1 - ehSilence) + 0.7 * ehYaw + 0.3 * ehTorso, -0.05, 0.05), dt);
       U.uTwist.value = twistK.x;
-      shoulderK.step(0.022 * f.shoulder * f.amp * swayWave * freeze + 0.25 * ehLag, dt);
+      shoulderK.step(0.022 * f.shoulder * f.amp * swayWave * freeze + 0.25 * ehLag + 0.012 * mdShoulder, dt);
       U.uShoulder.value = shoulderK.x;
 
       // RECEIVER DEPTH DRIVE — low energy pushes it toward the camera; PRECOMPRESSION draws it back and
@@ -1508,7 +1516,7 @@
       if (sHit) { depthK.impulse(0.7 * ms); scaleK.impulse(0.35); }
       depthK.step((0.05 * f.depth * f.amp - 0.03 * sPre) * ms, dt);
       scaleK.step(-0.012 * sPre, dt);
-      pedK.step(0.05 * f.floor * f.amp + 0.03 * sPre + 0.03 * ehImpact, dt);
+      pedK.step(0.05 * f.floor * f.amp + 0.03 * sPre + 0.03 * ehImpact + 0.04 * mdFloor, dt);
       applyReceiverTransform();
 
       // Logo — five segments with peak hold; mids articulate the inner bars; PRECOMPRESSION concentrates
