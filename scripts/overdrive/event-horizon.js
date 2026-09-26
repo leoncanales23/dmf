@@ -14,6 +14,8 @@
   var SN = typeof module === 'object' && module.exports ? require('./spatial-narrative.js') : root.DMFSpatialNarrative;
   // V3 Overdrive: the weight layer, stepped after the narrative on the same state (no clock of its own).
   var SO = typeof module === 'object' && module.exports ? require('./stage-overdrive.js') : root.DMFStageOverdrive;
+  // V4 Black Sun: the cinematic layer, stepped after the overdrive on the same state (no clock of its own).
+  var BS = typeof module === 'object' && module.exports ? require('./black-sun.js') : root.DMFBlackSun;
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
@@ -83,10 +85,15 @@
       // V3 Overdrive (written by DMFStageOverdrive.update)
       modelMass: 1, modelNear: 0, modelYaw: 0, modelPitch: 0, modelPush: 0, modelSpec: 0,
       wooferLow: 0, wooferKick: 0, woofer: 0, cabinet: 0, floorPress: 0,
-      breath: 0, bodyLag: 0, sheenK: 1, compress: 0
+      breath: 0, bodyLag: 0, sheenK: 1, compress: 0,
+      // V4 Black Sun (written by DMFBlackSun.update)
+      blackSun: 0, iris: 0, gravity: 0, sunScale: 0, halo: 0, impact: 0, stageLift: 0, reflectionShock: 0,
+      beam: 0, hold: 0, open: 0, vignette: 0, shadowDepth: 0, titlePressure: 0, chromatic: 0,
+      receiverGlow: 0, torsoLag: 0, silence: 0, reveal: 1, revealEdge: 1, revealLight: 1, revealType: 1
     };
     this.narrative = SN ? new SN.DMFSpatialNarrative() : null;
     this.overdrive = SO && this.narrative ? new SO.DMFStageOverdrive() : null;
+    this.blackSun = BS && this.overdrive ? new BS.DMFBlackSun() : null;
     this._depthV = 0;
     this._gateT = 9;
     this._sinceGate = 9;
@@ -187,6 +194,7 @@
     st.pointerY = approach(st.pointerY, clamp(inp.pointerY || 0, -1, 1), 5, dt);
     if (this.narrative) this.narrative.update(st, inp, this.ids, dt);
     if (this.overdrive) this.overdrive.update(st, inp, this.ids, dt);
+    if (this.blackSun) this.blackSun.update(st, inp, this.ids, dt);
     return st;
   };
 
@@ -201,6 +209,7 @@
     st.light = this.lights[st.index] == null ? 1 : this.lights[st.index];
     if (this.narrative) this.narrative.compose(st);
     if (this.overdrive) this.overdrive.compose(st);
+    if (this.blackSun) this.blackSun.compose(st);
     return st;
   };
 
@@ -225,7 +234,7 @@
   // Blocks that receive per-section variables while visible (never the whole document).
   var MAGNETS = '.hero-cta, .hero-cta-2, .tier-cta, .lab-gate, .tips-cta, .acad-cta, .acad-cta-free, .dmf-signal-cta, .nav-logo';
   var SECTION_VARS = ['--eh-focus', '--eh-rel', '--eh-split', '--eh-energy', '--eh-mid', '--eh-high', '--eh-speed', '--eh-vel', '--eh-lx',
-    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk'];
+    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk', '--eh-tp', '--eh-chroma', '--eh-reveal'];
   function freshCache(n) { var c = []; for (var i = 0; i < n; i++) c.push(-9); return c; }
 
   function mount() {
@@ -298,7 +307,7 @@
     // Decorative layers that live in the source markup.
     var field = doc.querySelector('.eh-field');
     var intro = doc.getElementById('concertIntro');
-    var fieldVals = freshCache(12);
+    var fieldVals = freshCache(17);
     // Intro variables go to the few elements that read them (never the intro, whose subtree holds the SVG).
     var introEls = doc.querySelectorAll('#concertIntro .eh-stack, #concertIntro .eh-floor, #concertIntro .eh-halo');
     for (var ie = 0; ie < introEls.length; ie++) introEls[ie].__ehVals = freshCache(11);
@@ -311,6 +320,9 @@
     // HERO MOMENT: once per visit.
     var HERO_KEY = 'dmf_eh_moment';
     if (eh.narrative) { try { if (root.sessionStorage.getItem(HERO_KEY) === '1') eh.narrative.heroFired = true; } catch (e) { eh.narrative.heroFired = true; } }
+    // V4 REVEAL: the Receiver's first appearance plays once per session.
+    var REVEAL_KEY = 'dmf_eh_reveal';
+    if (eh.blackSun) { try { if (root.sessionStorage.getItem(REVEAL_KEY) === '1') eh.blackSun.revealed = true; } catch (e) { eh.blackSun.revealed = true; } }
 
     // Once per crossing (never per frame): the trace carries the title of the section being left.
     function setAfterText() {
@@ -395,12 +407,22 @@
         put(el, c, 11, '--eh-dolly', st.dolly, 2000);
         put(el, c, 12, '--eh-zk', st.zk * tierK.depth, 100);
         put(el, c, 13, '--eh-sheenk', st.sheenK, 50);     // V3: reflections read more across hero → releases → sets
+        // V4: typographic pressure (LOW / KICK), the impact's warm fringe, and the Receiver's reveal.
+        put(el, c, 14, '--eh-tp', st.titlePressure, 20);
+        put(el, c, 15, '--eh-chroma', st.chromatic, 20);
+        put(el, c, 16, '--eh-reveal', st.revealType, 20);
       }
       // V3: in the offer the background holds still (only its light and calm keep settling).
       var frozen = st.calm > 0.85;
       if (field) {
         put(field, fieldVals, 1, '--eh-light', st.light * tierK.ambient, 50);
         put(field, fieldVals, 2, '--eh-calm', st.calm, 50);
+        // V4: blades, vignette and the section cut keep settling in the offer (their CSS multiplies by calm).
+        put(field, fieldVals, 12, '--eh-beam', st.beam, 100);
+        put(field, fieldVals, 13, '--eh-bx', st.lightX, 200);
+        put(field, fieldVals, 14, '--eh-vig', st.vignette, 100);
+        put(field, fieldVals, 15, '--eh-shadow', st.shadowDepth, 50);
+        put(field, fieldVals, 16, '--eh-hold', st.hold, 50);
       }
       if (field && !frozen) {
         put(field, fieldVals, 0, '--eh-energy', st.energy, 50);
@@ -428,7 +450,7 @@
           // V3 acoustic pressure: woofer excursion (≤ 4%, already bounded), cabinet settle, floor pressure.
           put(ie2, iv, 8, '--eh-woofer', st.woofer, 1000);
           put(ie2, iv, 9, '--eh-settle', st.cabinet, 50);
-          put(ie2, iv, 10, '--eh-floorp', st.floorPress, 50);
+          put(ie2, iv, 10, '--eh-floorp', Math.max(st.floorPress, 0.8 * st.impact), 50);
         }
         if (logoWrap) {
           put(logoWrap, logoVals, 0, '--eh-moment', st.heroMoment, 50);
@@ -495,6 +517,13 @@
         cabinet: +st.cabinet.toFixed(3), floorPress: +st.floorPress.toFixed(2), breath: +st.breath.toFixed(2),
         bodyLag: +st.bodyLag.toFixed(4), sheenK: +st.sheenK.toFixed(2), compress: +st.compress.toFixed(2)
       };
+      perf.blackSun = {
+        blackSun: +st.blackSun.toFixed(2), iris: +st.iris.toFixed(2), halo: +st.halo.toFixed(2), gravity: +st.gravity.toFixed(2),
+        sunScale: +st.sunScale.toFixed(4), impact: +st.impact.toFixed(2), beam: +st.beam.toFixed(2), vignette: +st.vignette.toFixed(2),
+        titlePressure: +st.titlePressure.toFixed(2), reflectionShock: +st.reflectionShock.toFixed(2), receiverGlow: +st.receiverGlow.toFixed(2),
+        stageLift: +st.stageLift.toFixed(3), torsoLag: +st.torsoLag.toFixed(4), silence: +st.silence.toFixed(2), reveal: +st.reveal.toFixed(2),
+        revealed: eh.blackSun ? eh.blackSun.revealed : true
+      };
       perf.dprCaps = { receiver: hub.renderScale || 1, mixer: perf.mixerFit ? perf.mixerFit.dpr : null, smoke: Math.min(root.devicePixelRatio || 1, 1.5) };
     }
 
@@ -530,6 +559,7 @@
       input.pointerActive = ptrClientX >= 0;
       eh.update(input, step);
       if (eh.narrative && eh.narrative.heroFiredNow) { try { root.sessionStorage.setItem(HERO_KEY, '1'); } catch (e) { /* once per page then */ } }
+      if (eh.blackSun && eh.blackSun.revealNow) { try { root.sessionStorage.setItem(REVEAL_KEY, '1'); } catch (e) { /* once per page then */ } }
       // DOM at ~30 Hz, except on a gate or a kick so the page lands on the beat.
       writeT += step;
       if (writeT >= 0.033 || st.transition > 0.01 || s.beatFired) { writeT = 0; write(false); }

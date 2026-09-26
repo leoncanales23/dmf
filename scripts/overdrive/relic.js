@@ -229,6 +229,54 @@
     haloLight.position.set(0, 2, -3);
     scene.add(haloLight);
 
+    // === V4 BLACK SUN — one quad behind the Receiver, turned to the camera. A warm-black void at rest; LOW
+    // deepens it, MID draws the inner circumference, HIGH the thin edge, KICK compresses it (director terms,
+    // already bounded). Created once; per frame only uniforms and one placement are written. ===
+    var sunU = { uSun: { value: 0 }, uIris: { value: 0 }, uHalo: { value: 0 }, uEdge: { value: 1 }, uAlpha: { value: 1 } };
+    var sunMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({
+      uniforms: sunU,
+      transparent: true,
+      depthWrite: false,
+      fog: false,
+      vertexShader: 'varying vec2 vUv;\nvoid main(){ vUv = uv * 2.0 - 1.0; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: [
+        'varying vec2 vUv;',
+        'uniform float uSun; uniform float uIris; uniform float uHalo; uniform float uEdge; uniform float uAlpha;',
+        'void main(){',
+        '  float r = length(vUv);',
+        '  if (r > 1.0) discard;',
+        '  float disc = 1.0 - smoothstep(0.86, 0.98, r);',
+        '  float core = (1.0 - smoothstep(0.0, 0.8, r)) * (0.35 + 0.65 * uSun);',
+        '  vec3 col = mix(vec3(0.034, 0.02, 0.013), vec3(0.008, 0.005, 0.004), core);',
+        '  float iris = exp(-pow((r - 0.8) / 0.035, 2.0)) * uIris * 0.32 * uEdge;',
+        '  float edge = exp(-pow((r - 0.965) / 0.012, 2.0)) * (0.05 + 0.4 * uHalo) * uEdge;',
+        '  float cor = exp(-pow((r - 0.99) / 0.05, 2.0)) * (0.03 + 0.06 * uSun) * uEdge;',
+        '  col += vec3(1.0, 0.36, 0.12) * (iris + cor) + vec3(1.0, 0.78, 0.6) * edge;',
+        '  float a = max(disc * (0.55 + 0.25 * uSun), iris + edge + cor);',
+        '  gl_FragColor = vec4(col, clamp(a, 0.0, 1.0) * uAlpha);',
+        '}'
+      ].join('\n')
+    }));
+    sunMesh.renderOrder = -1;
+    sunMesh.frustumCulled = false;
+    scene.add(sunMesh);
+    var SUN_C = new THREE.Vector3(0, 1.6, 0);
+    var sunDir = new THREE.Vector3();
+    // Behind the Receiver along the camera ray, facing the camera. Reads the director's state only.
+    function placeSun() {
+      var e4 = hub.eventHorizon;
+      sunDir.copy(camera.position).sub(SUN_C);
+      sunDir.multiplyScalar(1 / (sunDir.length() || 1));
+      sunMesh.position.copy(SUN_C).addScaledVector(sunDir, -3.4);
+      sunMesh.quaternion.copy(camera.quaternion);
+      sunMesh.scale.setScalar(7.6 * (1 + (e4 ? e4.sunScale || 0 : 0)));
+      sunU.uSun.value = e4 ? e4.blackSun || 0 : 0;
+      sunU.uIris.value = e4 ? e4.iris || 0 : 0;
+      sunU.uHalo.value = e4 ? e4.halo || 0 : 0;
+      sunU.uEdge.value = e4 && e4.revealEdge != null ? e4.revealEdge : 1;
+      sunU.uAlpha.value = quality === 'lite' ? 0.7 : 1;
+    }
+
     // === FLOOR — dark altar base ===
     var floor = new THREE.Mesh(
       new THREE.PlaneGeometry(30, 30),
@@ -519,6 +567,9 @@
     var edgeRef = null;
     var relicMatRef = null;
     var baseRoughness = 1;
+    // V4 material life: every Receiver material that safely supports it, cached once at load with its own
+    // base values (identity preserved; the frame loop never traverses the GLB).
+    var relicMats = [], relicRoughBase = [], relicEnvBase = [], relicEmisBase = [];
     var modelWorldMinY = 0, modelWorldMaxY = 3;
     var modelWorldMinX = -2, modelWorldMaxX = 2;
     var modelWorldMinZ = -2, modelWorldMaxZ = 2;
@@ -545,6 +596,7 @@
         modelWorldMaxX = size.x * s / 2;
         modelWorldMinZ = -size.z * s / 2;
         modelWorldMaxZ = size.z * s / 2;
+        SUN_C.set(0, (modelWorldMinY + modelWorldMaxY) * 0.5, 0);
 
         model.traverse(function (child) {
           if (!child.isMesh || !child.geometry) return;
@@ -695,6 +747,12 @@
           child.material = relicMat;
           relicMatRef = relicMat;
           baseRoughness = relicMat.roughness;
+          if ((relicMat.isMeshStandardMaterial || relicMat.isMeshPhysicalMaterial) && relicMat.emissive) {
+            relicMats.push(relicMat);
+            relicRoughBase.push(relicMat.roughness);
+            relicEnvBase.push(relicMat.envMapIntensity);
+            relicEmisBase.push(relicMat.emissiveIntensity);
+          }
           child.castShadow = true;
           child.receiveShadow = true;
 
@@ -1245,6 +1303,7 @@
       staticMode = true;
       if (resizePending) doResize();
       applyCamera(0);
+      placeSun();
       renderer.render(scene, camera);
     }
 
@@ -1308,7 +1367,8 @@
     function applyReceiverTransform() {
       var cx = camera.position.x, cz = camera.position.z;
       var cl = Math.sqrt(cx * cx + cz * cz) || 1;
-      var sink = 0.12 * pedK.x;
+      var ehL = hub.eventHorizon;
+      var sink = 0.12 * pedK.x + 0.02 * (ehL ? ehL.stageLift || 0 : 0);
       // RECEIVER CONTINUITY: each ACT gives it an orientation, a size and an advance; MID adds torque.
       var sp = staged ? follower.pose : null;
       var adv = depthK.x + (sp ? sp.depth : 0);
@@ -1354,6 +1414,9 @@
       var ehWoofL = eh ? eh.wooferLow || 0 : 0, ehWoofK = eh ? eh.wooferKick || 0 : 0, ehSettle = eh ? eh.cabinet || 0 : 0;
       var ehBreath = eh ? eh.breath || 0 : 0, ehLag = eh ? eh.bodyLag || 0 : 0;
       var ehPush = eh ? eh.modelPush || 0 : 0, ehSpec = eh ? eh.modelSpec || 0 : 0;
+      // V4 Black Sun: impact shot, settle after the push, torso inertia, silence, reveal light.
+      var ehImpact = eh ? eh.impact || 0 : 0, ehTorso = eh ? eh.torsoLag || 0 : 0;
+      var ehSilence = eh ? eh.silence || 0 : 0, ehReveal = eh && eh.revealLight != null ? eh.revealLight : 1;
       // PRECOMPRESSION: the Receiver's groove almost freezes while pressure builds.
       var freeze = 1 - 0.85 * sPre;
       liveTime += dt;
@@ -1435,7 +1498,7 @@
       U.uBounce.value = torsoK.x;
       var swayWave = Math.sin(Math.PI * beats);
       U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze;
-      twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet + ehYaw, -0.05, 0.05), dt);
+      twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet * (1 - ehSilence) + 0.7 * ehYaw + 0.3 * ehTorso, -0.05, 0.05), dt);
       U.uTwist.value = twistK.x;
       shoulderK.step(0.022 * f.shoulder * f.amp * swayWave * freeze + 0.25 * ehLag, dt);
       U.uShoulder.value = shoulderK.x;
@@ -1445,7 +1508,7 @@
       if (sHit) { depthK.impulse(0.7 * ms); scaleK.impulse(0.35); }
       depthK.step((0.05 * f.depth * f.amp - 0.03 * sPre) * ms, dt);
       scaleK.step(-0.012 * sPre, dt);
-      pedK.step(0.05 * f.floor * f.amp + 0.03 * sPre, dt);
+      pedK.step(0.05 * f.floor * f.amp + 0.03 * sPre + 0.03 * ehImpact, dt);
       applyReceiverTransform();
 
       // Logo — five segments with peak hold; mids articulate the inner bars; PRECOMPRESSION concentrates
@@ -1492,7 +1555,7 @@
       gridHelper.material.opacity = 0.06 + Math.sin(autoAngle) * 0.03 + pulseAt(sinceHit, 0.32, 0.12) * 0.05 * wv + 0.02 * f.floor;
 
       // Scene orbit with mass; the key light is pushed around by hits in OVERDRIVE / HYPERDRIVE.
-      orbitSpring.step(0.072 * (1 + 1.6 * s.dropEnergy) * (1 - 0.5 * hdPre) * freeze, dt);
+      orbitSpring.step(0.072 * (1 + 1.6 * s.dropEnergy) * (1 - 0.5 * hdPre) * freeze * (1 - 0.5 * ehSilence), dt);
       autoAngle += dt * clamp(orbitSpring.x, 0.02, 0.4);
       lightSpring.step(0.675 + 0.25 * Math.sin(autoAngle * 1.3), dt);
       if (hit > 0 && (od > 0.3 || hdLevel > 0 || sHit)) lightSpring.impulse((s.beatIndex % 2 ? 1 : -1) * (0.9 * od + 1.2 * hdLevel + (sHit ? 1.4 : 0)));
@@ -1501,9 +1564,9 @@
       // BODY lights; HIGH drives the light edges; each ACT sets its own key/rim emphasis.
       var stageLight = staged ? follower.pose.light : 0;
       midTorque = staged ? 0.035 * f.forceMid * f.amp * Math.sin(Math.PI * beats / 2) * freeze : 0;
-      keyLight.intensity = 2.4 * (1 + 0.35 * stageLight) * (0.7 + 0.3 * ehQuiet);
-      rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 + s.body * 0.3 * (1 + 0.6 * od) + hdLevel * 0.4 + sLvl * 0.5 + 0.3 * stageLight + 0.25 * ehFocus;
-      accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15 + f.edge * 0.2 + 0.3 * ehSpec;
+      keyLight.intensity = 2.4 * (1 + 0.35 * stageLight) * (0.7 + 0.3 * ehQuiet) * ehReveal;
+      rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 * (1 - ehSilence) + s.body * 0.3 * (1 + 0.6 * od) + hdLevel * 0.4 + sLvl * 0.5 + 0.3 * stageLight + 0.25 * ehFocus;
+      accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15 + f.edge * 0.2 + 0.3 * ehSpec + 0.35 * ehImpact;
       fillLight.intensity = 0.3 + Math.sin(autoAngle + 2) * 0.06;
       underGlow.intensity = (0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.body * 0.35 * (1 + od) + hdLevel * 0.3 + sLvl * 0.4) * ehQuiet;
       haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1 + hdLevel * 0.2 + sLvl * 0.25;
@@ -1511,7 +1574,7 @@
       coneMat.opacity = (0.012 + Math.sin(autoAngle * 1.3) * 0.005 + od * 0.008 + hdLevel * 0.01) * ehQuiet;
 
       // Embers slow down while the scene contracts, then surge; HIGH adds small detail speed.
-      var speedMul = (1 + s.energy * 1.2 + od * 0.8 + hdLevel * 1.5 + sLvl * 2 + f.detail * 0.6) * (1 - 0.6 * hdPre) * (1 - 0.8 * sPre);
+      var speedMul = (1 + s.energy * 1.2 + od * 0.8 + hdLevel * 1.5 + sLvl * 2 + f.detail * 0.6) * (1 - 0.6 * hdPre) * (1 - 0.8 * sPre) * (1 - 0.6 * ehSilence);
       var pos = pGeom.attributes.position.array;
       for (var i = 0; i < particleActive; i++) {
         pos[i * 3 + 1] += pSpeeds[i] * speedMul * dt * 60;
@@ -1556,7 +1619,7 @@
       }
       // The HYPERDRIVE pre-impact pullback lives in the dolly too, so its release is a push with mass,
       // never a one-frame jump.
-      dollyAim = (od * 0.25 - 0.45 * hdPre - 0.55 * sPre + 0.9 * sIgn + 2.2 * sBrk - 0.08 * pressure) * ms + ehDolly * 4 + ehPush * 0.12;
+      dollyAim = (od * 0.25 - 0.45 * hdPre - 0.55 * sPre + 0.9 * sIgn + 2.2 * sBrk - 0.08 * pressure) * ms + ehDolly * 4 + ehPush * 0.12 + ehImpact * 0.16;
       dollyK.step(dollyAim, dt);
       lensSpring.step((hdPre * 1.2 + sPre * 1.4) * ms, dt);
       rollSpring.step(0, dt);
@@ -1614,6 +1677,20 @@
         relicMatRef.envMapIntensity = 0.55 * (1 + 0.8 * vf.reflect) * (1 - 0.35 * sPre);
         relicMatRef.emissiveIntensity = 0.008 + 0.02 * s.body * s.energy + 0.015 * hub.overdriveMix +
           0.02 * (hub.hyper && hub.hyper.active ? hub.hyper.level : 0) + 0.03 * (sg ? sg.level : 0);
+      }
+      // V4 MATERIAL LIFE: LOW warmth + a short KICK impulse (never neon), HIGH a fine edge lift, and the
+      // reflection answering the impact late. Cached materials, each from its own base; no allocation.
+      var e4m = hub.eventHorizon;
+      if (e4m && relicMats.length) {
+        var glow4 = 0.018 * (e4m.receiverGlow || 0), rough4 = 1 - 0.08 * (e4m.halo || 0), env4 = 1 + 0.5 * (e4m.reflectionShock || 0);
+        for (var mi = 0; mi < relicMats.length; mi++) {
+          var m4 = relicMats[mi];
+          if (m4 === relicMatRef) {
+            m4.roughness *= rough4; m4.envMapIntensity *= env4; m4.emissiveIntensity += glow4;
+          } else {
+            m4.roughness = relicRoughBase[mi] * rough4; m4.envMapIntensity = relicEnvBase[mi] * env4; m4.emissiveIntensity = relicEmisBase[mi] + glow4;
+          }
+        }
       }
       var over = vf.reflect > 0.55;
       if (over && !reflectHigh && sweepCooldown <= 0) {
@@ -1926,6 +2003,7 @@
       if (sgOn !== shownSg) { shownSg = sgOn; band.classList.toggle('is-singularity', sgOn); }
       updateHud(s, performance.now());
 
+      placeSun();
       renderer.render(scene, camera);
       if (perf) {
         perf.drawCalls = renderer.info.render.calls;

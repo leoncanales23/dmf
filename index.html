@@ -594,7 +594,7 @@ ul{list-style:none}
 .eh-compact{--eh-z3:-6px;--eh-z4:4px}
 
 /* Z0 — the field: a fixed light falloff and nine sparse specks behind everything. */
-.eh-field{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden;opacity:calc(.3 + var(--eh-light,1) * .7 * (1 - var(--eh-calm,0) * .65))}
+.eh-field{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden;opacity:calc((.3 + var(--eh-light,1) * .7 * (1 - var(--eh-calm,0) * .65)) * (1 - var(--eh-hold,0) * .35))}
 .eh-field::before{content:'';position:absolute;left:-20%;top:-10%;width:90%;height:80%;background:radial-gradient(50% 50% at 50% 50%,rgba(255,91,30,.045),transparent 70%);opacity:calc(.55 + var(--eh-energy,0) * .45);transform:translate3d(calc(var(--eh-scroll,0) * 40vw - var(--eh-pan,0) * 9px),calc(var(--eh-depth,0) * 6px - var(--eh-tilt,0) * 6px),0) rotate(calc(var(--eh-roll,0) * 1deg)) scale(calc(1 - var(--eh-dolly,0) * .8))}
 .eh-field i{position:absolute;left:var(--x);top:var(--y);width:2px;height:2px;border-radius:50%;background:#ffb08a;opacity:calc(.1 + var(--eh-high,0) * .35);transform:translate3d(calc(var(--eh-pan,0) * var(--p) * -12px),calc(var(--eh-scroll,0) * var(--p) * -55vh - var(--eh-tilt,0) * 3px),0)}
 .eh-field i:nth-child(3n){width:1px;height:1px}
@@ -664,7 +664,7 @@ html.eh-woken .concert-logo-wrap,html.eh-woken .concert-tagline{animation:none}
 
 /* Z4 — typography as material: titles sit slightly forward of the copy, compress a few percent with scroll
    inertia, and split into an orange echo for an instant when their section arrives through a gate. */
-.section-title,.acad-title{transform-origin:0 50%;translate:calc(var(--eh-pan,0) * 4px * var(--eh-zk,1)) calc(var(--eh-rel,0) * var(--eh-z4) * var(--eh-zk,1) + var(--eh-vel,0) * 5px);scale:calc(1 - var(--eh-speed,0) * .025) 1;text-shadow:calc(var(--eh-split,0) * 7px) 0 0 rgba(255,91,30,calc(var(--eh-split,0) * .4)),calc(var(--eh-split,0) * -4px) 0 0 rgba(242,237,230,calc(var(--eh-split,0) * .1)),0 -1px 0 rgba(255,214,190,calc(var(--eh-high,0) * .22))}
+.section-title,.acad-title{transform-origin:0 50%;translate:calc(var(--eh-pan,0) * 4px * var(--eh-zk,1)) calc(var(--eh-rel,0) * var(--eh-z4) * var(--eh-zk,1) + var(--eh-vel,0) * 5px);scale:calc(1 - var(--eh-speed,0) * .025 - var(--eh-tp,0) * .012) calc(1 - var(--eh-tp,0) * .01);text-shadow:calc(var(--eh-split,0) * 7px) 0 0 rgba(255,91,30,calc(var(--eh-split,0) * .4)),calc(var(--eh-split,0) * -4px) 0 0 rgba(242,237,230,calc(var(--eh-split,0) * .1)),0 -1px 0 rgba(255,214,190,calc(var(--eh-high,0) * .22)),0 calc(var(--eh-tp,0) * 2px) calc(var(--eh-tp,0) * 16px) rgba(255,91,30,calc(var(--eh-tp,0) * .16)),calc(var(--eh-chroma,0) * 1.5px) 0 0 rgba(255,91,30,calc(var(--eh-chroma,0) * .28))}
 
 /* POINTER FIELD — CTAs and the logo lean ≤3 px toward a fine pointer; touch never depends on it. */
 .hero-cta,.hero-cta-2,.tier-cta,.lab-gate,.tips-cta,.acad-cta,.acad-cta-free,.dmf-signal-cta,.nav-logo{translate:calc(var(--eh-mx,0) * 1px) calc(var(--eh-my,0) * 1px)}
@@ -714,9 +714,28 @@ html.eh-calm .eh-sheen::before{opacity:.2}
 html.eh-calm .section-title,html.eh-calm .acad-title{scale:none}
 html.eh-calm .tier-card{border-color:rgba(242,237,230,.2)}
 
+/* ===================================================================================================
+   V4 BLACK SUN (scripts/overdrive/black-sun.js). The Black Sun itself is one quad in the Receiver's scene.
+   Here: two architectural light blades and a vignette in the Z0 field (behind every block, above the
+   stage), the section cut's hold, typographic pressure (above, in the title grammar) and the Receiver
+   title's once-per-session reveal. Transform/opacity only; all values arrive already bounded.
+   =================================================================================================== */
+.eh-blade{position:absolute;left:0;bottom:-12vh;width:16vw;height:125vh;pointer-events:none;background:linear-gradient(to top,rgba(255,91,30,.16),rgba(255,140,90,.05) 38%,transparent 78%);-webkit-clip-path:polygon(44% 100%,56% 100%,100% 0,0 0);clip-path:polygon(44% 100%,56% 100%,100% 0,0 0);transform-origin:50% 100%;opacity:calc((.05 + var(--eh-beam,0) * .5) * (1 - var(--eh-calm,0)));transform:translate3d(calc(var(--eh-bx,.5) * 100vw - 8vw + var(--o,0vw)),0,0) rotate(calc(var(--r) + var(--s) * var(--eh-beam,0) * 4deg)) scaleX(calc(.7 + var(--eh-beam,0) * .45))}
+.eh-blade--1{--r:-14deg;--s:-1;--o:-6vw}
+.eh-blade--2{--r:12deg;--s:1;--o:6vw}
+.eh-compact .eh-blade{width:34vw}
+.eh-compact .eh-blade--2,.eh-tier-lite .eh-blade--2{display:none}
+.eh-vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 92% at 50% 50%,transparent 52%,rgba(4,3,3,.9) 100%);opacity:calc((var(--eh-vig,0) * .55 + var(--eh-shadow,0) * .22) * (1 - var(--eh-calm,0)))}
+.eh-still .eh-blade,.eh-tier-static .eh-blade,.eh-still .eh-vig,.eh-tier-static .eh-vig{display:none}
+/* The Receiver's title resolves last in its reveal, then carries the same pressure as every title. */
+.dmf-signal-title{transform-origin:0 100%;opacity:calc(.35 + var(--eh-reveal,1) * .65);translate:0 calc((1 - var(--eh-reveal,1)) * 14px + var(--eh-tp,0) * 1.5px);scale:calc(1 - var(--eh-tp,0) * .012) calc(1 - var(--eh-tp,0) * .01);text-shadow:0 calc(var(--eh-tp,0) * 2px) calc(var(--eh-tp,0) * 16px) rgba(255,91,30,calc(var(--eh-tp,0) * .16)),calc(var(--eh-chroma,0) * 1.5px) 0 0 rgba(255,91,30,calc(var(--eh-chroma,0) * .28))}
+html.eh-calm .dmf-signal-title{scale:none}
+
 @media(prefers-reduced-motion:reduce){
   .hero-ghost,.hero-img,.hero-img img,.band img,.release-card,.set-card,.label-item,.concert-logo-wrap,.eh-stack{translate:none;scale:none}
   .eh-after{display:none}
+  .eh-blade,.eh-vig{display:none}
+  .dmf-signal-title{opacity:1;translate:none;scale:none}
 }
 </style>
 </head>
@@ -724,7 +743,7 @@ html.eh-calm .tier-card{border-color:rgba(242,237,230,.2)}
 
 <canvas id="smoke-canvas"></canvas>
 <div class="radial-overlay"></div>
-<div class="eh-field" aria-hidden="true"><i style="--x:12%;--y:22%;--p:.2"></i><i style="--x:84%;--y:14%;--p:.45"></i><i style="--x:67%;--y:61%;--p:.3"></i><i style="--x:27%;--y:78%;--p:.6"></i><i style="--x:91%;--y:83%;--p:.15"></i><i style="--x:46%;--y:9%;--p:.5"></i><i style="--x:6%;--y:52%;--p:.35"></i><i style="--x:58%;--y:36%;--p:.25"></i><i style="--x:36%;--y:47%;--p:.4"></i><span class="eh-gate"></span><span class="eh-after"></span></div>
+<div class="eh-field" aria-hidden="true"><i style="--x:12%;--y:22%;--p:.2"></i><i style="--x:84%;--y:14%;--p:.45"></i><i style="--x:67%;--y:61%;--p:.3"></i><i style="--x:27%;--y:78%;--p:.6"></i><i style="--x:91%;--y:83%;--p:.15"></i><i style="--x:46%;--y:9%;--p:.5"></i><i style="--x:6%;--y:52%;--p:.35"></i><i style="--x:58%;--y:36%;--p:.25"></i><i style="--x:36%;--y:47%;--p:.4"></i><span class="eh-blade eh-blade--1"></span><span class="eh-blade eh-blade--2"></span><span class="eh-vig"></span><span class="eh-gate"></span><span class="eh-after"></span></div>
 
 
 <!-- CONCERT INTRO -->

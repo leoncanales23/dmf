@@ -299,7 +299,7 @@ test('observability: spatialNarrative on the debug perf surface, 2 Hz, never log
 test('the Receiver and the mixer read the narrative without new loops', function () {
   assert.ok(RELIC.includes('+ ehPan * 0.0175') && RELIC.includes('+ ehTilt * 0.06'), 'Receiver camera follows the grammar');
   assert.ok(RELIC.includes('+ ehDolly * 4'), 'Receiver dolly');
-  assert.ok(RELIC.includes('nodBase - 0.03 * pressure + ehPitch') && RELIC.includes('ehQuiet + ehYaw, -0.05, 0.05)'), 'figure orientation, clamped by the existing limits');
+  assert.ok(RELIC.includes('nodBase - 0.03 * pressure + ehPitch') && RELIC.includes('+ 0.7 * ehYaw + 0.3 * ehTorso, -0.05, 0.05)'), 'figure orientation, clamped by the existing limits');
   assert.ok(RELIC.includes('(1 + 0.6 * ehDepth + 0.4 * ehPress)'), 'cabinets carry acoustic pressure');
   assert.ok(MIXER.includes('var elev = VIEW_ELEVATION - 0.05 * stage.low;'), 'mixer camera ≤ ~3° lower in its section');
   assert.equal(count(RELIC + MIXER, 'requestAnimationFrame'), 0);

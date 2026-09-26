@@ -190,6 +190,7 @@ const bodyInjection = [
   inlineModule('signal-bus.js'),
   inlineModule('spatial-narrative.js'),
   inlineModule('stage-overdrive.js'),
+  inlineModule('black-sun.js'),
   inlineModule('event-horizon.js'),
   inlineModule('relic.js'),
   inlineModule('mixer-stage.js')
