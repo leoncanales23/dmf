@@ -584,7 +584,7 @@
       if (eh.blackSun && eh.blackSun.revealNow) { try { root.sessionStorage.setItem(REVEAL_KEY, '1'); } catch (e) { /* once per page then */ } }
       // DOM at ~30 Hz, except on a gate or a kick so the page lands on the beat.
       writeT += step;
-      if (writeT >= 0.033 || st.transition > 0.01 || s.beatFired || (eh.massDriver && eh.massDriver.firedNow)) { writeT = 0; write(false); }
+      if (writeT >= 0.033 || st.transition > 0.01 || s.beatFired) { writeT = 0; write(false); }
       perfT += step;
       if (perf && perfT > 0.5) { perfT = 0; report(); }
     }

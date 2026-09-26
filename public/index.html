@@ -664,7 +664,7 @@ html.eh-woken .concert-logo-wrap,html.eh-woken .concert-tagline{animation:none}
 
 /* Z4 — typography as material: titles sit slightly forward of the copy, compress a few percent with scroll
    inertia, and split into an orange echo for an instant when their section arrives through a gate. */
-.section-title,.acad-title{transform-origin:0 50%;translate:calc(var(--eh-pan,0) * 4px * var(--eh-zk,1)) calc(var(--eh-rel,0) * var(--eh-z4) * var(--eh-zk,1) + var(--eh-vel,0) * 5px);scale:calc(1 - var(--eh-speed,0) * .025 - var(--eh-tp,0) * .012) calc(1 - var(--eh-tp,0) * .01);text-shadow:calc(var(--eh-split,0) * 7px) 0 0 rgba(255,91,30,calc(var(--eh-split,0) * .4)),calc(var(--eh-split,0) * -4px) 0 0 rgba(242,237,230,calc(var(--eh-split,0) * .1)),0 -1px 0 rgba(255,214,190,calc(var(--eh-high,0) * .22)),0 calc(var(--eh-tp,0) * 2px) calc(var(--eh-tp,0) * 16px) rgba(255,91,30,calc(var(--eh-tp,0) * .16)),calc(var(--eh-chroma,0) * 1.5px) 0 0 rgba(255,91,30,calc(var(--eh-chroma,0) * .28))}
+.section-title,.acad-title{transform-origin:0 50%;translate:calc(var(--eh-pan,0) * 4px * var(--eh-zk,1)) calc(var(--eh-rel,0) * var(--eh-z4) * var(--eh-zk,1) + var(--eh-vel,0) * 5px - var(--eh-tv,0) * 2px + var(--eh-ts,0) * 1px);scale:calc(1 - var(--eh-speed,0) * .025 - var(--eh-tp,0) * .012 - var(--eh-tv,0) * .006) calc(1 - var(--eh-tp,0) * .01 + var(--eh-tv,0) * .01);text-shadow:calc(var(--eh-split,0) * 7px) 0 0 rgba(255,91,30,calc(var(--eh-split,0) * .4)),calc(var(--eh-split,0) * -4px) 0 0 rgba(242,237,230,calc(var(--eh-split,0) * .1)),0 -1px 0 rgba(255,214,190,calc(var(--eh-high,0) * .22)),0 calc(var(--eh-tp,0) * 2px) calc(var(--eh-tp,0) * 16px) rgba(255,91,30,calc(var(--eh-tp,0) * .16)),calc(var(--eh-chroma,0) * 1.5px) 0 0 rgba(255,91,30,calc(var(--eh-chroma,0) * .28))}
 
 /* POINTER FIELD — CTAs and the logo lean ≤3 px toward a fine pointer; touch never depends on it. */
 .hero-cta,.hero-cta-2,.tier-cta,.lab-gate,.tips-cta,.acad-cta,.acad-cta-free,.dmf-signal-cta,.nav-logo{translate:calc(var(--eh-mx,0) * 1px) calc(var(--eh-my,0) * 1px)}
@@ -720,7 +720,7 @@ html.eh-calm .tier-card{border-color:rgba(242,237,230,.2)}
    stage), the section cut's hold, typographic pressure (above, in the title grammar) and the Receiver
    title's once-per-session reveal. Transform/opacity only; all values arrive already bounded.
    =================================================================================================== */
-.eh-blade{position:absolute;left:0;bottom:-12vh;width:16vw;height:125vh;pointer-events:none;background:linear-gradient(to top,rgba(255,91,30,.16),rgba(255,140,90,.05) 38%,transparent 78%);-webkit-clip-path:polygon(44% 100%,56% 100%,100% 0,0 0);clip-path:polygon(44% 100%,56% 100%,100% 0,0 0);transform-origin:50% 100%;opacity:calc((.05 + var(--eh-beam,0) * .5) * (1 - var(--eh-calm,0)));transform:translate3d(calc(var(--eh-bx,.5) * 100vw - 8vw + var(--o,0vw)),0,0) rotate(calc(var(--r) + var(--s) * var(--eh-beam,0) * 4deg)) scaleX(calc(.7 + var(--eh-beam,0) * .45))}
+.eh-blade{position:absolute;left:0;bottom:-12vh;width:16vw;height:125vh;pointer-events:none;background:linear-gradient(to top,rgba(255,91,30,.16),rgba(255,140,90,.05) 38%,transparent 78%);-webkit-clip-path:polygon(44% 100%,56% 100%,100% 0,0 0);clip-path:polygon(44% 100%,56% 100%,100% 0,0 0);transform-origin:50% 100%;opacity:calc((.05 + var(--eh-beam,0) * .5 + var(--eh-lv,0) * .12) * (1 - var(--eh-calm,0)));transform:translate3d(calc(var(--eh-bx,.5) * 100vw - 8vw + var(--o,0vw)),0,0) rotate(calc(var(--r) * (1 - var(--eh-lv,0) * .4) + var(--s) * var(--eh-beam,0) * 4deg)) scaleX(calc((.7 + var(--eh-beam,0) * .45) * (1 - var(--eh-lv,0) * .35 - var(--eh-lc,0) * .2)))}
 .eh-blade--1{--r:-14deg;--s:-1;--o:-6vw}
 .eh-blade--2{--r:12deg;--s:1;--o:6vw}
 .eh-compact .eh-blade{width:34vw}
@@ -728,7 +728,7 @@ html.eh-calm .tier-card{border-color:rgba(242,237,230,.2)}
 .eh-vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 92% at 50% 50%,transparent 52%,rgba(4,3,3,.9) 100%);opacity:calc((var(--eh-vig,0) * .55 + var(--eh-shadow,0) * .22) * (1 - var(--eh-calm,0)))}
 .eh-still .eh-blade,.eh-tier-static .eh-blade,.eh-still .eh-vig,.eh-tier-static .eh-vig{display:none}
 /* The Receiver's title resolves last in its reveal, then carries the same pressure as every title. */
-.dmf-signal-title{transform-origin:0 100%;opacity:calc(.35 + var(--eh-reveal,1) * .65);translate:0 calc((1 - var(--eh-reveal,1)) * 14px + var(--eh-tp,0) * 1.5px);scale:calc(1 - var(--eh-tp,0) * .012) calc(1 - var(--eh-tp,0) * .01);text-shadow:0 calc(var(--eh-tp,0) * 2px) calc(var(--eh-tp,0) * 16px) rgba(255,91,30,calc(var(--eh-tp,0) * .16)),calc(var(--eh-chroma,0) * 1.5px) 0 0 rgba(255,91,30,calc(var(--eh-chroma,0) * .28))}
+.dmf-signal-title{transform-origin:0 100%;opacity:calc(.35 + var(--eh-reveal,1) * .65);translate:0 calc((1 - var(--eh-reveal,1)) * 14px + var(--eh-tp,0) * 1.5px - var(--eh-tv,0) * 2px + var(--eh-ts,0) * 1px);scale:calc(1 - var(--eh-tp,0) * .012 - var(--eh-tv,0) * .006) calc(1 - var(--eh-tp,0) * .01 + var(--eh-tv,0) * .01);text-shadow:0 calc(var(--eh-tp,0) * 2px) calc(var(--eh-tp,0) * 16px) rgba(255,91,30,calc(var(--eh-tp,0) * .16)),calc(var(--eh-chroma,0) * 1.5px) 0 0 rgba(255,91,30,calc(var(--eh-chroma,0) * .28))}
 html.eh-calm .dmf-signal-title{scale:none}
 
 @media(prefers-reduced-motion:reduce){
@@ -4557,6 +4557,182 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
 </script>
 <script>
+/* DMF MASS DRIVER — pure acceleration layer for the Event Horizon director (V5). ES5, no DOM, no clock, no timers.
+ * The director steps it after the V4 Black Sun with the same state object. It stores the music as charge,
+ * anticipates a meaningful kick with a short precompression, and — once charged — fires one drive shot:
+ * PRECOMPRESSION → RELEASE → COAST → RECOVERY. Every system answers that same physical event, each a little
+ * later than the one before (the signature): pressure at 0 ms, Receiver/camera release ~40 ms, head before
+ * shoulders before torso, speakers ~60 ms and floor ~100 ms, Black Sun edge and light ~100 ms, reflections
+ * ~150 ms, then coast and a heavy recovery to ~740 ms. A neighbouring-section cut taken at speed can launch
+ * it too. Silence drains everything; the offer never fires. Every term is hard-clamped here.
+ * Inlined into public/index.html by scripts/build-3d.cjs after black-sun.js; required by tests. */
+(function (root) {
+  'use strict';
+
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+  function smooth01(t) { t = clamp01(t); return t * t * (3 - 2 * t); }
+  function envelope(cur, target, attack, release, dt) {
+    return cur + (target - cur) * (1 - Math.exp(-(target > cur ? attack : release) * dt));
+  }
+  // One response to the shot: silent until `delay`, a smooth attack, a coast, then a smooth, heavy return
+  // that lands at 0 by `end` (no overshoot, no bounce, never negative).
+  function pulse(t, delay, attack, end) {
+    if (t < delay || t >= end) return 0;
+    var u = t - delay;
+    if (u < attack) return smooth01(u / attack);
+    return 1 - smooth01((u - attack) / (end - delay - attack));
+  }
+
+  var LIMITS = {
+    shotEnd: 0.74,         // PRECOMPRESSION → RELEASE → COAST → RECOVERY, ~740 ms
+    gap: 1.2,              // hard rate limit between shots
+    fireKick: 0.6,         // only meaningful kicks
+    fireCharge: 0.6,       // only once enough potential is stored (strong, sustained music)
+    anticipate: 0.15,      // precompression window before a predicted beat
+    launchDelay: 0.2,      // a section launch releases after the V4 cut's dark hold
+    launchSpeed: 0.25,     // and only when the scroll carries real velocity
+    sunContract: 0.012,    // added contraction; the V4 ±3% clamp still wins
+    wooferAdd: 0.012       // wavefront pressure; the V3 4% cone budget still wins
+  };
+  // The shot's timeline (seconds from the release reference): [delay, attack, end].
+  var T = {
+    pre: [0, 0.03, 0.12],
+    release: [0.04, 0.07, 0.68],
+    head: [0.03, 0.05, 0.35],
+    shoulder: [0.07, 0.07, 0.45],
+    torso: [0.12, 0.1, 0.6],
+    mass: [0.04, 0.05, 0.32],
+    settle: [0.28, 0.12, 0.72],
+    wave: [0.06, 0.03, 0.22],
+    floor: [0.1, 0.05, 0.4],
+    edge: [0.1, 0.06, 0.5],
+    refl: [0.15, 0.07, 0.55],
+    type: [0.08, 0.06, 0.45],
+    typeSettle: [0.3, 0.12, 0.72],
+    lift: [0.06, 0.12, 0.62],
+    roll: [0.05, 0.1, 0.6]
+  };
+  function at(t, k) { return pulse(t, k[0], k[1], k[2]); }
+  var ENERGETIC = { hero: 1, relic: 1, band: 1, releases: 1, sets: 1 };
+
+  function DMFMassDriver() {
+    this.charge = 0;
+    this.antic = 0;
+    this.driveT = 9;          // time since the shot's release reference (≥ shotEnd: idle)
+    this.amp = 0;
+    this.sign = 1;
+    this.sinceDrive = 9;
+    this.prevHold = 0;
+    this.shots = 0;
+    this.firedNow = false;
+  }
+
+  // st: the Event Horizon state (read and written in place), after DMFBlackSun.update.
+  DMFMassDriver.prototype.update = function (st, inp, ids, dt) {
+    var s = inp.s || st;
+    var tier = st.performanceTier;
+    var still = tier === 'static';
+    var lite = tier === 'lite';
+    var balanced = tier === 'balanced';
+    var compact = !!st.compact;
+    var calm = st.calm;
+    var sanct = clamp01((calm - 0.6) / 0.25);
+    var silence = st.silence || 0;
+    var energetic = ENERGETIC[ids[st.index]] ? 1 : 0;
+
+    // Authority per tier. Phones reduce camera acceleration hardest; BALANCED keeps the physical camera
+    // and model response, trims light and type; LITE ~45%; STATIC none.
+    var camK = still ? 0 : (compact ? 0.35 : 1) * (lite ? 0.45 : 1);
+    var bodyK = still ? 0 : (compact ? 0.42 : 1) * (lite ? 0.45 : 1);
+    var detailK = still ? 0 : (compact ? 0.42 : 1) * (lite ? 0.45 : (balanced ? 0.6 : 1));
+    var sunK = (compact ? 0.45 : 1) * (lite ? 0.6 : 1);
+    var live = st.wake * (1 - silence) * (1 - sanct) * (still ? 0 : 1);
+
+    // --- CHARGE: sustained LOW + ENERGY store potential slowly; silence and the offer drain it ---
+    var feed = clamp01(0.6 * st.low + 0.4 * st.energy) * live;
+    this.charge = envelope(this.charge, feed, 0.5, 0.8 + 2.5 * silence, dt);
+    st.charge = clamp01(this.charge);
+
+    this.sinceDrive += dt;
+    var ready = energetic && calm < 0.3 && !still && silence < 0.3 && st.wake > 0.95 && st.running;
+
+    // --- PRECOMPRESSION (anticipation): in the last 150 ms before a predicted beat, once charged ---
+    var ttb = s.timeToBeat;
+    var armed = ready && st.charge >= LIMITS.fireCharge && this.sinceDrive >= LIMITS.gap - LIMITS.anticipate && (s.energy || 0) >= 0.5;
+    var aT = armed && ttb > 0 && ttb <= LIMITS.anticipate ? 1 - ttb / LIMITS.anticipate : 0;
+    this.antic = envelope(this.antic, aT, 25, 14, dt);
+
+    // --- FIRE: a meaningful kick after enough charge, rate-limited; the shot spends the charge ---
+    this.firedNow = false;
+    if (s.beatFired && (s.kick || 0) >= LIMITS.fireKick && ready && st.charge >= LIMITS.fireCharge && this.sinceDrive >= LIMITS.gap) {
+      this.driveT = 0; this.sinceDrive = 0; this.sign = -this.sign; this.shots++; this.firedNow = true;
+      this.amp = clamp01(0.55 + 0.45 * st.charge);
+      this.charge *= 0.3;                                   // the shot spends most of the stored potential
+      st.charge = this.charge;
+    }
+    // --- SECTION LAUNCH: the V4 cut, taken at speed between neighbouring major sections ---
+    var hold = st.hold || 0;
+    if (hold > 0.001 && this.prevHold <= 0.001 && Math.abs(st.velocity) >= LIMITS.launchSpeed && this.sinceDrive >= LIMITS.gap &&
+        calm < 0.3 && !still && silence < 0.5 && st.wake > 0.95 && st.running) {
+      this.driveT = -LIMITS.launchDelay; this.sinceDrive = 0; this.shots++; this.firedNow = true;
+      this.sign = st.velocity >= 0 ? 1 : -1;
+      this.amp = 0.7;
+    }
+    this.prevHold = hold;
+
+    var t = -1;
+    if (this.driveT < LIMITS.shotEnd) { this.driveT += dt; t = this.driveT; }
+    var a = t >= 0 && t < LIMITS.shotEnd ? this.amp * (1 - silence) * (1 - sanct) : 0;
+
+    // --- THE SHOT: every system answers the same event, each a little later ---
+    var pre = a * at(t, T.pre);
+    st.precompress = clamp01(Math.max(this.antic * 0.8 * live, pre));
+    st.drive = clamp01(a * at(t, T.release));
+    st.driveDolly = clamp(camK * (st.drive - 0.35 * st.precompress), -0.35, 1);
+    st.driveLift = clamp01(camK * a * at(t, T.lift));
+    st.driveRoll = clamp(camK * a * at(t, T.roll) * this.sign, -1, 1);
+    st.driveLateral = clamp(camK * a * at(t, T.roll) * this.sign * 0.8, -1, 1);
+    st.driveMass = clamp01(bodyK * a * at(t, T.mass));
+    st.driveSettle = clamp01(bodyK * a * at(t, T.settle));
+    st.driveHead = clamp01(bodyK * a * at(t, T.head));
+    st.driveShoulder = clamp(bodyK * a * at(t, T.shoulder) * this.sign, -1, 1);
+    st.driveTorso = clamp01(bodyK * a * at(t, T.torso));
+    st.wavefront = clamp01(bodyK * a * at(t, T.wave));
+    st.floorWave = clamp01(bodyK * a * at(t, T.floor));
+    var edge = a * at(t, T.edge);
+    var refl = a * at(t, T.refl);
+    st.lightVelocity = clamp01(detailK * Math.max(edge, 0.6 * st.speed / 0.8 * live));
+    st.lightCompression = clamp01(detailK * st.precompress);
+    st.typeVelocity = clamp01(detailK * a * at(t, T.type));
+    st.typeSettle = clamp01(detailK * a * at(t, T.typeSettle));
+
+    // --- V4 / V3 terms answer inside their own bounds (never rewritten, only modulated) ---
+    st.gravity = clamp01(Math.max(st.gravity || 0, 0.8 * st.precompress * sunK));
+    st.sunScale = clamp((st.sunScale || 0) - LIMITS.sunContract * st.precompress * sunK, -0.03, 0.03);
+    st.halo = clamp01(Math.max(st.halo || 0, 0.6 * edge * sunK));
+    st.reflectionShock = clamp01(Math.max(st.reflectionShock || 0, 0.7 * refl * detailK));
+    st.titlePressure = clamp01(Math.max(st.titlePressure || 0, 0.5 * st.precompress * detailK));
+    st.woofer = Math.min(0.04, (st.woofer || 0) + LIMITS.wooferAdd * st.wavefront);
+    st.floorPress = clamp01(Math.max(st.floorPress || 0, st.floorWave));
+    return st;
+  };
+
+  // Composed and motionless: nothing charged, nothing driving.
+  DMFMassDriver.prototype.compose = function (st) {
+    st.charge = 0; st.precompress = 0; st.drive = 0; st.driveDolly = 0; st.driveLift = 0; st.driveRoll = 0;
+    st.driveLateral = 0; st.driveMass = 0; st.driveSettle = 0; st.driveHead = 0; st.driveShoulder = 0; st.driveTorso = 0;
+    st.wavefront = 0; st.floorWave = 0; st.lightVelocity = 0; st.lightCompression = 0; st.typeVelocity = 0; st.typeSettle = 0;
+    return st;
+  };
+
+  var api = { LIMITS: LIMITS, TIMELINE: T, ENERGETIC: ENERGETIC, pulse: pulse, DMFMassDriver: DMFMassDriver };
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.DMFMassDriver = api;
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
 /* DMF EVENT HORIZON — one director for the landing's audiovisual world.
  * It owns no loop, no audio graph and no renderer. It listens to the DMF Signal Bus clock (hub.onFrame),
  * folds scroll, section, audio, pointer, visibility and the governor tier into one stage state
@@ -4575,6 +4751,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   var SO = typeof module === 'object' && module.exports ? require('./stage-overdrive.js') : root.DMFStageOverdrive;
   // V4 Black Sun: the cinematic layer, stepped after the overdrive on the same state (no clock of its own).
   var BS = typeof module === 'object' && module.exports ? require('./black-sun.js') : root.DMFBlackSun;
+  // V5 Mass Driver: acceleration, stepped after the Black Sun on the same state (no clock of its own).
+  var MD = typeof module === 'object' && module.exports ? require('./mass-driver.js') : root.DMFMassDriver;
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
@@ -4648,11 +4826,16 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       // V4 Black Sun (written by DMFBlackSun.update)
       blackSun: 0, iris: 0, gravity: 0, sunScale: 0, halo: 0, impact: 0, stageLift: 0, reflectionShock: 0,
       beam: 0, hold: 0, open: 0, vignette: 0, shadowDepth: 0, titlePressure: 0, chromatic: 0,
-      receiverGlow: 0, torsoLag: 0, silence: 0, reveal: 1, revealEdge: 1, revealLight: 1, revealType: 1
+      receiverGlow: 0, torsoLag: 0, silence: 0, reveal: 1, revealEdge: 1, revealLight: 1, revealType: 1,
+      // V5 Mass Driver (written by DMFMassDriver.update)
+      charge: 0, precompress: 0, drive: 0, driveDolly: 0, driveLift: 0, driveRoll: 0, driveLateral: 0,
+      driveMass: 0, driveSettle: 0, driveHead: 0, driveShoulder: 0, driveTorso: 0, wavefront: 0, floorWave: 0,
+      lightVelocity: 0, lightCompression: 0, typeVelocity: 0, typeSettle: 0
     };
     this.narrative = SN ? new SN.DMFSpatialNarrative() : null;
     this.overdrive = SO && this.narrative ? new SO.DMFStageOverdrive() : null;
     this.blackSun = BS && this.overdrive ? new BS.DMFBlackSun() : null;
+    this.massDriver = MD && this.blackSun ? new MD.DMFMassDriver() : null;
     this._depthV = 0;
     this._gateT = 9;
     this._sinceGate = 9;
@@ -4754,6 +4937,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     if (this.narrative) this.narrative.update(st, inp, this.ids, dt);
     if (this.overdrive) this.overdrive.update(st, inp, this.ids, dt);
     if (this.blackSun) this.blackSun.update(st, inp, this.ids, dt);
+    if (this.massDriver) this.massDriver.update(st, inp, this.ids, dt);
     return st;
   };
 
@@ -4769,6 +4953,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     if (this.narrative) this.narrative.compose(st);
     if (this.overdrive) this.overdrive.compose(st);
     if (this.blackSun) this.blackSun.compose(st);
+    if (this.massDriver) this.massDriver.compose(st);
     return st;
   };
 
@@ -4793,7 +4978,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   // Blocks that receive per-section variables while visible (never the whole document).
   var MAGNETS = '.hero-cta, .hero-cta-2, .tier-cta, .lab-gate, .tips-cta, .acad-cta, .acad-cta-free, .dmf-signal-cta, .nav-logo';
   var SECTION_VARS = ['--eh-focus', '--eh-rel', '--eh-split', '--eh-energy', '--eh-mid', '--eh-high', '--eh-speed', '--eh-vel', '--eh-lx',
-    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk', '--eh-tp', '--eh-chroma', '--eh-reveal'];
+    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk', '--eh-tp', '--eh-chroma', '--eh-reveal', '--eh-tv', '--eh-ts'];
   function freshCache(n) { var c = []; for (var i = 0; i < n; i++) c.push(-9); return c; }
 
   function mount() {
@@ -4866,7 +5051,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     // Decorative layers that live in the source markup.
     var field = doc.querySelector('.eh-field');
     var intro = doc.getElementById('concertIntro');
-    var fieldVals = freshCache(17);
+    var fieldVals = freshCache(19);
     // Intro variables go to the few elements that read them (never the intro, whose subtree holds the SVG).
     var introEls = doc.querySelectorAll('#concertIntro .eh-stack, #concertIntro .eh-floor, #concertIntro .eh-halo');
     for (var ie = 0; ie < introEls.length; ie++) introEls[ie].__ehVals = freshCache(11);
@@ -4970,6 +5155,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         put(el, c, 14, '--eh-tp', st.titlePressure, 20);
         put(el, c, 15, '--eh-chroma', st.chromatic, 20);
         put(el, c, 16, '--eh-reveal', st.revealType, 20);
+        // V5: titles feel the acceleration (stretch along it), then settle.
+        put(el, c, 17, '--eh-tv', st.typeVelocity, 20);
+        put(el, c, 18, '--eh-ts', st.typeSettle, 20);
       }
       // V3: in the offer the background holds still (only its light and calm keep settling).
       var frozen = st.calm > 0.85;
@@ -4982,6 +5170,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         put(field, fieldVals, 14, '--eh-vig', st.vignette, 100);
         put(field, fieldVals, 15, '--eh-shadow', st.shadowDepth, 50);
         put(field, fieldVals, 16, '--eh-hold', st.hold, 50);
+        // V5: the blades acquire velocity (narrower, more directional) and narrow under precompression.
+        put(field, fieldVals, 17, '--eh-lv', st.lightVelocity, 50);
+        put(field, fieldVals, 18, '--eh-lc', st.lightCompression, 50);
       }
       if (field && !frozen) {
         put(field, fieldVals, 0, '--eh-energy', st.energy, 50);
@@ -5082,6 +5273,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         titlePressure: +st.titlePressure.toFixed(2), reflectionShock: +st.reflectionShock.toFixed(2), receiverGlow: +st.receiverGlow.toFixed(2),
         stageLift: +st.stageLift.toFixed(3), torsoLag: +st.torsoLag.toFixed(4), silence: +st.silence.toFixed(2), reveal: +st.reveal.toFixed(2),
         revealed: eh.blackSun ? eh.blackSun.revealed : true
+      };
+      perf.massDriver = {
+        charge: +st.charge.toFixed(2), precompress: +st.precompress.toFixed(2), drive: +st.drive.toFixed(2),
+        driveDolly: +st.driveDolly.toFixed(3), driveLift: +st.driveLift.toFixed(3), driveRoll: +st.driveRoll.toFixed(3),
+        driveLateral: +st.driveLateral.toFixed(3), driveMass: +st.driveMass.toFixed(2), driveSettle: +st.driveSettle.toFixed(2),
+        wavefront: +st.wavefront.toFixed(2), floorWave: +st.floorWave.toFixed(2), lightVelocity: +st.lightVelocity.toFixed(2),
+        typeVelocity: +st.typeVelocity.toFixed(2), shots: eh.massDriver ? eh.massDriver.shots : 0
       };
       perf.dprCaps = { receiver: hub.renderScale || 1, mixer: perf.mixerFit ? perf.mixerFit.dpr : null, smoke: Math.min(root.devicePixelRatio || 1, 1.5) };
     }
@@ -6133,9 +6331,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var aspect = staged ? frameAspect : w / h;
       var fit = aspect < 1.1 ? 1 + (1.1 - aspect) * 0.95 : 1;
       var auto = rig.mode === 'auto';
-      var az = cur.az + latK.x + (auto ? Math.sin(autoAngle) * 0.05 * motionScale : 0);
+      // V5 MASS DRIVER: the camera accelerates with the stage — compression, push, coast, heavy recovery.
+      // Already-bounded director terms: ≤ 0.28 dolly units (~4–5% of frame depth), ≤ 0.6° roll, a few px lateral.
+      var e5 = hub.eventHorizon;
+      var az = cur.az + latK.x + (auto ? Math.sin(autoAngle) * 0.05 * motionScale : 0) + (e5 ? 0.012 * (e5.driveLateral || 0) : 0);
       var r = (cur.r - dolly) * fit;
-      var y = cur.y + (auto ? parYK.x + Math.sin(autoAngle * 0.8) * 0.08 * motionScale : 0);
+      r -= (e5 ? 0.28 * (e5.driveDolly || 0) : 0) * fit;
+      var y = cur.y + (auto ? parYK.x + Math.sin(autoAngle * 0.8) * 0.08 * motionScale : 0) + (e5 ? 0.05 * (e5.driveLift || 0) : 0);
       // CAMERA JOURNEY: the ACT's authored dolly/orbit/height/target/FOV, followed by kinetic bodies.
       // Scroll speed stretches the lens a little; the kick punches it only while the stage is moving.
       var sp = staged ? follower.pose : null;
@@ -6153,7 +6355,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       LOOK.set(cur.tx, cur.ty + lookLift, cur.tz);
       camera.up.set(0, 1, 0);
       camera.lookAt(LOOK);
-      var roll = cur.roll + lens.roll;
+      var roll = cur.roll + lens.roll + (e5 ? 0.0105 * (e5.driveRoll || 0) : 0);
       if (roll) camera.rotateZ(roll);
     }
 
@@ -6517,10 +6719,11 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var cx = camera.position.x, cz = camera.position.z;
       var cl = Math.sqrt(cx * cx + cz * cz) || 1;
       var ehL = hub.eventHorizon;
-      var sink = 0.12 * pedK.x + 0.02 * (ehL ? ehL.stageLift || 0 : 0);
+      var sink = 0.12 * pedK.x + 0.02 * (ehL ? ehL.stageLift || 0 : 0) + 0.015 * (ehL ? ehL.driveSettle || 0 : 0);
       // RECEIVER CONTINUITY: each ACT gives it an orientation, a size and an advance; MID adds torque.
       var sp = staged ? follower.pose : null;
-      var adv = depthK.x + (sp ? sp.depth : 0);
+      // V5: the heavy Receiver briefly resists the drive, then catches up and settles into frame.
+      var adv = depthK.x + (sp ? sp.depth : 0) - (ehL ? 0.05 * (ehL.driveMass || 0) : 0);
       if (modelRef) {
         modelRef.position.set(modelBase.x + cx / cl * adv, modelBase.y - sink, modelBase.z + cz / cl * adv);
         if (modelCurrentScale >= modelTargetScale) {
@@ -6566,6 +6769,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       // V4 Black Sun: impact shot, settle after the push, torso inertia, silence, reveal light.
       var ehImpact = eh ? eh.impact || 0 : 0, ehTorso = eh ? eh.torsoLag || 0 : 0;
       var ehSilence = eh ? eh.silence || 0 : 0, ehReveal = eh && eh.revealLight != null ? eh.revealLight : 1;
+      // V5 Mass Driver: head first, shoulders later, torso last; pressure travels speakers → floor.
+      var mdHead = eh ? eh.driveHead || 0 : 0, mdShoulder = eh ? eh.driveShoulder || 0 : 0, mdTorso = eh ? eh.driveTorso || 0 : 0;
+      var mdWave = eh ? eh.wavefront || 0 : 0, mdFloor = eh ? eh.floorWave || 0 : 0;
       // PRECOMPRESSION: the Receiver's groove almost freezes while pressure builds.
       var freeze = 1 - 0.85 * sPre;
       liveTime += dt;
@@ -6624,8 +6830,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       cabL.step(cabPress, dt);
       cabR.step(cabPress * 0.85, dt);
       // Cone excursion: the springs' kick punch plus the sustained LOW push and the director's KICK impulse.
-      U.uConeL.value = coneL.x + 0.35 * ehWoofL + 0.25 * ehWoofK;
-      U.uConeR.value = coneR.x + 0.33 * ehWoofL + 0.25 * ehWoofK;
+      U.uConeL.value = coneL.x + 0.35 * ehWoofL + 0.25 * ehWoofK + 0.3 * mdWave;
+      U.uConeR.value = coneR.x + 0.33 * ehWoofL + 0.25 * ehWoofK + 0.27 * mdWave;
       U.uCabL.value = cabL.x * 0.25;
       U.uCabR.value = cabR.x * 0.25;
       U.uDeskT.value = sinceHit;
@@ -6639,17 +6845,17 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       // shoulders answer the mids; the torso counter-rotates on IGNITION.
       var beats = s.beatIndex + s.beatPhase;
       var nodBase = (0.05 + 0.03 * od) * (0.5 + 0.5 * Math.cos(2 * Math.PI * (s.beatPhase - 0.18))) * s.energy * freeze;
-      headK.step(nodBase - 0.03 * pressure + ehPitch, dt);
+      headK.step(nodBase - 0.03 * pressure + ehPitch + 0.03 * mdHead, dt);
       headSlow.step(headK.x, dt);
       U.uNod.value = clamp(headK.x - 0.3 * headSlow.x, -0.06, 0.22);
       var groove = Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * s.beatPhase), 3);
-      torsoK.step((0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl + 0.0012 * ehBreath, dt);
+      torsoK.step((0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl + 0.0012 * ehBreath + 0.004 * mdTorso, dt);
       U.uBounce.value = torsoK.x;
       var swayWave = Math.sin(Math.PI * beats);
       U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze;
       twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet * (1 - ehSilence) + 0.7 * ehYaw + 0.3 * ehTorso, -0.05, 0.05), dt);
       U.uTwist.value = twistK.x;
-      shoulderK.step(0.022 * f.shoulder * f.amp * swayWave * freeze + 0.25 * ehLag, dt);
+      shoulderK.step(0.022 * f.shoulder * f.amp * swayWave * freeze + 0.25 * ehLag + 0.012 * mdShoulder, dt);
       U.uShoulder.value = shoulderK.x;
 
       // RECEIVER DEPTH DRIVE — low energy pushes it toward the camera; PRECOMPRESSION draws it back and
@@ -6657,7 +6863,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       if (sHit) { depthK.impulse(0.7 * ms); scaleK.impulse(0.35); }
       depthK.step((0.05 * f.depth * f.amp - 0.03 * sPre) * ms, dt);
       scaleK.step(-0.012 * sPre, dt);
-      pedK.step(0.05 * f.floor * f.amp + 0.03 * sPre + 0.03 * ehImpact, dt);
+      pedK.step(0.05 * f.floor * f.amp + 0.03 * sPre + 0.03 * ehImpact + 0.04 * mdFloor, dt);
       applyReceiverTransform();
 
       // Logo — five segments with peak hold; mids articulate the inner bars; PRECOMPRESSION concentrates
