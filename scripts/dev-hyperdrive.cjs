@@ -113,6 +113,7 @@ function verifyRuntimeAssets() {
     'scripts/overdrive/spatial-narrative.js',
     'scripts/overdrive/stage-overdrive.js',
     'scripts/overdrive/black-sun.js',
+    'scripts/overdrive/mass-driver.js',
     'scripts/overdrive/event-horizon.js',
     'scripts/overdrive/relic.js',
     'scripts/overdrive/mixer-stage.js'

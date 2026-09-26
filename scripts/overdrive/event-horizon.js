@@ -16,6 +16,8 @@
   var SO = typeof module === 'object' && module.exports ? require('./stage-overdrive.js') : root.DMFStageOverdrive;
   // V4 Black Sun: the cinematic layer, stepped after the overdrive on the same state (no clock of its own).
   var BS = typeof module === 'object' && module.exports ? require('./black-sun.js') : root.DMFBlackSun;
+  // V5 Mass Driver: acceleration, stepped after the Black Sun on the same state (no clock of its own).
+  var MD = typeof module === 'object' && module.exports ? require('./mass-driver.js') : root.DMFMassDriver;
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
@@ -89,11 +91,16 @@
       // V4 Black Sun (written by DMFBlackSun.update)
       blackSun: 0, iris: 0, gravity: 0, sunScale: 0, halo: 0, impact: 0, stageLift: 0, reflectionShock: 0,
       beam: 0, hold: 0, open: 0, vignette: 0, shadowDepth: 0, titlePressure: 0, chromatic: 0,
-      receiverGlow: 0, torsoLag: 0, silence: 0, reveal: 1, revealEdge: 1, revealLight: 1, revealType: 1
+      receiverGlow: 0, torsoLag: 0, silence: 0, reveal: 1, revealEdge: 1, revealLight: 1, revealType: 1,
+      // V5 Mass Driver (written by DMFMassDriver.update)
+      charge: 0, precompress: 0, drive: 0, driveDolly: 0, driveLift: 0, driveRoll: 0, driveLateral: 0,
+      driveMass: 0, driveSettle: 0, driveHead: 0, driveShoulder: 0, driveTorso: 0, wavefront: 0, floorWave: 0,
+      lightVelocity: 0, lightCompression: 0, typeVelocity: 0, typeSettle: 0
     };
     this.narrative = SN ? new SN.DMFSpatialNarrative() : null;
     this.overdrive = SO && this.narrative ? new SO.DMFStageOverdrive() : null;
     this.blackSun = BS && this.overdrive ? new BS.DMFBlackSun() : null;
+    this.massDriver = MD && this.blackSun ? new MD.DMFMassDriver() : null;
     this._depthV = 0;
     this._gateT = 9;
     this._sinceGate = 9;
@@ -195,6 +202,7 @@
     if (this.narrative) this.narrative.update(st, inp, this.ids, dt);
     if (this.overdrive) this.overdrive.update(st, inp, this.ids, dt);
     if (this.blackSun) this.blackSun.update(st, inp, this.ids, dt);
+    if (this.massDriver) this.massDriver.update(st, inp, this.ids, dt);
     return st;
   };
 
@@ -210,6 +218,7 @@
     if (this.narrative) this.narrative.compose(st);
     if (this.overdrive) this.overdrive.compose(st);
     if (this.blackSun) this.blackSun.compose(st);
+    if (this.massDriver) this.massDriver.compose(st);
     return st;
   };
 
@@ -234,7 +243,7 @@
   // Blocks that receive per-section variables while visible (never the whole document).
   var MAGNETS = '.hero-cta, .hero-cta-2, .tier-cta, .lab-gate, .tips-cta, .acad-cta, .acad-cta-free, .dmf-signal-cta, .nav-logo';
   var SECTION_VARS = ['--eh-focus', '--eh-rel', '--eh-split', '--eh-energy', '--eh-mid', '--eh-high', '--eh-speed', '--eh-vel', '--eh-lx',
-    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk', '--eh-tp', '--eh-chroma', '--eh-reveal'];
+    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk', '--eh-tp', '--eh-chroma', '--eh-reveal', '--eh-tv', '--eh-ts'];
   function freshCache(n) { var c = []; for (var i = 0; i < n; i++) c.push(-9); return c; }
 
   function mount() {
@@ -307,7 +316,7 @@
     // Decorative layers that live in the source markup.
     var field = doc.querySelector('.eh-field');
     var intro = doc.getElementById('concertIntro');
-    var fieldVals = freshCache(17);
+    var fieldVals = freshCache(19);
     // Intro variables go to the few elements that read them (never the intro, whose subtree holds the SVG).
     var introEls = doc.querySelectorAll('#concertIntro .eh-stack, #concertIntro .eh-floor, #concertIntro .eh-halo');
     for (var ie = 0; ie < introEls.length; ie++) introEls[ie].__ehVals = freshCache(11);
@@ -411,6 +420,9 @@
         put(el, c, 14, '--eh-tp', st.titlePressure, 20);
         put(el, c, 15, '--eh-chroma', st.chromatic, 20);
         put(el, c, 16, '--eh-reveal', st.revealType, 20);
+        // V5: titles feel the acceleration (stretch along it), then settle.
+        put(el, c, 17, '--eh-tv', st.typeVelocity, 20);
+        put(el, c, 18, '--eh-ts', st.typeSettle, 20);
       }
       // V3: in the offer the background holds still (only its light and calm keep settling).
       var frozen = st.calm > 0.85;
@@ -423,6 +435,9 @@
         put(field, fieldVals, 14, '--eh-vig', st.vignette, 100);
         put(field, fieldVals, 15, '--eh-shadow', st.shadowDepth, 50);
         put(field, fieldVals, 16, '--eh-hold', st.hold, 50);
+        // V5: the blades acquire velocity (narrower, more directional) and narrow under precompression.
+        put(field, fieldVals, 17, '--eh-lv', st.lightVelocity, 50);
+        put(field, fieldVals, 18, '--eh-lc', st.lightCompression, 50);
       }
       if (field && !frozen) {
         put(field, fieldVals, 0, '--eh-energy', st.energy, 50);
@@ -524,6 +539,13 @@
         stageLift: +st.stageLift.toFixed(3), torsoLag: +st.torsoLag.toFixed(4), silence: +st.silence.toFixed(2), reveal: +st.reveal.toFixed(2),
         revealed: eh.blackSun ? eh.blackSun.revealed : true
       };
+      perf.massDriver = {
+        charge: +st.charge.toFixed(2), precompress: +st.precompress.toFixed(2), drive: +st.drive.toFixed(2),
+        driveDolly: +st.driveDolly.toFixed(3), driveLift: +st.driveLift.toFixed(3), driveRoll: +st.driveRoll.toFixed(3),
+        driveLateral: +st.driveLateral.toFixed(3), driveMass: +st.driveMass.toFixed(2), driveSettle: +st.driveSettle.toFixed(2),
+        wavefront: +st.wavefront.toFixed(2), floorWave: +st.floorWave.toFixed(2), lightVelocity: +st.lightVelocity.toFixed(2),
+        typeVelocity: +st.typeVelocity.toFixed(2), shots: eh.massDriver ? eh.massDriver.shots : 0
+      };
       perf.dprCaps = { receiver: hub.renderScale || 1, mixer: perf.mixerFit ? perf.mixerFit.dpr : null, smoke: Math.min(root.devicePixelRatio || 1, 1.5) };
     }
 
@@ -562,7 +584,7 @@
       if (eh.blackSun && eh.blackSun.revealNow) { try { root.sessionStorage.setItem(REVEAL_KEY, '1'); } catch (e) { /* once per page then */ } }
       // DOM at ~30 Hz, except on a gate or a kick so the page lands on the beat.
       writeT += step;
-      if (writeT >= 0.033 || st.transition > 0.01 || s.beatFired) { writeT = 0; write(false); }
+      if (writeT >= 0.033 || st.transition > 0.01 || s.beatFired || (eh.massDriver && eh.massDriver.firedNow)) { writeT = 0; write(false); }
       perfT += step;
       if (perf && perfT > 0.5) { perfT = 0; report(); }
     }
