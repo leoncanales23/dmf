@@ -1315,8 +1315,12 @@
       if (modelRef) {
         modelRef.position.set(modelBase.x + cx / cl * adv, modelBase.y - sink, modelBase.z + cz / cl * adv);
         if (modelCurrentScale >= modelTargetScale) {
-          modelRef.scale.setScalar(modelTargetScale * (1 + scaleK.x) * (sp ? 1 + sp.scale : 1));
-          modelRef.rotation.y = sp ? sp.rotY + midTorque : 0;
+          // V3 Overdrive: monumental entry (mass with a small overshoot), approach depth, micro rotation.
+          var ehv = hub.eventHorizon;
+          var mass = ehv ? (ehv.modelMass || 1) * (1 + (ehv.modelNear || 0)) : 1;
+          modelRef.scale.setScalar(modelTargetScale * (1 + scaleK.x) * (sp ? 1 + sp.scale : 1) * mass);
+          modelRef.rotation.y = (sp ? sp.rotY + midTorque : 0) + (ehv ? ehv.modelYaw || 0 : 0);
+          modelRef.rotation.x = ehv ? ehv.modelPitch || 0 : 0;
         }
       }
       pedestal.scale.y = 1 - pedK.x;
@@ -1346,6 +1350,10 @@
       var ehPress = eh ? eh.pressure || 0 : 0;
       var ehPan = eh ? eh.camPan || 0 : 0, ehTilt = eh ? eh.camTilt || 0 : 0, ehDolly = eh ? eh.dolly || 0 : 0;
       var ehYaw = eh ? eh.headYaw || 0 : 0, ehPitch = eh ? eh.headPitch || 0 : 0;
+      // V3 Overdrive: acoustic pressure (LOW sustained vs KICK impulse), cabinet settle, breath, body lag.
+      var ehWoofL = eh ? eh.wooferLow || 0 : 0, ehWoofK = eh ? eh.wooferKick || 0 : 0, ehSettle = eh ? eh.cabinet || 0 : 0;
+      var ehBreath = eh ? eh.breath || 0 : 0, ehLag = eh ? eh.bodyLag || 0 : 0;
+      var ehPush = eh ? eh.modelPush || 0 : 0, ehSpec = eh ? eh.modelSpec || 0 : 0;
       // PRECOMPRESSION: the Receiver's groove almost freezes while pressure builds.
       var freeze = 1 - 0.85 * sPre;
       liveTime += dt;
@@ -1400,11 +1408,12 @@
       // IGNITION preloads the cones inward; LOW pressure loads the cabinets (right side detuned).
       coneL.step(-0.35 * sIgn, dt);
       coneR.step(-0.35 * sIgn, dt);
-      var cabPress = -0.008 * f.cabinet * f.amp * ehQuiet * (1 + 0.6 * ehDepth + 0.4 * ehPress);
+      var cabPress = -0.008 * f.cabinet * f.amp * ehQuiet * (1 + 0.6 * ehDepth + 0.4 * ehPress) - 0.003 * ehSettle;
       cabL.step(cabPress, dt);
       cabR.step(cabPress * 0.85, dt);
-      U.uConeL.value = coneL.x;
-      U.uConeR.value = coneR.x;
+      // Cone excursion: the springs' kick punch plus the sustained LOW push and the director's KICK impulse.
+      U.uConeL.value = coneL.x + 0.35 * ehWoofL + 0.25 * ehWoofK;
+      U.uConeR.value = coneR.x + 0.33 * ehWoofL + 0.25 * ehWoofK;
       U.uCabL.value = cabL.x * 0.25;
       U.uCabR.value = cabR.x * 0.25;
       U.uDeskT.value = sinceHit;
@@ -1422,13 +1431,13 @@
       headSlow.step(headK.x, dt);
       U.uNod.value = clamp(headK.x - 0.3 * headSlow.x, -0.06, 0.22);
       var groove = Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * s.beatPhase), 3);
-      torsoK.step((0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl, dt);
+      torsoK.step((0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl + 0.0012 * ehBreath, dt);
       U.uBounce.value = torsoK.x;
       var swayWave = Math.sin(Math.PI * beats);
       U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze;
       twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet + ehYaw, -0.05, 0.05), dt);
       U.uTwist.value = twistK.x;
-      shoulderK.step(0.022 * f.shoulder * f.amp * swayWave * freeze, dt);
+      shoulderK.step(0.022 * f.shoulder * f.amp * swayWave * freeze + 0.25 * ehLag, dt);
       U.uShoulder.value = shoulderK.x;
 
       // RECEIVER DEPTH DRIVE — low energy pushes it toward the camera; PRECOMPRESSION draws it back and
@@ -1494,7 +1503,7 @@
       midTorque = staged ? 0.035 * f.forceMid * f.amp * Math.sin(Math.PI * beats / 2) * freeze : 0;
       keyLight.intensity = 2.4 * (1 + 0.35 * stageLight) * (0.7 + 0.3 * ehQuiet);
       rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 + s.body * 0.3 * (1 + 0.6 * od) + hdLevel * 0.4 + sLvl * 0.5 + 0.3 * stageLight + 0.25 * ehFocus;
-      accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15 + f.edge * 0.2;
+      accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15 + f.edge * 0.2 + 0.3 * ehSpec;
       fillLight.intensity = 0.3 + Math.sin(autoAngle + 2) * 0.06;
       underGlow.intensity = (0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.body * 0.35 * (1 + od) + hdLevel * 0.3 + sLvl * 0.4) * ehQuiet;
       haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1 + hdLevel * 0.2 + sLvl * 0.25;
@@ -1547,7 +1556,7 @@
       }
       // The HYPERDRIVE pre-impact pullback lives in the dolly too, so its release is a push with mass,
       // never a one-frame jump.
-      dollyAim = (od * 0.25 - 0.45 * hdPre - 0.55 * sPre + 0.9 * sIgn + 2.2 * sBrk - 0.08 * pressure) * ms + ehDolly * 4;
+      dollyAim = (od * 0.25 - 0.45 * hdPre - 0.55 * sPre + 0.9 * sIgn + 2.2 * sBrk - 0.08 * pressure) * ms + ehDolly * 4 + ehPush * 0.12;
       dollyK.step(dollyAim, dt);
       lensSpring.step((hdPre * 1.2 + sPre * 1.4) * ms, dt);
       rollSpring.step(0, dt);

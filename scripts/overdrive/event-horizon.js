@@ -12,6 +12,8 @@
 
   // V2 Spatial Narrative: a pure mapping layer the director steps with its own state (no clock of its own).
   var SN = typeof module === 'object' && module.exports ? require('./spatial-narrative.js') : root.DMFSpatialNarrative;
+  // V3 Overdrive: the weight layer, stepped after the narrative on the same state (no clock of its own).
+  var SO = typeof module === 'object' && module.exports ? require('./stage-overdrive.js') : root.DMFStageOverdrive;
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
@@ -77,9 +79,14 @@
       // V2 Spatial Narrative (written by DMFSpatialNarrative.update)
       camPan: 0, camTilt: 0, camRoll: 0, dolly: 0, zk: 0.5, pressure: 0,
       headYaw: 0, headPitch: 0, gravityX: 0, gravityY: 0, lightX: 0.5,
-      afterimage: 0, afterId: 0, afterFrom: 0, heroMoment: 0, prevIndex: 0
+      afterimage: 0, afterId: 0, afterFrom: 0, heroMoment: 0, prevIndex: 0,
+      // V3 Overdrive (written by DMFStageOverdrive.update)
+      modelMass: 1, modelNear: 0, modelYaw: 0, modelPitch: 0, modelPush: 0, modelSpec: 0,
+      wooferLow: 0, wooferKick: 0, woofer: 0, cabinet: 0, floorPress: 0,
+      breath: 0, bodyLag: 0, sheenK: 1, compress: 0
     };
     this.narrative = SN ? new SN.DMFSpatialNarrative() : null;
+    this.overdrive = SO && this.narrative ? new SO.DMFStageOverdrive() : null;
     this._depthV = 0;
     this._gateT = 9;
     this._sinceGate = 9;
@@ -155,8 +162,8 @@
     // CALM + LIGHT — the conversion area pulls everything down; the field follows the section's light.
     st.calm = approach(st.calm, this.calms[idx] || 0, 2.5, dt);
     st.light = approach(st.light, this.lights[idx] == null ? 1 : this.lights[idx], 1.5, dt);
-    // Conversion sanctuary: in the offer the stage keeps only ~30% of its audio response.
-    var damp = st.wake * (1 - 0.7 * st.calm);
+    // Conversion sanctuary: in the offer the stage keeps only ~28% of its audio response.
+    var damp = st.wake * (1 - 0.72 * st.calm);
 
     // AUDIO — ENERGY is an envelope; LOW/MID/HIGH arrive from the bus force matrix (already physical).
     st.energy = envelope(st.energy, clamp01(s.energy || 0) * damp, 3, 0.8, dt);
@@ -179,6 +186,7 @@
     st.pointerX = approach(st.pointerX, clamp(inp.pointerX || 0, -1, 1), 5, dt);
     st.pointerY = approach(st.pointerY, clamp(inp.pointerY || 0, -1, 1), 5, dt);
     if (this.narrative) this.narrative.update(st, inp, this.ids, dt);
+    if (this.overdrive) this.overdrive.update(st, inp, this.ids, dt);
     return st;
   };
 
@@ -192,6 +200,7 @@
     st.calm = this.calms[st.index] || 0;
     st.light = this.lights[st.index] == null ? 1 : this.lights[st.index];
     if (this.narrative) this.narrative.compose(st);
+    if (this.overdrive) this.overdrive.compose(st);
     return st;
   };
 
@@ -216,7 +225,7 @@
   // Blocks that receive per-section variables while visible (never the whole document).
   var MAGNETS = '.hero-cta, .hero-cta-2, .tier-cta, .lab-gate, .tips-cta, .acad-cta, .acad-cta-free, .dmf-signal-cta, .nav-logo';
   var SECTION_VARS = ['--eh-focus', '--eh-rel', '--eh-split', '--eh-energy', '--eh-mid', '--eh-high', '--eh-speed', '--eh-vel', '--eh-lx',
-    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk'];
+    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk'];
   function freshCache(n) { var c = []; for (var i = 0; i < n; i++) c.push(-9); return c; }
 
   function mount() {
@@ -292,7 +301,7 @@
     var fieldVals = freshCache(12);
     // Intro variables go to the few elements that read them (never the intro, whose subtree holds the SVG).
     var introEls = doc.querySelectorAll('#concertIntro .eh-stack, #concertIntro .eh-floor, #concertIntro .eh-halo');
-    for (var ie = 0; ie < introEls.length; ie++) introEls[ie].__ehVals = freshCache(8);
+    for (var ie = 0; ie < introEls.length; ie++) introEls[ie].__ehVals = freshCache(11);
     // The logo only hears the hero moment and pointer gravity (both rare), never the per-frame audio.
     var logoWrap = doc.querySelector('#concertIntro .concert-logo-wrap');
     var logoVals = freshCache(3);
@@ -385,11 +394,16 @@
         put(el, c, 10, '--eh-tilt', st.camTilt, 100);
         put(el, c, 11, '--eh-dolly', st.dolly, 2000);
         put(el, c, 12, '--eh-zk', st.zk * tierK.depth, 100);
+        put(el, c, 13, '--eh-sheenk', st.sheenK, 50);     // V3: reflections read more across hero → releases → sets
       }
+      // V3: in the offer the background holds still (only its light and calm keep settling).
+      var frozen = st.calm > 0.85;
       if (field) {
-        put(field, fieldVals, 0, '--eh-energy', st.energy, 50);
         put(field, fieldVals, 1, '--eh-light', st.light * tierK.ambient, 50);
         put(field, fieldVals, 2, '--eh-calm', st.calm, 50);
+      }
+      if (field && !frozen) {
+        put(field, fieldVals, 0, '--eh-energy', st.energy, 50);
         put(field, fieldVals, 3, '--eh-gate', st.gate, 200);
         put(field, fieldVals, 4, '--eh-gate-a', st.transition, 100);
         put(field, fieldVals, 5, '--eh-depth', st.depth * depthK, 100);
@@ -411,6 +425,10 @@
           put(ie2, iv, 5, '--eh-py', st.pointerY, 50);
           put(ie2, iv, 6, '--eh-press', st.pressure, 50);
           put(ie2, iv, 7, '--eh-moment', st.heroMoment, 50);
+          // V3 acoustic pressure: woofer excursion (≤ 4%, already bounded), cabinet settle, floor pressure.
+          put(ie2, iv, 8, '--eh-woofer', st.woofer, 1000);
+          put(ie2, iv, 9, '--eh-settle', st.cabinet, 50);
+          put(ie2, iv, 10, '--eh-floorp', st.floorPress, 50);
         }
         if (logoWrap) {
           put(logoWrap, logoVals, 0, '--eh-moment', st.heroMoment, 50);
@@ -425,7 +443,7 @@
         if (on) put(afterEl, afterVals, 0, '--eh-after', st.afterimage, 100);
       }
       if (magnet) {
-        var gk = st.performanceTier === 'lite' ? 0 : 1 - 0.7 * st.calm;
+        var gk = st.performanceTier === 'lite' ? 0 : 1 - 0.85 * st.calm;   // V3: barely a lean in the offer
         // Soft attack, softer release.
         var rate = magnetTX !== 0 || magnetTY !== 0 ? 6 : 3;
         magnetX = approach(magnetX, magnetTX * gk, rate, 0.033);
@@ -470,6 +488,12 @@
         heroMoment: eh.narrative ? (eh.narrative.heroFired ? 'fired' : 'armed') : 'off',
         headYaw: +st.headYaw.toFixed(4), headPitch: +st.headPitch.toFixed(4), lightX: +st.lightX.toFixed(2),
         activeSection: st.section, tier: st.performanceTier
+      };
+      perf.stageOverdrive = {
+        modelMass: +st.modelMass.toFixed(3), modelNear: +st.modelNear.toFixed(3), modelYaw: +st.modelYaw.toFixed(4),
+        modelPitch: +st.modelPitch.toFixed(4), modelPush: +st.modelPush.toFixed(2), woofer: +st.woofer.toFixed(4),
+        cabinet: +st.cabinet.toFixed(3), floorPress: +st.floorPress.toFixed(2), breath: +st.breath.toFixed(2),
+        bodyLag: +st.bodyLag.toFixed(4), sheenK: +st.sheenK.toFixed(2), compress: +st.compress.toFixed(2)
       };
       perf.dprCaps = { receiver: hub.renderScale || 1, mixer: perf.mixerFit ? perf.mixerFit.dpr : null, smoke: Math.min(root.devicePixelRatio || 1, 1.5) };
     }
