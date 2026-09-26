@@ -247,7 +247,9 @@ test('F · speaker propagation travels: cones first, floor later; the 4% cone bu
   assert.ok(onset(trace, 'wavefront') < onset(trace, 'floorWave') && peakAt(trace, 'wavefront') < peakAt(trace, 'floorWave'));
   assert.ok(trace.every((r) => r.woofer <= 0.04 + 1e-12));
   assert.ok(RELIC.includes('+ 0.3 * mdWave;') && RELIC.includes('+ 0.04 * mdFloor, dt);'), 'existing cones and pedestal carry it (no new meshes)');
-  assert.equal(count(RELIC, 'new THREE.Mesh('), count(execSync('git show origin/main:scripts/overdrive/relic.js', { cwd: ROOT }).toString(), 'new THREE.Mesh('), 'no extra meshes');
+  // Pinned to the V4 baseline (works on shallow CI checkouts): the Receiver scene gains no meshes in V5.
+  assert.equal(count(RELIC, 'new THREE.Mesh('), 15, 'no extra Receiver meshes');
+  assert.equal(count(OUT, 'new THREE.Mesh('), 19, 'no extra meshes on the page');
 });
 
 test('G · Black Sun: precompression contracts it inside V4 bounds; its edge answers after the model; heavy return', function () {
