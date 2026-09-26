@@ -127,6 +127,7 @@ jobs:
           node scripts/overdrive/test/black-sun.test.cjs
           node scripts/overdrive/test/mass-driver.test.cjs
           node scripts/overdrive/test/lightspeed.test.cjs
+          node scripts/overdrive/test/landing-certification.test.cjs
           node scripts/overdrive/test/dev-hyperdrive.test.cjs
 
   validate-academy:
