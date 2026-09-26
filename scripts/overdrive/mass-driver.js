@@ -29,7 +29,7 @@
     shotEnd: 0.74,         // PRECOMPRESSION → RELEASE → COAST → RECOVERY, ~740 ms
     gap: 1.2,              // hard rate limit between shots
     fireKick: 0.6,         // only meaningful kicks
-    fireCharge: 0.6,       // only once enough potential is stored (strong, sustained music)
+    fireCharge: 0.5,       // only once enough potential is stored (sustained, strong signal)
     anticipate: 0.15,      // precompression window before a predicted beat
     launchDelay: 0.2,      // a section launch releases after the V4 cut's dark hold
     launchSpeed: 0.25,     // and only when the scroll carries real velocity
@@ -92,7 +92,7 @@
 
     // --- CHARGE: sustained LOW + ENERGY store potential slowly; silence and the offer drain it ---
     var feed = clamp01(0.6 * st.low + 0.4 * st.energy) * live;
-    this.charge = envelope(this.charge, feed, 0.5, 0.8 + 2.5 * silence, dt);
+    this.charge = envelope(this.charge, feed, 0.35, 0.8 + 2.5 * silence, dt);
     st.charge = clamp01(this.charge);
 
     this.sinceDrive += dt;
@@ -109,7 +109,7 @@
     if (s.beatFired && (s.kick || 0) >= LIMITS.fireKick && ready && st.charge >= LIMITS.fireCharge && this.sinceDrive >= LIMITS.gap) {
       this.driveT = 0; this.sinceDrive = 0; this.sign = -this.sign; this.shots++; this.firedNow = true;
       this.amp = clamp01(0.55 + 0.45 * st.charge);
-      this.charge *= 0.3;                                   // the shot spends most of the stored potential
+      this.charge *= 0.15;                                  // the shot spends most of the stored potential
       st.charge = this.charge;
     }
     // --- SECTION LAUNCH: the V4 cut, taken at speed between neighbouring major sections ---
