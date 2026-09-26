@@ -1,9 +1,148 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DMF Academy — Student Portal</title>
+<title>DMF Academy — Portal del estudiante</title>
+<meta name="description" content="Portal de estudiantes de DMF Academy: clases, progreso y tareas prácticas.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a0806">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230a0806'/%3E%3Cpath d='M13 49V15h8l11 17 11-17h8v34h-8V30L32 46 21 30v19z' fill='%23ff5b1e'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Demian Muller">
+<meta property="og:url" content="https://dmf.vibraalto.cl/academy">
+<meta property="og:title" content="DMF Academy — Portal del estudiante">
+<meta property="og:description" content="Portal de estudiantes de DMF Academy: clases, progreso y tareas prácticas.">
+<meta property="og:image" content="https://dmf.vibraalto.cl/assets/images/jpg_0_19kb.jpg">
+<meta property="og:locale" content="es_CL">
+<meta property="og:locale:alternate" content="en_US">
+<script>
+/* DMF language: Spanish by default; the visitor's choice (here or on the landing) persists as dmf_lang ('es' | 'en').
+   Presentation only: nothing below touches authentication, payments or course access. */
+(function(){var l='es';try{var s=localStorage.getItem('dmf_lang');if(s==='en'||s==='es')l=s;}catch(e){}document.documentElement.lang=l;})();
+window.DMF_I18N = (function () {
+  var lang = document.documentElement.lang === 'en' ? 'en' : 'es';
+  var UI = {
+    "es": {
+      "pageTitle": "DMF Academy — Portal del estudiante",
+      "brandLabel": "Portal del estudiante",
+      "logout": "Cerrar sesión",
+      "noAccessTitle": "Acceso requerido",
+      "noAccessDesc": "Necesitas una inscripción activa en DMF Academy para entrar al portal de estudiantes. Elige el plan que mejor se ajuste a tus objetivos.",
+      "noAccessCta": "Ver planes",
+      "kicker": "Estado de formación",
+      "dashTitle": "Portal del estudiante",
+      "statModules": "Módulos",
+      "statLessons": "Clases",
+      "statPct": "Transmisión completada",
+      "selectLesson": "Selecciona una clase",
+      "buffering1": "Cargando video…",
+      "buffering2": "Optimizando la calidad para tu conexión",
+      "nowPlaying": "Ahora reproduciendo",
+      "completeContinue": "Marcar como completada y continuar",
+      "lessonsTitle": "Clases",
+      "practiceTitle": "Tarea práctica",
+      "practiceSubmit": "Enviar trabajo a revisión",
+      "qTitle": "Calidad",
+      "qRecommended": "recomendado",
+      "qHint": "La calidad Auto se adapta a tu conexión.",
+      "qDetecting": "Detectando…",
+      "qLimited": "Conexión limitada · Reproduciendo en ",
+      "qLimitedSub": "La calidad aumentará automáticamente cuando tu conexión se estabilice.",
+      "qUnstable": "Conexión inestable · Reproduciendo en ",
+      "qStable": "Conexión estabilizada · ",
+      "actLocked": "Bloqueado",
+      "actReview": "Revisar ✓",
+      "actContinue": "Continuar →",
+      "actEnter": "Entrar →",
+      "lessonsUnit": " clases",
+      "module": "Módulo ",
+      "navDashboard": "Panel",
+      "preparing": "Contenido en preparación",
+      "soon": "Próximamente",
+      "authorizing": "Autorizando reproducción",
+      "unavailable": "Video no disponible",
+      "next": "Siguiente →",
+      "continue": "Continuar →",
+      "completed": "Completada ✓",
+      "noHls": "Tu navegador no puede reproducir este video (HLS no compatible).",
+    "submitNotice": "El envío de trabajos estará disponible cuando el sistema de revisión esté configurado. Por ahora, envía tu trabajo por el canal de la comunidad DMF.",
+      "langSwitch": "English",
+      "langSwitchAria": "Ver esta página en inglés"
+    },
+    "en": {
+      "pageTitle": "DMF Academy — Student Portal",
+      "brandLabel": "Student Portal",
+      "logout": "Logout",
+      "noAccessTitle": "Access Required",
+      "noAccessDesc": "You need an active DMF Academy enrollment to access the student portal. Choose a plan that fits your goals.",
+      "noAccessCta": "View Plans",
+      "kicker": "Training Status",
+      "dashTitle": "Student Portal",
+      "statModules": "Modules",
+      "statLessons": "Lessons",
+      "statPct": "Transmission Complete",
+      "selectLesson": "Select a lesson",
+      "buffering1": "Loading video…",
+      "buffering2": "Optimising quality for your connection",
+      "nowPlaying": "Now playing",
+      "completeContinue": "Mark complete and continue",
+      "lessonsTitle": "Lessons",
+      "practiceTitle": "Practice Assignment",
+      "practiceSubmit": "Submit Work for Review",
+      "qTitle": "Quality",
+      "qRecommended": "recommended",
+      "qHint": "Auto quality adapts to your connection.",
+      "qDetecting": "Detecting…",
+      "qLimited": "Limited connection · Playing at ",
+      "qLimitedSub": "Quality will rise automatically once your connection stabilises.",
+      "qUnstable": "Unstable connection · Playing at ",
+      "qStable": "Connection stabilised · ",
+      "actLocked": "Locked",
+      "actReview": "Review ✓",
+      "actContinue": "Continue →",
+      "actEnter": "Enter →",
+      "lessonsUnit": " lessons",
+      "module": "Module ",
+      "navDashboard": "Dashboard",
+      "preparing": "Content in preparation",
+      "soon": "Coming soon",
+      "authorizing": "Authorising playback",
+      "unavailable": "Video unavailable",
+      "next": "Next →",
+      "continue": "Continue →",
+      "completed": "Completed ✓",
+      "noHls": "Your browser does not support HLS playback",
+    "submitNotice": "Work submission will be available when the review system is configured. For now, send your work via the DMF community channel.",
+      "langSwitch": "Español",
+      "langSwitchAria": "View this page in Spanish"
+    }
+  };
+  function t(key) {
+    if (Object.prototype.hasOwnProperty.call(UI[lang], key)) return UI[lang][key];
+    return Object.prototype.hasOwnProperty.call(UI.es, key) ? UI.es[key] : key;
+  }
+  function apply() {
+    var i, els = document.querySelectorAll('[data-i18n]');
+    for (i = 0; i < els.length; i++) els[i].textContent = t(els[i].getAttribute('data-i18n'));
+    els = document.querySelectorAll('[data-i18n-placeholder]');
+    for (i = 0; i < els.length; i++) els[i].setAttribute('placeholder', t(els[i].getAttribute('data-i18n-placeholder')));
+    els = document.querySelectorAll('[data-lang-switch]');
+    for (i = 0; i < els.length; i++) {
+      els[i].textContent = t('langSwitch');
+      els[i].setAttribute('aria-label', t('langSwitchAria'));
+      els[i].setAttribute('lang', lang === 'es' ? 'en' : 'es');
+      els[i].onclick = function () {
+        try { localStorage.setItem('dmf_lang', lang === 'es' ? 'en' : 'es'); } catch (e) { /* ignore */ }
+        window.location.reload();
+      };
+    }
+    document.title = t('pageTitle');
+  }
+  return { lang: lang, t: t, apply: apply };
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -25,6 +164,8 @@ a:hover{color:#ff7a45}
 .portal-user-email{font-size:11px;color:#665f58;letter-spacing:.04em}
 .portal-logout{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#8a8178;background:none;border:1px solid rgba(242,237,230,.12);padding:7px 14px;cursor:pointer;font-family:'Archivo',sans-serif;transition:border-color .2s,color .2s}
 .portal-logout:hover{border-color:#ff5b1e;color:#ff5b1e}
+.portal-lang{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#8a8178;background:none;border:1px solid rgba(242,237,230,.12);padding:7px 12px;cursor:pointer;font-family:'Archivo',sans-serif;transition:border-color .2s,color .2s}
+.portal-lang:hover{border-color:#ff5b1e;color:#ff5b1e}
 
 /* BREADCRUMB */
 .breadcrumb{padding:80px clamp(16px,4vw,48px) 0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#665f58}
@@ -177,19 +318,20 @@ a:hover{color:#ff7a45}
   <div class="portal-brand">
     <a href="/" class="portal-brand-name">Demian Muller</a>
     <div class="portal-brand-sep"></div>
-    <span class="portal-brand-label">Student Portal</span>
+    <span class="portal-brand-label" data-i18n="brandLabel">Portal del estudiante</span>
   </div>
   <div class="portal-user">
     <span class="portal-user-email" id="userEmail"></span>
-    <button class="portal-logout" id="logoutBtn">Logout</button>
+    <button class="portal-lang" type="button" data-lang-switch>English</button>
+    <button class="portal-logout" id="logoutBtn" data-i18n="logout">Cerrar sesión</button>
   </div>
 </nav>
 
 <!-- NO ACCESS STATE -->
 <div class="no-access" id="noAccessView">
-  <div class="no-access-title">Access Required</div>
-  <div class="no-access-desc">You need an active DMF Academy enrollment to access the student portal. Choose a plan that fits your goals.</div>
-  <a href="/#academy" class="no-access-cta">View Plans</a>
+  <div class="no-access-title" data-i18n="noAccessTitle">Acceso requerido</div>
+  <div class="no-access-desc" data-i18n="noAccessDesc">Necesitas una inscripción activa en DMF Academy para entrar al portal de estudiantes. Elige el plan que mejor se ajuste a tus objetivos.</div>
+  <a href="/#academy" class="no-access-cta" data-i18n="noAccessCta">Ver planes</a>
 </div>
 
 <!-- DASHBOARD -->
@@ -201,21 +343,21 @@ a:hover{color:#ff7a45}
     <div class="dash-header">
       <div class="dash-kicker">
         <div class="dash-kicker-line"></div>
-        <span class="dash-kicker-text">Training Status</span>
+        <span class="dash-kicker-text" data-i18n="kicker">Estado de formación</span>
       </div>
-      <div class="dash-title">Student Portal</div>
+      <div class="dash-title" data-i18n="dashTitle">Portal del estudiante</div>
       <div class="dash-stats">
         <div class="dash-stat">
           <div class="dash-stat-num" id="statModules">00/04</div>
-          <div class="dash-stat-label">Modules</div>
+          <div class="dash-stat-label" data-i18n="statModules">Módulos</div>
         </div>
         <div class="dash-stat">
           <div class="dash-stat-num" id="statLessons">00/13</div>
-          <div class="dash-stat-label">Lessons</div>
+          <div class="dash-stat-label" data-i18n="statLessons">Clases</div>
         </div>
         <div class="dash-stat">
           <div class="dash-stat-num" id="statPct">0%</div>
-          <div class="dash-stat-label">Transmission Complete</div>
+          <div class="dash-stat-label" data-i18n="statPct">Transmisión completada</div>
         </div>
       </div>
       <div class="dash-progress-bar">
@@ -243,11 +385,11 @@ a:hover{color:#ff7a45}
       <video id="videoEl" controls playsinline></video>
       <div class="mv-player-placeholder" id="playerPlaceholder">
         <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22"/><polygon points="19,14 19,34 36,24"/></svg>
-        <span>Selecciona una lección</span>
+        <span data-i18n="selectLesson">Selecciona una clase</span>
       </div>
       <div class="dmf-buffering-overlay" id="dmfBuffering">
         <div class="dmf-buffering-spinner"></div>
-        <div class="dmf-buffering-text">Cargando video&hellip;<br>Optimizando calidad para tu conexi&oacute;n</div>
+        <div class="dmf-buffering-text"><span data-i18n="buffering1">Cargando video…</span><br><span data-i18n="buffering2">Optimizando la calidad para tu conexión</span></div>
       </div>
       <div class="dmf-quality-toast" id="dmfQualityToast">
         <span class="dmf-qt-icon"></span>
@@ -264,27 +406,28 @@ a:hover{color:#ff7a45}
 
     <div class="lesson-actions" id="lessonActions">
       <div class="lesson-now">
-        <span class="lesson-now-kicker">Ahora reproduciendo</span>
+        <span class="lesson-now-kicker" data-i18n="nowPlaying">Ahora reproduciendo</span>
         <span class="lesson-now-title" id="nowPlayingTitle"></span>
       </div>
-      <button class="lesson-complete-btn" id="completeContinueBtn" type="button">Marcar completada y continuar</button>
+      <button class="lesson-complete-btn" id="completeContinueBtn" type="button" data-i18n="completeContinue">Marcar como completada y continuar</button>
     </div>
 
     <div class="mv-lessons" id="lessonList">
-      <div class="mv-lessons-title">Lessons</div>
+      <div class="mv-lessons-title" data-i18n="lessonsTitle">Clases</div>
       <div id="lessonsContainer"></div>
     </div>
 
     <div class="mv-practice" id="practiceBlock">
-      <div class="mv-practice-title">Practice Assignment</div>
+      <div class="mv-practice-title" data-i18n="practiceTitle">Tarea práctica</div>
       <div class="mv-practice-desc" id="practiceDesc"></div>
-      <button class="mv-practice-submit" id="practiceSubmitBtn">Submit Work for Review</button>
+      <button class="mv-practice-submit" id="practiceSubmitBtn" data-i18n="practiceSubmit">Enviar trabajo a revisión</button>
     </div>
 
     <div class="mv-nav" id="moduleNav"></div>
   </div>
 </div>
 
+<script>window.DMF_I18N.apply();</script>
 <script src="/academy-env.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -524,10 +667,11 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   }
 
   // --- Language ---
-  var lang = 'en';
+  var lang = window.DMF_I18N.lang;
+  var T = window.DMF_I18N.t;
   function t(obj) {
     if (typeof obj === 'string') return obj;
-    return obj[lang] || obj.en || '';
+    return obj[lang] || obj.es || obj.en || '';
   }
 
   // --- DOM refs ---
@@ -648,7 +792,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         QualityUX.showNativeBadge();
       } else {
         placeholder.style.display = 'flex';
-        placeholder.querySelector('span').textContent = 'Your browser does not support HLS playback';
+        placeholder.querySelector('span').textContent = T('noHls');
         video.style.display = 'none';
       }
     });
@@ -703,11 +847,11 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       if (!menu || !hls) return;
       var levels = hls.levels || [];
       var current = hls.currentLevel;
-      var html = '<div class="dmf-qm-title">Calidad</div>';
+      var html = '<div class="dmf-qm-title">' + T('qTitle') + '</div>';
       html += '<div class="dmf-qm-item' + (isAuto ? ' is-active' : '') + '" data-level="-1">'
             + '<span class="dmf-qm-dot"></span>Auto'
             + (isAuto && lastResLabel ? ' · ' + lastResLabel : '')
-            + '<span class="dmf-qm-tag">recomendado</span></div>';
+            + '<span class="dmf-qm-tag">' + T('qRecommended') + '</span></div>';
 
       var sorted = [];
       for (var i = 0; i < levels.length; i++) {
@@ -724,7 +868,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
               + '<span class="dmf-qm-dot"></span>' + label
               + (tag ? '<span class="dmf-qm-tag">' + tag + '</span>' : '') + '</div>';
       }
-      html += '<div class="dmf-qm-hint">La calidad Auto se adapta a tu conexión.</div>';
+      html += '<div class="dmf-qm-hint">' + T('qHint') + '</div>';
       menu.innerHTML = html;
     }
 
@@ -786,7 +930,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       lastResLabel = '';
       isFirstSwitch = true;
       closeMenu();
-      updateBadge('Detectando…');
+      updateBadge(T('qDetecting'));
 
       hls.on(Hls.Events.LEVEL_SWITCHED, function (_, data) {
         var level = hls.levels[data.level];
@@ -801,8 +945,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         if (isFirstSwitch) {
           isFirstSwitch = false;
           if (level.height <= 480) {
-            showToast('⚠', 'Conexión limitada · Reproduciendo en ' + label, 6000,
-              'La calidad aumentará automáticamente cuando tu conexión se estabilice.');
+            showToast('⚠', T('qLimited') + label, 6000,
+              T('qLimitedSub'));
           }
           return;
         }
@@ -811,9 +955,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         var prevH = parseInt(prev, 10) || 0;
         var curH = level.height || 0;
         if (curH < prevH && prevH - curH >= 200) {
-          showToast('⚠', 'Conexión inestable · Reproduciendo en ' + label, 5000);
+          showToast('⚠', T('qUnstable') + label, 5000);
         } else if (curH > prevH && curH >= 720 && curH - prevH >= 200) {
-          showToast('✓', 'Conexión estabilizada · ' + label + ' HD', 3500);
+          showToast('✓', T('qStable') + label + ' HD', 3500);
         }
       });
 
@@ -936,14 +1080,14 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var locked = state === 'LOCKED';
       var published = 0;
       for (var pi = 0; pi < m.lessons.length; pi++) if (m.lessons[pi].streamUid) published++;
-      var actionLabel = locked ? 'Bloqueado' :
-        (state === 'COMPLETED' ? 'Revisar ✓' :
-        (state === 'IN PROGRESS' ? 'Continuar →' : 'Entrar →'));
+      var actionLabel = locked ? T('actLocked') :
+        (state === 'COMPLETED' ? T('actReview') :
+        (state === 'IN PROGRESS' ? T('actContinue') : T('actEnter')));
       html += '<div class="mod-card' + (locked ? ' mod-card-locked' : '') + '" data-mod="' + m.id + '" role="button" tabindex="' + (locked ? '-1' : '0') + '" aria-label="' + escHtml(actionLabel + ' ' + t(m.title)) + '">' +
         '<div class="mod-card-head"><span class="mod-card-num">' + m.id + '</span><span class="mod-card-code">' + m.code + '</span></div>' +
         '<div class="mod-card-title">' + escHtml(t(m.title)) + '</div>' +
         '<div class="mod-card-desc">' + escHtml(t(m.desc)) + '</div>' +
-        '<div class="mod-card-footer"><span class="mod-card-dur">' + p.completed + '/' + p.total + ' clases</span><span class="mod-card-state ' + stateClass(state) + '">' + actionLabel + '</span></div>' +
+        '<div class="mod-card-footer"><span class="mod-card-dur">' + p.completed + '/' + p.total + escHtml(T('lessonsUnit')) + '</span><span class="mod-card-state ' + stateClass(state) + '">' + actionLabel + '</span></div>' +
         '<div class="mod-card-progress"><div class="mod-card-progress-fill" style="width:' + p.pct + '%"></div></div></div>';
     }
     moduleGrid.innerHTML = html;
@@ -977,7 +1121,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     currentLessonIdx = 0;
 
     document.getElementById('mvBreadcrumb').innerHTML =
-      '<a href="/">DMF</a><span>/</span><a href="/academy">Academy</a><span>/</span>Module ' + mod.id;
+      '<a href="/">DMF</a><span>/</span><a href="/academy">Academy</a><span>/</span>' + escHtml(T('module') + mod.id);
     document.getElementById('mvNum').textContent = mod.id;
     document.getElementById('mvCode').textContent = mod.code;
     document.getElementById('mvTitle').textContent = t(mod.title);
@@ -1002,18 +1146,18 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     if (resumeIdx >= 0) {
       selectLesson(mod, resumeIdx);
     } else {
-      showPlaceholder('Contenido en preparación');
+      showPlaceholder(T('preparing'));
       document.getElementById('lessonActions').style.display = 'none';
     }
 
     // Nav
     var navHtml = '';
     if (modIdx > 0) {
-      navHtml += '<button class="mv-nav-btn" data-nav="prev">← Module ' + MODULES[modIdx - 1].id + '</button>';
+      navHtml += '<button class="mv-nav-btn" data-nav="prev">← ' + escHtml(T('module') + MODULES[modIdx - 1].id) + '</button>';
     }
-    navHtml += '<button class="mv-nav-btn" data-nav="dash">Dashboard</button>';
+    navHtml += '<button class="mv-nav-btn" data-nav="dash">' + escHtml(T('navDashboard')) + '</button>';
     if (modIdx < MODULES.length - 1 && getModuleState(MODULES[modIdx + 1]) !== 'LOCKED') {
-      navHtml += '<button class="mv-nav-btn mv-nav-btn-next" data-nav="next">Module ' + MODULES[modIdx + 1].id + ' →</button>';
+      navHtml += '<button class="mv-nav-btn mv-nav-btn-next" data-nav="next">' + escHtml(T('module') + MODULES[modIdx + 1].id) + ' →</button>';
     }
     document.getElementById('moduleNav').innerHTML = navHtml;
 
@@ -1029,7 +1173,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
     // Practice submit
     document.getElementById('practiceSubmitBtn').onclick = function () {
-      alert('Work submission will be available when the review system is configured. For now, send your work via the DMF community channel.');
+      alert(T('submitNotice'));
     };
 
     dashboardView.style.display = 'none';
@@ -1091,7 +1235,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
     var done = ProgressStore.isLessonComplete(mod.id, lesson.id);
     title.textContent = t(lesson.title);
-    btn.textContent = done ? 'Siguiente →' : 'Continuar →';
+    btn.textContent = done ? T('next') : T('continue');
     btn.classList.toggle('is-done', done);
     actions.style.display = 'flex';
 
@@ -1103,7 +1247,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
       var next = findNextPlayable(mod, idx);
       if (!next) {
-        btn.textContent = 'Completada ✓';
+        btn.textContent = T('completed');
         btn.classList.add('is-done');
         return;
       }
@@ -1121,7 +1265,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         ProgressStore.markLessonComplete(mod.id, lesson.id);
         renderLessons(mod);
       }
-      btn.textContent = findNextPlayable(mod, idx) ? 'Siguiente →' : 'Completada ✓';
+      btn.textContent = findNextPlayable(mod, idx) ? T('next') : T('completed');
       btn.classList.add('is-done');
     };
   }
@@ -1144,16 +1288,16 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var requestSeq = ++streamRequestSeq;
 
     if (!lesson.streamUid) {
-      showPlaceholder('Próximamente');
+      showPlaceholder(T('soon'));
       document.getElementById('lessonActions').style.display = 'none';
     } else {
-      showPlaceholder('Autorizando reproducción');
+      showPlaceholder(T('authorizing'));
       updateLessonActions(mod, idx);
 
       getAuthorizedStreamUrl(lesson.streamUid).then(function (streamUrl) {
         if (requestSeq !== streamRequestSeq) return;
         if (!streamUrl) {
-          showPlaceholder('Video no disponible');
+          showPlaceholder(T('unavailable'));
           return;
         }
         playStream(streamUrl);

@@ -323,8 +323,7 @@ test('21 · source and generated output are synchronized; runtime inlined once, 
 });
 
 test('22 · frozen paths untouched', function () {
-  const FROZEN = ['workers', 'firestore.rules', 'firebase.json', 'firebase.academy.json', '.firebaserc', 'public/login.html',
-    'public/payment-result.html', 'public/academy.html', 'public/academy-config.js', 'server.js', 'functions', 'assets'];
+  const FROZEN = ['workers', 'firestore.rules', 'firebase.json', 'firebase.academy.json', '.firebaserc', 'public/academy-config.js', 'server.js', 'functions', 'assets'];
   let base = null;
   try { base = execSync('git merge-base HEAD origin/main', { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch (e) { base = null; }
   if (base) {

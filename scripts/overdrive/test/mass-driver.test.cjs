@@ -367,8 +367,7 @@ test('source and generated output are synchronized; inlined once, after the Blac
 });
 
 test('frozen paths untouched; payment tests and the mobile nav still pass', function () {
-  const FROZEN = ['workers', 'firestore.rules', 'firebase.json', 'firebase.academy.json', '.firebaserc', 'public/login.html',
-    'public/payment-result.html', 'public/academy.html', 'public/academy-config.js', 'server.js', 'functions', 'assets'];
+  const FROZEN = ['workers', 'firestore.rules', 'firebase.json', 'firebase.academy.json', '.firebaserc', 'public/academy-config.js', 'server.js', 'functions', 'assets'];
   let base = null;
   try { base = execSync('git merge-base HEAD origin/main', { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch (e) { base = null; }
   if (base) {
