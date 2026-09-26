@@ -38,10 +38,23 @@ test('every local asset referenced by the four public pages exists (or is a host
       const p = u.split('?')[0].split('#')[0];
       if (!p || p === '/') return false;
       if (REWRITES.some((r) => r === p || (r.endsWith('/**') && p.startsWith(r.slice(0, -3))))) return false;
-      return !fs.existsSync(path.join(PUB, decodeURI(p.replace(/^\//, ''))));
+      const rel = decodeURI(p.replace(/^\//, ''));
+      if (fs.existsSync(path.join(PUB, rel))) return false;
+      // deploy.yml copies assets/{images,logos,docs,models} into public/assets and decodes the chrome GLB
+      // from its base64 parts, so on a fresh checkout those live under the repository's assets/.
+      if (/^assets\//.test(rel) && fs.existsSync(path.join(ROOT, rel))) return false;
+      if (rel === 'assets/models/dmf-signal-chrome.glb' && fs.existsSync(path.join(ROOT, 'assets/models/dmf-signal.part0.b64'))) return false;
+      return true;
     });
     assert.deepEqual(missing, [], page + ' missing: ' + missing.join(', '));
   }
+});
+
+test('deploy copies the repository assets the landing needs into public/assets', function () {
+  const deploy = read('.github/workflows/deploy.yml');
+  for (const d of ['images', 'logos', 'docs', 'models']) assert.ok(deploy.includes('cp -r assets/' + d + '/* public/assets/' + d + '/'), d);
+  for (const f of ['assets/models/dmf-studio-optimized.glb', 'assets/models/DMF_RELIC_01.3mf', 'assets/models/pioneer-djm-900nxs2-mixer-slide.glb'])
+    assert.ok(fs.existsSync(path.join(ROOT, f)) || fs.existsSync(path.join(PUB, f.replace(/^assets/, 'assets'))), f);
 });
 
 test('hosting rewrites cover /login, /academy, /academy/**, /payment-result', function () {
