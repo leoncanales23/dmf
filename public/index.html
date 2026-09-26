@@ -556,6 +556,10 @@ ul{list-style:none}
   .nav-links.open .nav-link{display:block}
   .nav-links.open{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,8,6,.97);flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:100}
   .nav-links.open .nav-link{font-size:18px}
+  /* backdrop-filter makes the bar the containing block of its fixed children: drop it while the menu is open
+     so the overlay covers the viewport instead of the 59px bar (links above Lab were unreachable on phones). */
+  .nav.nav-open{backdrop-filter:none;-webkit-backdrop-filter:none}
+  .nav-links.open{justify-content:safe center;overflow-y:auto}
   .hero{grid-template-columns:1fr;padding-top:100px}
   .hero-img{max-width:400px;margin:0 auto}
   .plat-grid{grid-template-columns:1fr}
@@ -2070,7 +2074,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   };
 
   window.toggleMenu = function(){
-    document.getElementById('navLinks').classList.toggle('open');
+    var open = document.getElementById('navLinks').classList.toggle('open');
+    document.querySelector('.nav').classList.toggle('nav-open', open);
   };
 
   function getPaymentEnvironment(){
@@ -2155,6 +2160,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   document.querySelectorAll('#navLinks a').forEach(function(a){
     a.addEventListener('click',function(){
       document.getElementById('navLinks').classList.remove('open');
+      document.querySelector('.nav').classList.remove('nav-open');
     });
   });
 

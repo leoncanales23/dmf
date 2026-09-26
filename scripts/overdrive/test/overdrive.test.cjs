@@ -256,6 +256,14 @@ test('source and generated output stay synchronized; runtime inlined once, in or
   assert.ok(MOD.includes('perf.stageOverdrive = {') && !MOD.includes('perf.overdrive ='), 'debug perf surface (does not clobber the engine perf.overdrive)');
 });
 
+test('mobile menu overlay is not clipped by the bar (backdrop-filter containing block)', function () {
+  for (const html of [SRC, OUT]) {
+    assert.ok(html.includes('.nav.nav-open{backdrop-filter:none;-webkit-backdrop-filter:none}'), 'bar drops its filter while open');
+    assert.ok(html.includes("document.querySelector('.nav').classList.toggle('nav-open', open);"), 'toggle keeps the bar in sync');
+    assert.ok(html.includes("document.querySelector('.nav').classList.remove('nav-open');"), 'a link closes both');
+  }
+});
+
 test('frozen paths untouched', function () {
   const FROZEN = ['workers', 'firestore.rules', 'firebase.json', 'firebase.academy.json', 'public/login.html', 'public/payment-result.html',
     'public/academy.html', 'public/academy-config.js', 'server.js', 'functions', 'assets'];
