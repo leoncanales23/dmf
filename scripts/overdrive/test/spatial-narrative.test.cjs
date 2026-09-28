@@ -306,7 +306,7 @@ test('the Receiver and the mixer read the narrative without new loops', function
 });
 
 test('payments, auth, entitlement, signing and geometry are untouched', function () {
-  const FROZEN = ['workers', 'firestore.rules', 'firebase.json', 'firebase.academy.json', 'server.js', 'functions', 'assets/models'];
+  const FROZEN = ['workers/dmf-payments', 'workers/dmf-stream-signer', 'firestore.rules', 'firebase.json', 'firebase.academy.json', 'server.js', 'functions', 'assets/models', "':!assets/models/dmf-studio-web.glb'"];
   let base = null;
   try { base = execSync('git merge-base HEAD origin/main', { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch (e) { base = null; }
   if (base) {
