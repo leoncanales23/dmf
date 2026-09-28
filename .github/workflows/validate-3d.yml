@@ -24,6 +24,7 @@ on:
       - 'public/academy.html'
       - 'public/academy-config.js'
       - 'public/payment-result.html'
+      - 'public/commerce/**'
       - 'firebase.json'
       - 'firebase.academy.json'
       - 'server.js'
@@ -129,6 +130,7 @@ jobs:
           node scripts/overdrive/test/lightspeed.test.cjs
           node scripts/overdrive/test/landing-certification.test.cjs
           node scripts/overdrive/test/academy-pages-i18n.test.cjs
+          node scripts/overdrive/test/commerce.test.cjs
           node scripts/overdrive/test/dev-hyperdrive.test.cjs
 
   validate-academy:
@@ -975,3 +977,88 @@ jobs:
             exit 1
           }
           echo "Pipeline reproducibility verified — committed artifacts match regenerated."
+
+  validate-klap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Klap Worker syntax
+        run: |
+          for f in workers/dmf-klap-payments/src/*.js; do node --check "$f"; done
+          echo "Klap Worker syntax — OK"
+
+      - name: Klap Worker behaviour (pure + end-to-end against simulated Firestore / Auth / Klap)
+        run: |
+          node workers/dmf-klap-payments/test/klap.test.mjs
+          node workers/dmf-klap-payments/test/worker.test.mjs
+
+      - name: Klap isolation and secret hygiene
+        run: |
+          W=workers/dmf-klap-payments
+          grep -q 'KLAP_ENVIRONMENT = "production"' $W/wrangler.toml || { echo "FAIL: production env var missing"; exit 1; }
+          grep -q 'name = "dmf-klap-payments-sandbox"' $W/wrangler.toml || { echo "FAIL: isolated sandbox Worker missing"; exit 1; }
+          grep -q 'KLAP_ENVIRONMENT = "sandbox"' $W/wrangler.toml || { echo "FAIL: sandbox env var missing"; exit 1; }
+          if grep -qE 'KLAP_API_KEY_(SANDBOX|PRODUCTION) *=' $W/wrangler.toml; then echo "FAIL: Klap key must be a Wrangler secret, never a var"; exit 1; fi
+          if grep -rqiE '(apikey|api_key)["'"'"' ]*[:=] *["'"'"'][A-Za-z0-9]{16,}' $W/src; then echo "FAIL: hard-coded key-like literal in Klap Worker"; exit 1; fi
+          for f in public/index.html public/login.html public/academy.html public/payment-result.html public/commerce/*.js; do
+            if grep -q 'KLAP_API_KEY' "$f"; then echo "FAIL: Klap key reference in $f"; exit 1; fi
+          done
+          echo "Klap isolation and secret hygiene — OK"
+
+  validate-payment-provider:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Payment router, analytics and page wiring
+        run: |
+          node --check public/commerce/payment-router.js
+          node --check public/commerce/analytics.js
+          node scripts/overdrive/test/commerce.test.cjs
+
+      - name: Mercado Pago remains the default provider
+        run: |
+          node scripts/inject-academy-env.cjs
+          grep -q '"provider":"mercadopago"' public/academy-env.js || { echo "FAIL: default provider must stay mercadopago"; exit 1; }
+          grep -q '"klapEnabled":false' public/academy-env.js || { echo "FAIL: Klap must be disabled by default"; exit 1; }
+          echo "Default provider — OK"
+
+  validate-immersive-engine:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Meshopt web relic matches the original geometry
+        run: |
+          node -e "
+            const fs = require('fs');
+            const glb = (f) => { const d = fs.readFileSync(f); const l = d.readUInt32LE(12); return { size: d.length, json: JSON.parse(d.slice(20, 20 + l)) }; };
+            const a = glb('assets/models/dmf-studio-optimized.glb'), b = glb('assets/models/dmf-studio-web.glb');
+            const prim = (g) => g.json.meshes[0].primitives[0];
+            const acc = (g, k) => g.json.accessors[prim(g).attributes[k]];
+            const ok = (c, m) => { if (!c) { console.error('FAIL: ' + m); process.exit(1); } };
+            ok((b.json.extensionsUsed || []).includes('EXT_meshopt_compression'), 'web GLB is not Meshopt-compressed');
+            ok(acc(b, 'POSITION').componentType === 5126, 'positions must stay float32 (relic zone maths)');
+            ok(acc(a, 'POSITION').count === acc(b, 'POSITION').count, 'vertex count changed');
+            ok(a.json.accessors[prim(a).indices].count === b.json.accessors[prim(b).indices].count, 'index count changed');
+            ok(b.size < a.size * 0.45, 'web GLB not meaningfully smaller: ' + b.size);
+            console.log('Web relic: ' + a.size + ' -> ' + b.size + ' bytes (' + Math.round(100 - 100 * b.size / a.size) + '% smaller), geometry identical in counts');
+          "
+          grep -q "assets/models/dmf-studio-web.glb" scripts/overdrive/relic.js || { echo "FAIL: relic.js does not load the web GLB"; exit 1; }
+          grep -q "libs/meshopt_decoder.js" scripts/overdrive/relic.js || { echo "FAIL: Meshopt decoder not loaded"; exit 1; }
+          grep -q "assets/models/dmf-studio-optimized.glb" scripts/overdrive/relic.js || { echo "FAIL: original GLB fallback/download removed"; exit 1; }
+          echo "Immersive engine assets — OK"

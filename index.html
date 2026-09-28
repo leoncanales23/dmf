@@ -881,8 +881,8 @@ html.eh-calm .dmf-signal-title{scale:none}
     <h1 aria-label="Demian Muller"><span class="hero-line" aria-hidden="true"><span><span class="hc" style="--i:0">D</span><span class="hc" style="--i:1">e</span><span class="hc" style="--i:2">m</span><span class="hc" style="--i:3">i</span><span class="hc" style="--i:4">a</span><span class="hc" style="--i:5">n</span></span></span><span class="hero-line" aria-hidden="true"><span><span class="hc" style="--i:6">M</span><span class="hc" style="--i:7">u</span><span class="hc" style="--i:8">l</span><span class="hc" style="--i:9">l</span><span class="hc" style="--i:10">e</span><span class="hc" style="--i:11">r</span></span></span></h1>
     <p class="hero-role" data-i18n="role">Electronic Artist · DJ · Live Act</p>
     <div class="hero-actions">
-      <a href="#academy" class="hero-cta"><span data-i18n="heroCta">Enter DMF Academy</span><span aria-hidden="true">→</span></a>
-      <a href="#relic" class="hero-cta-2"><span data-i18n="heroCta2">Receive the signal</span><span aria-hidden="true">↓</span></a>
+      <a href="#academy" class="hero-cta" data-track="cta_click" data-track-placement="hero"><span data-i18n="heroCta">Enter DMF Academy</span><span aria-hidden="true">→</span></a>
+      <a href="#relic" class="hero-cta-2" data-track="hero_interaction" data-track-placement="hero"><span data-i18n="heroCta2">Receive the signal</span><span aria-hidden="true">↓</span></a>
     </div>
     <div class="hero-stats">
       <div><div class="stat-num">20+</div><div class="stat-label" data-i18n="statYears">Years touring</div></div>
@@ -1035,7 +1035,7 @@ html.eh-calm .dmf-signal-title{scale:none}
 </section>
 
 <!-- ACADEMY -->
-<section id="academy" class="section">
+<section id="academy" class="section" data-track-view="academy_view">
   <div class="acad-kicker">
     <span class="section-num">06</span>
     <span style="font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:#8a8178" data-i18n="acadKicker">DMF Academy — Dynamic Music Formula</span>
@@ -1107,7 +1107,7 @@ html.eh-calm .dmf-signal-title{scale:none}
 
   <!-- TIER PRICING -->
   <div class="acad-curri-head" data-i18n="tiersHead">Choose your path</div>
-  <div class="tiers-grid" id="tiersGrid"></div>
+  <div class="tiers-grid" id="tiersGrid" data-track-view="pricing_view"></div>
 
   <!-- GUARANTEE -->
   <div class="acad-guarantee">
@@ -1234,6 +1234,10 @@ html.eh-calm .dmf-signal-title{scale:none}
 </section>
 
 <script src="/academy-env.js"></script>
+<!-- VibraAlto Immersive Commerce core: funnel analytics + provider-agnostic checkout (versioned: *.js is cached immutable) -->
+<script src="/commerce/analytics.js?v=1"></script>
+<script src="/commerce/payment-router.js?v=1" defer></script>
+<script>if (window.dmfTrack) window.dmfTrack('landing_view', { lang: document.documentElement.lang }, { once: true });</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script>
@@ -1744,8 +1748,29 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
     var paymentEnvironment = getPaymentEnvironment();
     var PAYMENTS_URL = getPaymentsUrl(paymentEnvironment);
+    // Provider-agnostic router (public/commerce/payment-router.js). If it failed to load, the original
+    // Mercado Pago request below still sells: the conversion never depends on an optional script.
+    var commerce = window.DMFCommerce;
+    var paymentProvider = commerce ? commerce.selectProvider(commerce.readConfig(window), window.location.search, paymentEnvironment) : 'mercadopago';
+    if (window.dmfTrack) window.dmfTrack('cta_click', { placement: 'pricing', product: productId, provider: paymentProvider });
+
+    function restoreButton() {
+      btn.disabled = false;
+      btn.innerHTML = origText;
+    }
 
     function doCheckout(idToken) {
+      if (commerce) {
+        commerce.checkout(productId, idToken, { environment: paymentEnvironment, provider: paymentProvider })
+          .then(function(result){ return commerce.launch(result); })
+          .then(function(mode){ if (mode === 'flex') restoreButton(); })
+          .catch(function(err){
+            console.error('[VIBRA PAYMENTS] checkout error:', err && err.message);
+            alert(lang === 'es' ? 'No pudimos iniciar el pago. Intenta de nuevo en un momento.' : 'We could not start the payment. Please try again in a moment.');
+            restoreButton();
+          });
+        return;
+      }
       fetch(PAYMENTS_URL + '/create-preference', {
         method: 'POST',
         headers: {
@@ -1796,6 +1821,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       try {
         sessionStorage.setItem('dmf_purchase_intent', productId);
         sessionStorage.setItem('dmf_purchase_environment', paymentEnvironment);
+        sessionStorage.setItem('dmf_purchase_provider', paymentProvider);
       } catch(ex) {}
       window.location.href = '/login';
     }

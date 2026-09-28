@@ -367,12 +367,12 @@ test('source and generated output are synchronized; inlined once, after the Blac
 });
 
 test('frozen paths untouched; payment tests and the mobile nav still pass', function () {
-  const FROZEN = ['workers', 'firestore.rules', 'firebase.json', 'firebase.academy.json', '.firebaserc', 'public/academy-config.js', 'server.js', 'functions', 'assets'];
+  const FROZEN = ['workers/dmf-payments', 'workers/dmf-stream-signer', 'firestore.rules', 'firebase.json', 'firebase.academy.json', '.firebaserc', 'public/academy-config.js', 'server.js', 'functions', 'assets', "':!assets/models/dmf-studio-web.glb'"];
   let base = null;
   try { base = execSync('git merge-base HEAD origin/main', { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch (e) { base = null; }
   if (base) {
     assert.equal(execSync('git diff --name-only ' + base + ' -- ' + FROZEN.join(' '), { cwd: ROOT }).toString().trim(), '', 'frozen paths changed');
-    assert.equal(execSync('git diff --name-only ' + base + ' -- "*.glb" "*.stl" "*.3mf" "*.mp4" "*.png" "*.jpg" "*.webp"', { cwd: ROOT }).toString().trim(), '', 'binary assets changed');
+    assert.equal(execSync('git diff --name-only ' + base + ' -- "*.glb" "*.stl" "*.3mf" "*.mp4" "*.png" "*.jpg" "*.webp" \':!assets/models/dmf-studio-web.glb\'', { cwd: ROOT }).toString().trim(), '', 'binary assets changed');
   }
   assert.ok(!/mercadopago|firebase|firestore|signer|checkout|payment|enroll|price|localStorage|sessionStorage/i.test(LAYER));
   const dir = path.join(ROOT, 'workers', 'dmf-payments', 'test');

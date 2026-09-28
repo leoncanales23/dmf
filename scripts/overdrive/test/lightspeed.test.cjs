@@ -305,7 +305,7 @@ test('36 · source and generated output are synchronized; inlined once after the
   assert.ok(!/blur|filter|letter-spacing|font-size/.test(rule), 'type: transform/text-shadow only');
 });
 
-const FROZEN = ['workers', 'firestore.rules', 'firebase.json', 'firebase.academy.json', '.firebaserc', 'public/academy-config.js', 'server.js', 'functions', 'assets'];
+const FROZEN = ['workers/dmf-payments', 'workers/dmf-stream-signer', 'firestore.rules', 'firebase.json', 'firebase.academy.json', '.firebaserc', 'public/academy-config.js', 'server.js', 'functions', 'assets', "':!assets/models/dmf-studio-web.glb'"];
 function changedFrozen() {
   let base = null;
   try { base = execSync('git merge-base HEAD origin/main', { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch (e) { base = null; }

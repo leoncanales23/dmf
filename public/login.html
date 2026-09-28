@@ -200,6 +200,8 @@ a:hover{color:#ff7a45}
 <script>window.DMF_I18N.apply();</script>
 
 <script src="/academy-env.js"></script>
+<script src="/commerce/analytics.js?v=1"></script>
+<script src="/commerce/payment-router.js?v=1"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script>
@@ -222,8 +224,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   var T = window.DMF_I18N.t;
   var DEMO_MODE = !!(window.__DMF_ACADEMY_DEMO__);
   var purchaseEnvironment = 'production';
+  var purchaseProvider = 'mercadopago';
   try {
     purchaseEnvironment = sessionStorage.getItem('dmf_purchase_environment') === 'sandbox' ? 'sandbox' : 'production';
+    purchaseProvider = sessionStorage.getItem('dmf_purchase_provider') === 'klap' ? 'klap' : 'mercadopago';
   } catch (_) { /* ignore */ }
   var PAYMENTS_URL = purchaseEnvironment === 'sandbox'
     ? 'https://dmf-payments-sandbox.vibraalto-cl.workers.dev'
@@ -288,6 +292,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var intent = sessionStorage.getItem('dmf_purchase_intent');
       if (intent) {
         sessionStorage.removeItem('dmf_purchase_intent');
+        sessionStorage.removeItem('dmf_purchase_provider');
         return intent;
       }
     } catch (ex) { /* ignore */ }
@@ -349,8 +354,15 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         var intent = consumePurchaseIntent();
         if (intent) {
           btn.textContent = T('redirecting');
+          var commerce = window.DMFCommerce;
           firebase.auth().currentUser.getIdToken()
             .then(function (idToken) {
+              if (commerce) {
+                // Provider-agnostic checkout (Klap or Mercado Pago, with fallback); on failure → /academy.
+                return commerce.checkout(intent, idToken, { environment: purchaseEnvironment, provider: purchaseProvider })
+                  .then(function (result) { return commerce.launch(result); })
+                  .then(function () { return { handled: true }; });
+              }
               return fetch(PAYMENTS_URL + '/create-preference', {
                 method: 'POST',
                 headers: {
@@ -360,8 +372,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
                 body: JSON.stringify({ productId: intent })
               });
             })
-            .then(function (r) { return r.json(); })
+            .then(function (r) { return r.handled ? r : r.json(); })
             .then(function (data) {
+              if (data.handled) return;
               if (data.ok && data.init_point) {
                 window.location.href = data.init_point;
               } else {

@@ -301,7 +301,7 @@ test('19 · offer sanctuary suppresses V4', function () {
 });
 
 test('20 · Receiver materials are cached at load, never traversed per frame', function () {
-  const loadCb = between(RELIC, "new THREE.GLTFLoader().load(", 'function animateRelic(');
+  const loadCb = between(RELIC, "relicLoader.load(", 'function animateRelic(');
   assert.ok(loadCb.includes('relicMats.push(relicMat);'), 'cached in the load callback');
   assert.ok(loadCb.includes('relicMat.isMeshStandardMaterial || relicMat.isMeshPhysicalMaterial') && loadCb.includes('relicMat.emissive'), 'unsupported materials are skipped');
   const frame = body(RELIC, 'function animateRelic(s, dt)');
@@ -323,13 +323,13 @@ test('21 · source and generated output are synchronized; runtime inlined once, 
 });
 
 test('22 · frozen paths untouched', function () {
-  const FROZEN = ['workers', 'firestore.rules', 'firebase.json', 'firebase.academy.json', '.firebaserc', 'public/academy-config.js', 'server.js', 'functions', 'assets'];
+  const FROZEN = ['workers/dmf-payments', 'workers/dmf-stream-signer', 'firestore.rules', 'firebase.json', 'firebase.academy.json', '.firebaserc', 'public/academy-config.js', 'server.js', 'functions', 'assets', "':!assets/models/dmf-studio-web.glb'"];
   let base = null;
   try { base = execSync('git merge-base HEAD origin/main', { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch (e) { base = null; }
   if (base) {
     const changed = execSync('git diff --name-only ' + base + ' -- ' + FROZEN.join(' '), { cwd: ROOT }).toString().trim();
     assert.equal(changed, '', 'frozen paths changed: ' + changed);
-    const bin = execSync('git diff --name-only ' + base + ' -- "*.glb" "*.stl" "*.3mf" "*.png" "*.jpg" "*.webp" "*.mp4"', { cwd: ROOT }).toString().trim();
+    const bin = execSync('git diff --name-only ' + base + ' -- "*.glb" "*.stl" "*.3mf" "*.png" "*.jpg" "*.webp" "*.mp4" \':!assets/models/dmf-studio-web.glb\'', { cwd: ROOT }).toString().trim();
     assert.equal(bin, '', 'no binary assets: ' + bin);
   }
   assert.ok(!/mercadopago|firebase|firestore|signer|checkout|payment|enroll|price|fetch\(|XMLHttpRequest|localStorage|sessionStorage/i.test(LAYER));

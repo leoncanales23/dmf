@@ -34,7 +34,7 @@ window.DMF_I18N = (function () {
       "stPending": "Pendiente",
       "activating": "Activando…",
       "btnEnter": "Entrar a la Academy →",
-      "btnRetry": "Intentar de nuevo →",
+      "btnRetry": "Intentar con otro medio de pago →",
       "btnBack": "Volver a DMF →",
       "btnSignIn": "Iniciar sesión →",
       "invalidTitle": "Enlace no válido",
@@ -51,8 +51,6 @@ window.DMF_I18N = (function () {
       "declinedMsg": "No pudimos procesar tu pago y no se realizó ningún cargo. Inténtalo de nuevo o usa otro medio de pago.",
       "pendingTitle": "Pago pendiente",
       "pendingMsg": "Tu pago está en revisión. Con algunos medios de pago puede tardar unos minutos. Activaremos tu cuenta en cuanto se confirme.",
-      "genericTitle": "Procesando",
-      "genericMsg": "Tu pago se está procesando. Vuelve a revisar pronto.",
       "connTitle": "Problema de conexión",
       "connMsg": "No pudimos verificar el estado del pago. Revisa tu email o intenta entrar a la Academy más tarde.",
       "authTitle": "Inicio de sesión requerido",
@@ -60,7 +58,16 @@ window.DMF_I18N = (function () {
       "configMsg": "El servicio de autenticación no está disponible. Inténtalo más tarde.",
       "back": "← Volver a DMF",
       "langSwitch": "English",
-      "langSwitchAria": "Ver esta página en inglés"
+      "langSwitchAria": "Ver esta página en inglés",
+      "stCancelled": "Cancelado",
+      "stRefunded": "Reembolsado",
+      "stError": "Sin respuesta",
+      "btnRecheck": "Verificar de nuevo →",
+      "btnSupport": "Contactar soporte →",
+      "cancelledTitle": "Pago cancelado",
+      "cancelledMsg": "El pago se canceló y no se realizó ningún cargo. Puedes intentarlo de nuevo cuando quieras.",
+      "refundedTitle": "Pago reembolsado",
+      "refundedMsg": "Este pago fue reembolsado. Si crees que es un error, escríbenos y lo revisamos."
     },
     "en": {
       "pageTitle": "DMF Academy — Payment",
@@ -72,7 +79,7 @@ window.DMF_I18N = (function () {
       "stPending": "Pending",
       "activating": "Activating...",
       "btnEnter": "Enter Academy →",
-      "btnRetry": "Try Again →",
+      "btnRetry": "Try another payment method →",
       "btnBack": "Back to DMF →",
       "btnSignIn": "Sign In →",
       "invalidTitle": "Invalid Link",
@@ -89,8 +96,6 @@ window.DMF_I18N = (function () {
       "declinedMsg": "Your payment could not be processed. No charge was made. Please try again or use a different payment method.",
       "pendingTitle": "Payment Pending",
       "pendingMsg": "Your payment is being reviewed. This can take a few minutes for some payment methods. We will activate your account once confirmed.",
-      "genericTitle": "Processing",
-      "genericMsg": "Your payment is being processed. Check back soon.",
       "connTitle": "Connection Issue",
       "connMsg": "Could not verify payment status. Please check your email or try accessing the academy later.",
       "authTitle": "Authentication Required",
@@ -98,7 +103,16 @@ window.DMF_I18N = (function () {
       "configMsg": "Authentication service is not available. Please try again later.",
       "back": "← Back to DMF",
       "langSwitch": "Español",
-      "langSwitchAria": "View this page in Spanish"
+      "langSwitchAria": "View this page in Spanish",
+      "stCancelled": "Cancelled",
+      "stRefunded": "Refunded",
+      "stError": "No response",
+      "btnRecheck": "Check again →",
+      "btnSupport": "Contact support →",
+      "cancelledTitle": "Payment cancelled",
+      "cancelledMsg": "The payment was cancelled and no charge was made. You can try again whenever you like.",
+      "refundedTitle": "Payment refunded",
+      "refundedMsg": "This payment was refunded. If you think this is a mistake, write to us and we will look into it."
     }
   };
   function t(key) {
@@ -151,6 +165,13 @@ a:hover{color:#ff7a45}
 .result-status.pending{background:rgba(255,170,50,.1);border:1px solid rgba(255,170,50,.3);color:#ffaa32}
 .result-btn{display:inline-block;padding:16px 32px;font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.12em;text-transform:uppercase;color:#0a0806;background:#ff5b1e;border:none;cursor:pointer;transition:background .2s;text-decoration:none}
 .result-btn:hover{background:#ff7a45;color:#0a0806}
+.result-actions{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:4px}
+.result-actions:empty{display:none}
+button.result-btn{font:inherit;font-family:'Anton',sans-serif;font-size:16px;letter-spacing:.12em}
+.result-status.polling{animation:dmfBreath 2.4s ease-in-out infinite}
+@keyframes dmfBreath{0%,100%{opacity:1}50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.result-status.polling,.spinner{animation:none}}
+@media (max-width:480px){.result-actions .result-btn{width:100%;padding:16px 14px;font-size:15px;letter-spacing:.06em}}
 .result-footer{text-align:center;margin-top:32px;font-size:12px;color:#665f58;letter-spacing:.04em}
 .result-footer a{font-size:12px}
 .dmf-lang-switch{background:none;border:0;padding:0;margin-left:18px;font-family:'Archivo',sans-serif;font-size:12px;letter-spacing:.04em;color:#8a8178;cursor:pointer;text-decoration:underline;text-underline-offset:3px;transition:color .2s}
@@ -172,6 +193,7 @@ a:hover{color:#ff7a45}
     <div class="result-title" id="resultTitle" data-i18n="processingTitle">Procesando pago</div>
     <div class="result-msg" id="resultMsg" data-i18n="processingMsg">Estamos verificando el estado de tu pago. Esto puede tardar un momento…</div>
     <div class="result-status polling" id="resultStatus" data-i18n="checking">Verificando</div>
+    <div class="result-actions" id="resultActions"></div>
   </div>
 
   <div class="result-footer">
@@ -182,6 +204,8 @@ a:hover{color:#ff7a45}
 <script>window.DMF_I18N.apply();</script>
 
 <script src="/academy-env.js"></script>
+<script src="/commerce/analytics.js?v=1"></script>
+<script src="/commerce/payment-router.js?v=1"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script>
@@ -192,41 +216,99 @@ a:hover{color:#ff7a45}
   var params = new URLSearchParams(window.location.search);
   var purchaseId = params.get('purchaseId');
   var paymentEnvironment = params.get('paymentEnvironment') === 'sandbox' ? 'sandbox' : 'production';
-  var PAYMENTS_URL = paymentEnvironment === 'sandbox'
-    ? 'https://dmf-payments-sandbox.vibraalto-cl.workers.dev'
-    : (window.__DMF_PAYMENTS_URL__ || 'https://dmf-payments.vibraalto-cl.workers.dev');
+  // `provider` only chooses which Worker to ask; that server alone decides the status and the access.
+  var paymentProvider = params.get('provider') === 'klap' ? 'klap' : 'mercadopago';
+  var commerce = window.DMFCommerce;
+  var PAYMENTS_URL = commerce
+    ? commerce.endpoint(commerce.readConfig(window), paymentProvider, paymentEnvironment)
+    : (paymentProvider === 'klap'
+      ? (paymentEnvironment === 'sandbox' ? 'https://dmf-klap-payments-sandbox.vibraalto-cl.workers.dev' : 'https://dmf-klap-payments.vibraalto-cl.workers.dev')
+      : (paymentEnvironment === 'sandbox'
+        ? 'https://dmf-payments-sandbox.vibraalto-cl.workers.dev'
+        : (window.__DMF_PAYMENTS_URL__ || 'https://dmf-payments.vibraalto-cl.workers.dev')));
+  var SUPPORT_URL = 'mailto:Demian.muller@gmail.com?subject=DMF%20Academy%20%E2%80%94%20pago';
 
   var titleEl = document.getElementById('resultTitle');
   var msgEl = document.getElementById('resultMsg');
   var statusEl = document.getElementById('resultStatus');
   var spinnerEl = document.getElementById('resultSpinner');
-  var cardEl = document.getElementById('resultCard');
+  var actionsEl = document.getElementById('resultActions');
+
+  function track(event, extra) {
+    if (typeof window.dmfTrack !== 'function') return;
+    var props = { provider: paymentProvider, environment: paymentEnvironment };
+    for (var k in extra) if (Object.prototype.hasOwnProperty.call(extra, k)) props[k] = extra[k];
+    window.dmfTrack(event, props, { once: true });
+  }
+
+  function clearActions() {
+    while (actionsEl.firstChild) actionsEl.removeChild(actionsEl.firstChild);
+  }
 
   function addButton(href, label, background) {
     var a = document.createElement('a');
     a.className = 'result-btn';
     a.href = href;
-    a.style.marginTop = '12px';
     if (background) a.style.background = background;
     a.textContent = label;
-    cardEl.appendChild(a);
+    actionsEl.appendChild(a);
+    return a;
+  }
+
+  function addAction(label, onClick) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'result-btn';
+    b.textContent = label;
+    b.addEventListener('click', onClick);
+    actionsEl.appendChild(b);
+    return b;
+  }
+
+  // Provider vocabularies folded into the universal states (Mercado Pago sends its own names).
+  function normalize(status) {
+    var s = String(status || '');
+    if (s === 'in_process' || s === 'created' || s === 'authorized') return 'pending';
+    if (s === 'charged_back') return 'refunded';
+    return ['pending', 'approved', 'rejected', 'cancelled', 'refunded'].indexOf(s) >= 0 ? s : 'pending';
+  }
+
+  function showProcessing() {
+    clearActions();
+    spinnerEl.style.display = '';
+    titleEl.textContent = T('processingTitle');
+    msgEl.textContent = T('processingMsg');
+    statusEl.className = 'result-status polling';
+    statusEl.textContent = T('checking');
   }
 
   function showState(state, title, msg) {
     spinnerEl.style.display = 'none';
+    clearActions();
     titleEl.textContent = title;
     msgEl.textContent = msg;
-    statusEl.className = 'result-status ' + state;
+    statusEl.className = 'result-status ' + ({ cancelled: 'rejected', refunded: 'rejected', error: 'pending' }[state] || state);
 
     if (state === 'approved') {
       statusEl.textContent = T('stApproved');
       addButton('/academy', T('btnEnter'));
     } else if (state === 'rejected') {
       statusEl.textContent = T('stDeclined');
-      addButton('/', T('btnRetry'));
+      addButton('/#academy', T('btnRetry'));
+    } else if (state === 'cancelled') {
+      statusEl.textContent = T('stCancelled');
+      addButton('/#academy', T('btnRetry'));
+    } else if (state === 'refunded') {
+      statusEl.textContent = T('stRefunded');
+      addButton(SUPPORT_URL, T('btnSupport'), '#665f58');
     } else if (state === 'pending') {
       statusEl.textContent = T('stPending');
+      addAction(T('btnRecheck'), start);
       addButton('/', T('btnBack'), '#665f58');
+    } else if (state === 'error') {
+      statusEl.textContent = T('stError');
+      addAction(T('btnRecheck'), start);
+      addButton(SUPPORT_URL, T('btnSupport'), '#665f58');
     }
   }
 
@@ -243,9 +325,28 @@ a:hover{color:#ff7a45}
     } catch (e) { /* may already be initialized */ }
   }
 
+  // Backoff polling: 2 s, then ×1.5 up to 10 s, for at most 3 minutes; "check again" restarts it.
+  var FIRST_DELAY = 2000;
+  var MAX_DELAY = 10000;
+  var MAX_WAIT_MS = 180000;
+  var delay = FIRST_DELAY;
+  var startedAt = 0;
   var attempts = 0;
-  var maxAttempts = 20;
-  var pollInterval = 3000;
+
+  function schedule() {
+    if (Date.now() - startedAt + delay > MAX_WAIT_MS) return false;
+    setTimeout(poll, delay);
+    delay = Math.min(MAX_DELAY, Math.round(delay * 1.5));
+    return true;
+  }
+
+  function start() {
+    startedAt = Date.now();
+    delay = FIRST_DELAY;
+    attempts = 0;
+    showProcessing();
+    poll();
+  }
 
   function poll() {
     attempts++;
@@ -264,63 +365,54 @@ a:hover{color:#ff7a45}
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (!data.ok) {
-            if (attempts < maxAttempts) {
-              setTimeout(poll, pollInterval);
-            } else {
-              showState('pending', T('inProcessTitle'), T('inProcessMsg'));
-            }
+            if (!schedule()) showState('pending', T('inProcessTitle'), T('inProcessMsg'));
             return;
           }
 
           if (data.enrolled) {
             showState('approved', T('welcomeTitle'), T('welcomeMsg'));
+            track('payment_approved', { product: data.productId });
+            track('conversion_complete', { product: data.productId });
             return;
           }
 
-          if (data.status === 'approved') {
-            if (attempts < maxAttempts) {
-              statusEl.textContent = T('activating');
-              setTimeout(poll, pollInterval);
-            } else {
-              showState('approved', T('confirmedTitle'), T('confirmedMsg'));
-            }
+          var status = normalize(data.status);
+          if (status === 'approved') {
+            statusEl.textContent = T('activating');
+            if (!schedule()) showState('approved', T('confirmedTitle'), T('confirmedMsg'));
             return;
           }
-
-          if (data.status === 'rejected' || data.status === 'cancelled' || data.status === 'refunded') {
+          if (status === 'rejected') {
             showState('rejected', T('declinedTitle'), T('declinedMsg'));
+            track('payment_rejected', { status: status });
+            return;
+          }
+          if (status === 'cancelled') {
+            showState('cancelled', T('cancelledTitle'), T('cancelledMsg'));
+            track('payment_rejected', { status: status });
+            return;
+          }
+          if (status === 'refunded') {
+            showState('refunded', T('refundedTitle'), T('refundedMsg'));
+            track('payment_rejected', { status: status });
             return;
           }
 
-          if (data.status === 'pending' || data.status === 'in_process') {
-            if (attempts < maxAttempts) {
-              setTimeout(poll, pollInterval);
-            } else {
-              showState('pending', T('pendingTitle'), T('pendingMsg'));
-            }
-            return;
-          }
-
-          if (attempts < maxAttempts) {
-            setTimeout(poll, pollInterval);
-          } else {
-            showState('pending', T('genericTitle'), T('genericMsg'));
-          }
+          if (attempts === 1) track('payment_pending', { status: status });
+          if (!schedule()) showState('pending', T('pendingTitle'), T('pendingMsg'));
         })
         .catch(function () {
-          if (attempts < maxAttempts) {
-            setTimeout(poll, pollInterval);
-          } else {
-            showState('pending', T('connTitle'), T('connMsg'));
-          }
+          if (!schedule()) showState('error', T('connTitle'), T('connMsg'));
         });
+    }, function () {
+      showState('error', T('connTitle'), T('connMsg'));
     });
   }
 
   if (typeof firebase !== 'undefined' && firebase.auth) {
     firebase.auth().onAuthStateChanged(function (user) {
       if (user) {
-        poll();
+        start();
       } else {
         showState('rejected', T('authTitle'), T('signInMsg'));
         addButton('/login', T('btnSignIn'), '#665f58');

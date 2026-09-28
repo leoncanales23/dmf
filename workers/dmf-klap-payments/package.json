@@ -1,0 +1,9 @@
+{
+  "name": "dmf-klap-payments",
+  "private": true,
+  "type": "module",
+  "description": "DMF Academy — Klap Checkout Flex payments Worker (sandbox and production isolated)",
+  "scripts": {
+    "test": "node test/klap.test.mjs && node test/worker.test.mjs"
+  }
+}

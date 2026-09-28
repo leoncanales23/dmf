@@ -1,0 +1,26 @@
+name = "dmf-klap-payments"
+main = "src/index.js"
+compatibility_date = "2026-09-19"
+account_id = "27a73047e3d2a859af87db771d3569a2"
+workers_dev = true
+
+# Default/top-level Worker is production. It reads only KLAP_API_KEY_PRODUCTION and refuses to run if
+# KLAP_API_KEY_SANDBOX is bound. KLAP_API_BASE stays unset until confirmed on developers.klap.cl:
+# without it every Klap route answers 503 "klap-not-configured" (fail closed).
+[vars]
+KLAP_ENVIRONMENT = "production"
+KLAP_WEBHOOK_BASE = "https://dmf-klap-payments.vibraalto-cl.workers.dev"
+DMF_FIREBASE_PROJECT_ID = "dmf-academy"
+DMF_PUBLIC_URL = "https://dmf.vibraalto.cl"
+
+# Persistent, isolated sandbox Worker with its own vars and secrets:
+#   npx wrangler deploy --env sandbox
+[env.sandbox]
+name = "dmf-klap-payments-sandbox"
+workers_dev = true
+
+[env.sandbox.vars]
+KLAP_ENVIRONMENT = "sandbox"
+KLAP_WEBHOOK_BASE = "https://dmf-klap-payments-sandbox.vibraalto-cl.workers.dev"
+DMF_FIREBASE_PROJECT_ID = "dmf-academy"
+DMF_PUBLIC_URL = "https://dmf.vibraalto.cl"

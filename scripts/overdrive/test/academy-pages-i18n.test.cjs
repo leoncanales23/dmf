@@ -131,10 +131,11 @@ test('/payment-result verifies with the server only; never grants from URL param
   assert.ok(js.includes('if (!purchaseId) {'), 'purchaseId required');
   assert.ok(js.includes("fetch(PAYMENTS_URL + '/check-status?purchaseId=' + encodeURIComponent(purchaseId), {") && js.includes("headers: { 'Authorization': 'Bearer ' + idToken }"));
   assert.ok(js.includes("if (data.enrolled) {\n            showState('approved', T('welcomeTitle'), T('welcomeMsg'));"), 'welcome only when the server says enrolled');
-  assert.deepEqual(all(/params\.get\('([^']+)'\)/g, js).map((m) => m[1]).sort(), ['paymentEnvironment', 'purchaseId'], 'no status/approved parameter is read');
+  // provider only selects which Worker is asked; nothing about the outcome is read from the URL.
+  assert.deepEqual(all(/params\.get\('([^']+)'\)/g, js).map((m) => m[1]).sort(), ['paymentEnvironment', 'provider', 'purchaseId'], 'no status/approved parameter is read');
   assert.ok(!/innerHTML|insertAdjacentHTML/.test(js), 'buttons are built with textContent');
   assert.ok(js.includes('a.textContent = label;'));
-  assert.ok(js.includes('var maxAttempts = 20;') && js.includes('var pollInterval = 3000;'));
+  assert.ok(js.includes('var FIRST_DELAY = 2000;') && js.includes('var MAX_WAIT_MS = 180000;'), 'bounded backoff polling');
 });
 
 test('/academy keeps its access guard, entitlement check and signed playback', function () {
