@@ -408,8 +408,9 @@ test('build: inlined once, after Lightspeed and before the director; dev server 
 });
 
 test('Receiver integration: bounded and additive — existing motion kept, V7 terms layered on top', () => {
-  assert.ok(RELIC.includes('keyLight.intensity *= eh.hvKey;'), 'key light × [0.55, 1.4]');
-  assert.ok(RELIC.includes('renderer.toneMappingExposure += clamp(0.06 * (eh.hvFog || 0) + 0.14 * (eh.singFlash || 0) - 0.12 * (eh.dropEdge || 0), -0.16, 0.16);'), 'exposure ±0.16');
+  assert.ok(RELIC.includes('keyLight.intensity *= eh.hvKey * (1 + 0.45 * (eh.singFlash || 0));'), 'key light × [0.55, 1.4], lifted by the one flash');
+  assert.ok(RELIC.includes('renderer.toneMappingExposure += clamp(0.06 * (eh.hvFog || 0) - 0.12 * (eh.dropEdge || 0) + 0.1 * (eh.dropPunch || 0), -0.16, 0.16) +'), 'exposure ±0.16');
+  assert.ok(RELIC.includes('clamp(0.3 * (eh.singFlash || 0), 0, 0.3);'), 'one bounded SINGULARITY flash');
   assert.ok(RELIC.includes('modelRef.scale.multiplyScalar(1 + 0.02 * ehv.singDominance);'), 'dominance ≤ +2%');
   assert.ok(RELIC.includes('if (e5 && auto) { r -= (e5.camDolly || 0) * fit; az += e5.camOrbit || 0; }'), 'camera modes never fight a user drag');
   assert.ok(RELIC.includes("coneL.c = coneR.c = 2 * Math.sqrt(coneL.k) * eh.pfZeta;"), 'speaker damping from energy');

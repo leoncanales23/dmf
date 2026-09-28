@@ -1663,7 +1663,7 @@
       fillLight.intensity = 0.3 + Math.sin(autoAngle + 2) * 0.06;
       if (eh && eh.hvKey != null) {
         // Bounded, smoothed outputs (hyperdrive-v2.js): key ×[0.55, 1.4], rim/accent/side/bg ∈ [0, 1].
-        keyLight.intensity *= eh.hvKey;
+        keyLight.intensity *= eh.hvKey * (1 + 0.45 * (eh.singFlash || 0));
         rimLight.intensity += 0.6 * (eh.hvRim || 0);
         accentLight.intensity += 0.5 * (eh.hvAccent || 0);
         fillLight.intensity += 0.35 * (eh.hvSide || 0);
@@ -1703,9 +1703,11 @@
       renderer.toneMappingExposure = 0.95 + Math.sin(autoAngle * 0.7) * 0.06 + od * 0.06 + s.cinema * 0.05 + hdLevel * 0.1 - hdPre * 0.08 - sPre * 0.12 + sLvl * 0.08;
       scene.fog.density = baseFog + hdPre * 0.012 + sPre * 0.014 - hdLevel * 0.003 - sLvl * 0.004;
       if (eh) {
-        // V7: fog exposure (compress before the drop, open on the hit), one controlled SINGULARITY flash,
-        // and the drop's micro blackout at T−100 ms. Bounded: exposure ±0.16, fog ≥ half its base.
-        renderer.toneMappingExposure += clamp(0.06 * (eh.hvFog || 0) + 0.14 * (eh.singFlash || 0) - 0.12 * (eh.dropEdge || 0), -0.16, 0.16);
+        // V7: fog exposure (compress before the drop, open on the hit), the drop's micro blackout at T−100 ms
+        // and its punch at T, bounded ±0.16; then one controlled SINGULARITY flash (≤ +0.3, 160 ms) on top,
+        // so it still reads through the compressed light. Fog ≥ half its base.
+        renderer.toneMappingExposure += clamp(0.06 * (eh.hvFog || 0) - 0.12 * (eh.dropEdge || 0) + 0.1 * (eh.dropPunch || 0), -0.16, 0.16) +
+          clamp(0.3 * (eh.singFlash || 0), 0, 0.3);
         scene.fog.density = Math.max(baseFog * 0.5, scene.fog.density - 0.003 * (eh.hvFog || 0));
       }
 
