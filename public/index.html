@@ -823,6 +823,8 @@ html.eh-calm .dmf-signal-title{scale:none}
 .dmf-signal-visual::after{content:'';position:absolute;z-index:3;inset:0;pointer-events:none;background:linear-gradient(90deg,#050404 0%,rgba(5,4,4,.55) 8%,transparent 28%,transparent 84%,rgba(5,4,4,.25) 100%),linear-gradient(180deg,rgba(5,4,4,.30),transparent 16%,transparent 80%,rgba(5,4,4,.50));box-shadow:inset 0 0 100px rgba(0,0,0,.5)}
 .dmf-signal-scan{position:absolute;z-index:4;left:8%;right:8%;top:18%;height:1px;background:linear-gradient(90deg,transparent,#ff5b1e 28%,rgba(255,91,30,.15) 65%,transparent);box-shadow:0 0 18px rgba(255,91,30,.45),0 0 40px rgba(255,91,30,.15);opacity:.22;animation:dmfSignalScan 7s ease-in-out infinite;pointer-events:none}
 .dmf-signal-scan2{position:absolute;z-index:4;left:12%;right:12%;top:65%;height:1px;background:linear-gradient(90deg,transparent,rgba(85,119,187,.6) 40%,rgba(85,119,187,.1) 70%,transparent);box-shadow:0 0 12px rgba(85,119,187,.35);opacity:.14;animation:dmfSignalScan2 11s ease-in-out infinite;pointer-events:none}
+/* PR88 HYPERRESONANCE: treble lights the scan lines (the relic writes --dmf-res-scan on change; 0 at rest). */
+.dmf-signal-scan,.dmf-signal-scan2{filter:brightness(calc(1 + var(--dmf-res-scan,0) * 1.6))}
 .dmf-signal-vignette{position:absolute;z-index:3;inset:0;pointer-events:none;background:radial-gradient(ellipse 65% 55% at 50% 50%,transparent 35%,rgba(4,3,3,.7) 100%)}
 .dmf-signal-corner{position:absolute;z-index:5;right:clamp(18px,3vw,38px);top:clamp(18px,3vw,32px);display:flex;flex-direction:column;align-items:flex-end;gap:5px;pointer-events:none}
 .dmf-signal-corner strong{font-family:'Anton',sans-serif;font-size:11px;font-weight:400;letter-spacing:.18em;color:#ff5b1e}
@@ -4120,6 +4122,203 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
 </script>
 <script>
+/* DMF HYPERRESONANCE — one normalized, reusable audio signal for the whole landing, and the Receiver's
+ * bounded responses to it. ES5, no clock, no timers, no allocation per frame.
+ *
+ * It does not add a second analyser, loop or state machine. The bus already owns the Web Audio
+ * AnalyserNode (signal-bus.js: bands, onsets, AGC; the idle clock when no audio plays), the beat predictor
+ * and DMFStateMachine (energy levels with hysteresis bands; OVERDRIVE only after sustained drop energy,
+ * released only after sustained calm). This layer reads them once per bus frame and publishes:
+ *
+ *   signal    bass · mids · treble · beat · energy · transient · smoothedEnergy · source (audio|clock|off)
+ *   state     idle · armed · live · overdrive (DORMANT · AWAKENED · TRANSMITTING · OVERDRIVE)
+ *   responses bounded 0..1 terms per target, scaled by the state, the quality tier and motion preference:
+ *             bass   → cone, camPush, scalePulse
+ *             mids   → head, torso, reflect
+ *             treble → glint, scan
+ *             beat   → impulse (a short one-shot envelope: never a continuous oscillation)
+ *             overdrive → light, emissive, receiverPulse, camImpulse, stageAmp
+ *
+ * Reduced motion: every motion response is 0 and light responses are capped low. Save-Data: disabled (all 0).
+ * Tier: high 1 · balanced .8 · lite .5 · static 0. A hidden tab pauses it (envelopes reset on return).
+ * Inlined into public/index.html by scripts/build-3d.cjs right after signal-bus.js; required by tests. */
+(function (root) {
+  'use strict';
+
+  function clamp01(v) { return v !== v ? 0 : (v < 0 ? 0 : (v > 1 ? 1 : v)); }
+  function num(v) { return typeof v === 'number' && v === v ? v : 0; }
+  // A light response: scaled by tier, capped low under reduced motion.
+  function lightTerm(v, intensity, cap) { v = clamp01(v * intensity); return v > cap ? cap : v; }
+  // Exponential follower with separate attack/release time constants (seconds).
+  function follow(cur, target, attack, release, dt) {
+    var tau = target > cur ? attack : release;
+    return tau <= 0 ? target : cur + (target - cur) * (1 - Math.exp(-dt / tau));
+  }
+
+  var STATES = ['idle', 'armed', 'live', 'overdrive'];
+  var FROM_MACHINE = { DORMANT: 0, AWAKENED: 1, TRANSMITTING: 2, OVERDRIVE: 3 };
+  // How much of each response a state lets through: restrained at rest, full only in OVERDRIVE.
+  var STATE_GAIN = [0.35, 0.6, 0.85, 1];
+  var TIER_SCALE = { high: 1, balanced: 0.8, lite: 0.5, static: 0, none: 1 };
+  var REDUCED_LIGHT_CAP = 0.35;
+  var BEAT_DECAY = 0.12;          // s: the beat envelope is a short impulse, back under 1% in ~0.55 s
+  var SMOOTH = { attack: 0.6, release: 1.4 };
+  var MOTION_KEYS = ['cone', 'camPush', 'scalePulse', 'head', 'torso', 'receiverPulse', 'camImpulse'];
+  var LIGHT_KEYS = ['reflect', 'glint', 'scan', 'light', 'emissive', 'stageAmp'];
+  var RESPONSE_KEYS = MOTION_KEYS.concat(LIGHT_KEYS, ['impulse']);
+
+  function DMFResonance() {
+    this.reducedMotion = false;
+    this.saveData = false;
+    this.tier = 'none';
+    this.paused = false;
+    this.out = {
+      enabled: true, source: 'off',
+      bass: 0, mids: 0, treble: 0, beat: 0, energy: 0, transient: 0, smoothedEnergy: 0,
+      state: 'idle', level: 0, overdriveMix: 0, intensity: 1, motion: 1, beatIndex: 0
+    };
+    for (var i = 0; i < RESPONSE_KEYS.length; i++) this.out[RESPONSE_KEYS[i]] = 0;
+  }
+
+  DMFResonance.prototype.configure = function (opts) {
+    opts = opts || {};
+    if (opts.reducedMotion != null) this.reducedMotion = !!opts.reducedMotion;
+    if (opts.saveData != null) this.saveData = !!opts.saveData;
+    if (opts.tier) this.tier = String(opts.tier);
+    var o = this.out;
+    o.enabled = !this.saveData;
+    o.intensity = this.saveData ? 0 : (TIER_SCALE[this.tier] != null ? TIER_SCALE[this.tier] : 1);
+    o.motion = this.reducedMotion ? 0 : 1;
+    if (!o.enabled) this.rest();
+    return o;
+  };
+
+  // Hidden tab / lost context: drop the envelopes so nothing fires from a stale frame on return.
+  DMFResonance.prototype.pause = function () { this.paused = true; this.rest(); };
+  DMFResonance.prototype.resume = function () { this.paused = false; };
+
+  DMFResonance.prototype.rest = function () {
+    var o = this.out;
+    o.bass = o.mids = o.treble = o.beat = o.energy = o.transient = o.smoothedEnergy = 0;
+    o.overdriveMix = 0;
+    o.level = 0;
+    o.state = 'idle';
+    for (var i = 0; i < RESPONSE_KEYS.length; i++) o[RESPONSE_KEYS[i]] = 0;
+  };
+
+  // sig: the engine output (hub.signal). state: hub.state (DMFStateMachine). overdriveMix: hub.overdriveMix.
+  DMFResonance.prototype.update = function (sig, state, overdriveMix, dt) {
+    var o = this.out;
+    if (!o.enabled || this.paused || !sig) { o.source = o.enabled ? o.source : 'off'; return o; }
+    dt = num(dt);
+    if (dt <= 0) return o;
+    if (dt > 0.1) dt = 0.1;
+
+    // --- signal: the bus's bands, already normalized by its AGC (analyser) or shaped by the idle clock ---
+    o.source = sig.source === 'audio' ? 'audio' : 'clock';
+    o.bass = clamp01(num(sig.low));
+    o.mids = clamp01(num(sig.mid));
+    o.treble = clamp01(num(sig.high));
+    o.energy = clamp01(num(sig.energy));
+    o.transient = clamp01(num(sig.transient));
+    o.smoothedEnergy = clamp01(follow(o.smoothedEnergy, o.energy, SMOOTH.attack, SMOOTH.release, dt));
+    // One-shot: jumps on a fired beat, then only decays. No beat, no motion.
+    o.beat = sig.beatFired ? 1 : o.beat * Math.exp(-dt / BEAT_DECAY);
+    if (o.beat < 1e-4) o.beat = 0;
+    if (sig.beatFired) o.beatIndex = num(sig.beatIndex);
+
+    // --- state: the existing machine's hysteresis, under the names the landing uses ---
+    var lvl = FROM_MACHINE[state];
+    o.level = lvl == null ? 0 : lvl;
+    o.state = STATES[o.level];
+    o.overdriveMix = clamp01(num(overdriveMix));
+
+    // --- responses ---
+    var g = STATE_GAIN[o.level] * o.intensity;
+    var m = g * o.motion;
+    var cap = o.motion ? 1 : REDUCED_LIGHT_CAP, k = o.intensity, sg = STATE_GAIN[o.level];
+    var od = o.overdriveMix;
+
+    o.impulse = clamp01(o.beat * m);
+    o.cone = clamp01(o.bass * (0.5 + 0.5 * o.beat) * m);
+    o.camPush = clamp01(o.bass * o.beat * m);
+    o.scalePulse = clamp01(o.bass * o.beat * m);
+    o.head = clamp01(o.mids * m);
+    o.torso = clamp01(o.smoothedEnergy * 0.6 * m);
+    o.reflect = lightTerm(o.mids * sg, k, cap);
+    o.glint = lightTerm(o.treble * (0.4 + 0.6 * o.transient) * sg, k, cap);
+    o.scan = lightTerm(o.treble * (0.5 + 0.5 * od) * sg, k, cap);
+    o.light = lightTerm(od, k, cap);
+    o.emissive = lightTerm(od * (0.6 + 0.4 * o.beat), k, cap);
+    o.stageAmp = lightTerm(od, k, cap);
+    o.receiverPulse = clamp01(od * o.beat * o.intensity * o.motion);
+    o.camImpulse = clamp01(od * o.beat * o.intensity * o.motion);
+    return o;
+  };
+
+  var api = {
+    STATES: STATES, FROM_MACHINE: FROM_MACHINE, STATE_GAIN: STATE_GAIN, TIER_SCALE: TIER_SCALE,
+    REDUCED_LIGHT_CAP: REDUCED_LIGHT_CAP, BEAT_DECAY: BEAT_DECAY, MOTION_KEYS: MOTION_KEYS, LIGHT_KEYS: LIGHT_KEYS,
+    RESPONSE_KEYS: RESPONSE_KEYS, DMFResonance: DMFResonance
+  };
+  if (typeof module === 'object' && module.exports) { module.exports = api; return; }
+  root.DMFResonance = api;
+
+  // ======================================================================================================
+  // BROWSER BINDING — one instance on the bus, stepped from the bus's own frame (no loop of its own).
+  // ======================================================================================================
+  var doc = root.document;
+  var hub = root.DMFSignal;
+  if (!doc || !hub || hub.resonance) return;
+
+  var res = new DMFResonance();
+  res.configure({ reducedMotion: hub.reduced, saveData: hub.saveData, tier: hub.qualityTier });
+  hub.resonance = res.out;
+  // Reduced motion / Save-Data: the bus never starts its clock; the published signal stays at rest.
+  if (hub.reduced || hub.saveData || !hub.onFrame) return;
+
+  doc.addEventListener('visibilitychange', function () { if (doc.hidden) res.pause(); else res.resume(); });
+  var tierSeen = '';
+  hub.onFrame(function (s, dt) {
+    if (hub.qualityTier !== tierSeen) { tierSeen = hub.qualityTier; res.configure({ tier: tierSeen }); }
+    res.update(s, hub.state, hub.overdriveMix, dt);
+  });
+
+  // DEV DIAGNOSTICS (?dmf-audio-debug=1 only): bass / mid / treble / energy / beat / state / tier / fps,
+  // refreshed ~4 times a second, textContent only. Never created otherwise.
+  if (!/[?&]dmf-audio-debug=1(&|$)/.test(root.location ? root.location.search : '')) return;
+  function mountDebug() {
+    var panel = doc.createElement('div');
+    panel.className = 'dmf-audio-debug';
+    panel.setAttribute('aria-hidden', 'true');
+    panel.style.cssText = 'position:fixed;z-index:10002;left:12px;bottom:12px;padding:10px 12px;min-width:170px;' +
+      'background:rgba(10,8,6,.9);border:1px solid rgba(255,91,30,.35);color:#f2ede6;font:10px/1.55 ui-monospace,Menlo,monospace;' +
+      'letter-spacing:.06em;pointer-events:none;white-space:pre';
+    doc.body.appendChild(panel);
+    var acc = 0;
+    hub.onFrame(function (s, dt) {
+      acc += dt;
+      if (acc < 0.25) return;
+      acc = 0;
+      var o = res.out;
+      panel.textContent = 'DMF HYPERRESONANCE\n' +
+        'source  ' + o.source + '\n' +
+        'bass    ' + o.bass.toFixed(2) + '\n' +
+        'mid     ' + o.mids.toFixed(2) + '\n' +
+        'treble  ' + o.treble.toFixed(2) + '\n' +
+        'energy  ' + o.energy.toFixed(2) + ' / ' + o.smoothedEnergy.toFixed(2) + '\n' +
+        'beat    ' + o.beat.toFixed(2) + '\n' +
+        'state   ' + o.state + '\n' +
+        'tier    ' + (hub.qualityTier || 'none') + '\n' +
+        'fps     ' + (hub.fps || 0);
+    });
+  }
+  if (doc.body) mountDebug();
+  else doc.addEventListener('DOMContentLoaded', mountDebug, { once: true });
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
 /* DMF SPATIAL NARRATIVE — pure mapping layer for the Event Horizon director (V2). ES5, no DOM, no clock.
  * "The page is not scrolling. The stage is moving around you."
  * DMFEventHorizon.update() calls DMFSpatialNarrative.update() once per director step with its own state;
@@ -7291,6 +7490,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       r -= (e5 ? e5.depthDolly || 0 : 0) * fit;                      // V6 LIGHTSPEED: depth stretch (≤ 0.18 u; phones ≤ 0.07)
       // V7 CAMERA DIRECTOR: named mode offsets, spring-followed and bounded (≤ 0.26 u forward; phones ≤ 0.08).
       if (e5 && auto) { r -= (e5.camDolly || 0) * fit; az += e5.camOrbit || 0; }
+      // PR88 HYPERRESONANCE: a bass push on the beat and, in OVERDRIVE, a beat-locked alternating nudge that
+      // decays with the beat (deterministic — no noise, no continuous shake). ≤ 0.035 u, ≤ 0.004 rad.
+      var rz = hub.resonance;
+      if (rz && auto) { r -= 0.035 * rz.camPush * fit; az += 0.004 * rz.camImpulse * (rz.beatIndex % 2 ? 1 : -1); }
       var y = cur.y + (auto ? parYK.x + Math.sin(autoAngle * 0.8) * 0.08 * motionScale : 0) + (e5 ? 0.05 * (e5.driveLift || 0) : 0);
       // CAMERA JOURNEY: the ACT's authored dolly/orbit/height/target/FOV, followed by kinetic bodies.
       // Scroll speed stretches the lens a little; the kick punches it only while the stage is moving.
@@ -7355,6 +7558,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     }
 
     var shownState = '';
+    var shownScan = -1, shownRes = '';   // PR88 scan energy / resonance state, written on change only
     var shownPct = -1;
     var shownHd = false;
     var shownSg = false;
@@ -7696,6 +7900,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
           var anch = ehv && ehv.receiverAnchor ? 1 + ehv.receiverAnchor * (Math.tan((34 + (ehv.fovDeg || 0)) * HALF_DEG) / TAN_17 - 1) : 1;
           modelRef.scale.setScalar(modelTargetScale * (1 + scaleK.x) * (sp ? 1 + sp.scale : 1) * mass * anch);
           if (ehv && ehv.singDominance) modelRef.scale.multiplyScalar(1 + 0.02 * ehv.singDominance);   // V7: ≤ +2% while it dominates
+          var rzp = hub.resonance;   // PR88: bass scale impulse + the OVERDRIVE receiver pulse, on the beat only (≤ +1.4%)
+          if (rzp) modelRef.scale.multiplyScalar(1 + 0.006 * rzp.scalePulse + 0.008 * rzp.receiverPulse);
           modelRef.rotation.y = (sp ? sp.rotY + midTorque : 0) + (ehv ? ehv.modelYaw || 0 : 0);
           modelRef.rotation.x = ehv ? ehv.modelPitch || 0 : 0;
         }
@@ -7777,6 +7983,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         sinceHit = 0;
         hitStrength = hit * (0.6 + 0.4 * s.energy) * (1 + 0.5 * od + hdLevel + (sHit ? 1.5 : 0));
         var punch = 46 * hit * (0.8 + 0.5 * od + 0.5 * hdLevel + (sHit ? 0.6 : 0)) * 0.82 * ehQuiet;
+        if (hub.resonance) punch *= 1 + 0.25 * hub.resonance.cone * hub.resonance.overdriveMix;   // PR88: OVERDRIVE cone throw
         coneL.impulse(punch);
         coneRDelay = 0.014;
         coneRAmp = punch;
@@ -7831,7 +8038,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       headSlow.step(headK.x, dt);
       U.uNod.value = clamp(headK.x - 0.3 * headSlow.x, -0.06, 0.22);
       var groove = Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * s.beatPhase), 3);
-      torsoK.step(0.003 * lsTorso + (0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl + 0.0012 * ehBreath + 0.004 * mdTorso, dt);
+      torsoK.step(0.003 * lsTorso + (0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl + 0.0015 * (hub.resonance ? hub.resonance.torso : 0) + 0.0012 * ehBreath + 0.004 * mdTorso, dt);
       U.uBounce.value = torsoK.x;
       var swayWave = Math.sin(Math.PI * beats);
       U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze * pfSway;
@@ -7923,6 +8130,14 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       underGlow.intensity = (0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.body * 0.35 * (1 + od) + hdLevel * 0.3 + sLvl * 0.4) * ehQuiet;
       haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1 + hdLevel * 0.2 + sLvl * 0.25 + 0.3 * lsIgn;
       if (eh) haloLight.intensity += 0.25 * (eh.hvBg || 0) + 0.35 * (eh.singFlash || 0);
+      // PR88: OVERDRIVE warms the stage (the rig is already #ff5b1e), treble glints on the accent. Bounded, and
+      // capped low under reduced motion by the resonance layer itself.
+      var rzl = hub.resonance;
+      if (rzl) {
+        rimLight.intensity += 0.45 * rzl.light;
+        haloLight.intensity += 0.3 * rzl.light;
+        accentLight.intensity += 0.3 * rzl.glint;
+      }
       screenGlow.color.setHSL(0.62 + Math.sin(autoAngle * 0.4) * 0.04, 0.45, 0.35);
       coneMat.opacity = (0.012 + Math.sin(autoAngle * 1.3) * 0.005 + od * 0.008 + hdLevel * 0.01) * ehQuiet;
 
@@ -8039,9 +8254,11 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var sPre = sg ? sg.pre : 0;
       if (relicMatRef) {
         relicMatRef.roughness = baseRoughness * (1 - 0.22 * s.body * hub.overdriveMix) * (1 - 0.25 * vf.reflect) * (1 + 0.3 * sPre);
-        relicMatRef.envMapIntensity = 0.55 * (1 + 0.8 * vf.reflect) * (1 - 0.35 * sPre);
+        var rzm = hub.resonance;
+        relicMatRef.envMapIntensity = 0.55 * (1 + 0.8 * vf.reflect) * (1 - 0.35 * sPre) * (1 + 0.2 * (rzm ? rzm.reflect : 0));   // PR88: mids
         relicMatRef.emissiveIntensity = 0.008 + 0.02 * s.body * s.energy + 0.015 * hub.overdriveMix +
-          0.02 * (hub.hyper && hub.hyper.active ? hub.hyper.level : 0) + 0.03 * (sg ? sg.level : 0);
+          0.02 * (hub.hyper && hub.hyper.active ? hub.hyper.level : 0) + 0.03 * (sg ? sg.level : 0) +
+          0.02 * (rzm ? rzm.emissive : 0);   // PR88: OVERDRIVE bloom-like lift
       }
       // V4 MATERIAL LIFE: LOW warmth + a short KICK impulse (never neon), HIGH a fine edge lift, and the
       // reflection answering the impact late. Cached materials, each from its own base; no allocation.
@@ -8230,7 +8447,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var f = hub.forces;
       portal.update(stageMotion, stageHub.scroll.velocity, stage.transit.level, sg && sg.active ? sg.level : 0, f, dt);
       var scale = staged ? portalScaleNow : 0;
-      var inten = portal.intensity * scale * (hub.eventHorizon ? 1 - 0.6 * hub.eventHorizon.calm : 1);
+      var inten = portal.intensity * scale * (hub.eventHorizon ? 1 - 0.6 * hub.eventHorizon.calm : 1) *
+        (1 + 0.3 * (hub.resonance ? hub.resonance.stageAmp : 0));   // PR88: OVERDRIVE amplifies the spatial stage
       var floorGain = portal.floorAmp * Math.exp(-portal.floorT * 1.2) * scale;
       stageHub.portalIntensity = inten;
       if (inten < 0.002 && floorGain < 0.02) {
@@ -8366,6 +8584,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       if (hdOn !== shownHd) { shownHd = hdOn; band.classList.toggle('is-hyperdrive', hdOn); }
       var sgOn = !!(hub.singularity && hub.singularity.active);
       if (sgOn !== shownSg) { shownSg = sgOn; band.classList.toggle('is-singularity', sgOn); }
+      // PR88: treble lights the scan lines (quantized to 0.05, written only on change); the state is a hook.
+      var rzs = hub.resonance;
+      if (rzs) {
+        var scanQ = Math.round(rzs.scan * 20) / 20;
+        if (scanQ !== shownScan) { shownScan = scanQ; band.style.setProperty('--dmf-res-scan', scanQ); }
+        if (rzs.state !== shownRes) { shownRes = rzs.state; band.setAttribute('data-resonance', rzs.state); }
+      }
       updateHud(s, performance.now());
 
       placeSun();

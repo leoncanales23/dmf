@@ -1055,6 +1055,10 @@
       r -= (e5 ? e5.depthDolly || 0 : 0) * fit;                      // V6 LIGHTSPEED: depth stretch (≤ 0.18 u; phones ≤ 0.07)
       // V7 CAMERA DIRECTOR: named mode offsets, spring-followed and bounded (≤ 0.26 u forward; phones ≤ 0.08).
       if (e5 && auto) { r -= (e5.camDolly || 0) * fit; az += e5.camOrbit || 0; }
+      // PR88 HYPERRESONANCE: a bass push on the beat and, in OVERDRIVE, a beat-locked alternating nudge that
+      // decays with the beat (deterministic — no noise, no continuous shake). ≤ 0.035 u, ≤ 0.004 rad.
+      var rz = hub.resonance;
+      if (rz && auto) { r -= 0.035 * rz.camPush * fit; az += 0.004 * rz.camImpulse * (rz.beatIndex % 2 ? 1 : -1); }
       var y = cur.y + (auto ? parYK.x + Math.sin(autoAngle * 0.8) * 0.08 * motionScale : 0) + (e5 ? 0.05 * (e5.driveLift || 0) : 0);
       // CAMERA JOURNEY: the ACT's authored dolly/orbit/height/target/FOV, followed by kinetic bodies.
       // Scroll speed stretches the lens a little; the kick punches it only while the stage is moving.
@@ -1119,6 +1123,7 @@
     }
 
     var shownState = '';
+    var shownScan = -1, shownRes = '';   // PR88 scan energy / resonance state, written on change only
     var shownPct = -1;
     var shownHd = false;
     var shownSg = false;
@@ -1460,6 +1465,8 @@
           var anch = ehv && ehv.receiverAnchor ? 1 + ehv.receiverAnchor * (Math.tan((34 + (ehv.fovDeg || 0)) * HALF_DEG) / TAN_17 - 1) : 1;
           modelRef.scale.setScalar(modelTargetScale * (1 + scaleK.x) * (sp ? 1 + sp.scale : 1) * mass * anch);
           if (ehv && ehv.singDominance) modelRef.scale.multiplyScalar(1 + 0.02 * ehv.singDominance);   // V7: ≤ +2% while it dominates
+          var rzp = hub.resonance;   // PR88: bass scale impulse + the OVERDRIVE receiver pulse, on the beat only (≤ +1.4%)
+          if (rzp) modelRef.scale.multiplyScalar(1 + 0.006 * rzp.scalePulse + 0.008 * rzp.receiverPulse);
           modelRef.rotation.y = (sp ? sp.rotY + midTorque : 0) + (ehv ? ehv.modelYaw || 0 : 0);
           modelRef.rotation.x = ehv ? ehv.modelPitch || 0 : 0;
         }
@@ -1541,6 +1548,7 @@
         sinceHit = 0;
         hitStrength = hit * (0.6 + 0.4 * s.energy) * (1 + 0.5 * od + hdLevel + (sHit ? 1.5 : 0));
         var punch = 46 * hit * (0.8 + 0.5 * od + 0.5 * hdLevel + (sHit ? 0.6 : 0)) * 0.82 * ehQuiet;
+        if (hub.resonance) punch *= 1 + 0.25 * hub.resonance.cone * hub.resonance.overdriveMix;   // PR88: OVERDRIVE cone throw
         coneL.impulse(punch);
         coneRDelay = 0.014;
         coneRAmp = punch;
@@ -1595,7 +1603,7 @@
       headSlow.step(headK.x, dt);
       U.uNod.value = clamp(headK.x - 0.3 * headSlow.x, -0.06, 0.22);
       var groove = Math.pow(0.5 + 0.5 * Math.cos(2 * Math.PI * s.beatPhase), 3);
-      torsoK.step(0.003 * lsTorso + (0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl + 0.0012 * ehBreath + 0.004 * mdTorso, dt);
+      torsoK.step(0.003 * lsTorso + (0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl + 0.0015 * (hub.resonance ? hub.resonance.torso : 0) + 0.0012 * ehBreath + 0.004 * mdTorso, dt);
       U.uBounce.value = torsoK.x;
       var swayWave = Math.sin(Math.PI * beats);
       U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze * pfSway;
@@ -1687,6 +1695,14 @@
       underGlow.intensity = (0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.body * 0.35 * (1 + od) + hdLevel * 0.3 + sLvl * 0.4) * ehQuiet;
       haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1 + hdLevel * 0.2 + sLvl * 0.25 + 0.3 * lsIgn;
       if (eh) haloLight.intensity += 0.25 * (eh.hvBg || 0) + 0.35 * (eh.singFlash || 0);
+      // PR88: OVERDRIVE warms the stage (the rig is already #ff5b1e), treble glints on the accent. Bounded, and
+      // capped low under reduced motion by the resonance layer itself.
+      var rzl = hub.resonance;
+      if (rzl) {
+        rimLight.intensity += 0.45 * rzl.light;
+        haloLight.intensity += 0.3 * rzl.light;
+        accentLight.intensity += 0.3 * rzl.glint;
+      }
       screenGlow.color.setHSL(0.62 + Math.sin(autoAngle * 0.4) * 0.04, 0.45, 0.35);
       coneMat.opacity = (0.012 + Math.sin(autoAngle * 1.3) * 0.005 + od * 0.008 + hdLevel * 0.01) * ehQuiet;
 
@@ -1803,9 +1819,11 @@
       var sPre = sg ? sg.pre : 0;
       if (relicMatRef) {
         relicMatRef.roughness = baseRoughness * (1 - 0.22 * s.body * hub.overdriveMix) * (1 - 0.25 * vf.reflect) * (1 + 0.3 * sPre);
-        relicMatRef.envMapIntensity = 0.55 * (1 + 0.8 * vf.reflect) * (1 - 0.35 * sPre);
+        var rzm = hub.resonance;
+        relicMatRef.envMapIntensity = 0.55 * (1 + 0.8 * vf.reflect) * (1 - 0.35 * sPre) * (1 + 0.2 * (rzm ? rzm.reflect : 0));   // PR88: mids
         relicMatRef.emissiveIntensity = 0.008 + 0.02 * s.body * s.energy + 0.015 * hub.overdriveMix +
-          0.02 * (hub.hyper && hub.hyper.active ? hub.hyper.level : 0) + 0.03 * (sg ? sg.level : 0);
+          0.02 * (hub.hyper && hub.hyper.active ? hub.hyper.level : 0) + 0.03 * (sg ? sg.level : 0) +
+          0.02 * (rzm ? rzm.emissive : 0);   // PR88: OVERDRIVE bloom-like lift
       }
       // V4 MATERIAL LIFE: LOW warmth + a short KICK impulse (never neon), HIGH a fine edge lift, and the
       // reflection answering the impact late. Cached materials, each from its own base; no allocation.
@@ -1994,7 +2012,8 @@
       var f = hub.forces;
       portal.update(stageMotion, stageHub.scroll.velocity, stage.transit.level, sg && sg.active ? sg.level : 0, f, dt);
       var scale = staged ? portalScaleNow : 0;
-      var inten = portal.intensity * scale * (hub.eventHorizon ? 1 - 0.6 * hub.eventHorizon.calm : 1);
+      var inten = portal.intensity * scale * (hub.eventHorizon ? 1 - 0.6 * hub.eventHorizon.calm : 1) *
+        (1 + 0.3 * (hub.resonance ? hub.resonance.stageAmp : 0));   // PR88: OVERDRIVE amplifies the spatial stage
       var floorGain = portal.floorAmp * Math.exp(-portal.floorT * 1.2) * scale;
       stageHub.portalIntensity = inten;
       if (inten < 0.002 && floorGain < 0.02) {
@@ -2130,6 +2149,13 @@
       if (hdOn !== shownHd) { shownHd = hdOn; band.classList.toggle('is-hyperdrive', hdOn); }
       var sgOn = !!(hub.singularity && hub.singularity.active);
       if (sgOn !== shownSg) { shownSg = sgOn; band.classList.toggle('is-singularity', sgOn); }
+      // PR88: treble lights the scan lines (quantized to 0.05, written only on change); the state is a hook.
+      var rzs = hub.resonance;
+      if (rzs) {
+        var scanQ = Math.round(rzs.scan * 20) / 20;
+        if (scanQ !== shownScan) { shownScan = scanQ; band.style.setProperty('--dmf-res-scan', scanQ); }
+        if (rzs.state !== shownRes) { shownRes = rzs.state; band.setAttribute('data-resonance', rzs.state); }
+      }
       updateHud(s, performance.now());
 
       placeSun();
