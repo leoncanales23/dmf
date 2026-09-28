@@ -104,6 +104,9 @@
 
   function attachAudio(el) {
     if (!AC || !el) return;
+    // Feature flag (academy-env.js): effects.audioReactive=false keeps the stage on its idle clock.
+    var fx = window.__DMF_COMMERCE__ && window.__DMF_COMMERCE__.effects;
+    if (fx && fx.audioReactive === false) return;
     if (el.__dmfAudio) { if (actx && actx.resume) actx.resume(); return; }
     try {
       if (new URL(el.currentSrc || el.src, location.href).origin !== location.origin) return;
@@ -127,6 +130,7 @@
         actx.createMediaElementSource(el).connect(analyser);
         el.__dmfAudio = true;
         sources.push(el);
+        if (typeof window.dmfTrack === 'function') window.dmfTrack('audio_enabled', { placement: el.tagName.toLowerCase() }, { once: true });
       } catch (_) {}
     };
     if (ready && ready.then) ready.then(connect, function () {});

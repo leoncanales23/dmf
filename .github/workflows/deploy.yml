@@ -30,6 +30,13 @@ jobs:
           DMF_FIREBASE_API_KEY: ${{ secrets.DMF_FIREBASE_API_KEY }}
           DMF_FIREBASE_AUTH_DOMAIN: ${{ secrets.DMF_FIREBASE_AUTH_DOMAIN }}
           DMF_FIREBASE_PROJECT_ID: ${{ secrets.DMF_FIREBASE_PROJECT_ID }}
+          # Immersive Commerce flags (repository variables; unset = Mercado Pago only).
+          DMF_PAYMENT_PROVIDER: ${{ vars.DMF_PAYMENT_PROVIDER }}
+          DMF_PAYMENT_FALLBACK: ${{ vars.DMF_PAYMENT_FALLBACK }}
+          DMF_KLAP_ENABLED: ${{ vars.DMF_KLAP_ENABLED }}
+          DMF_KLAP_PAYMENTS_URL: ${{ vars.DMF_KLAP_PAYMENTS_URL }}
+          DMF_KLAP_FLEX_SDK_URL: ${{ vars.DMF_KLAP_FLEX_SDK_URL }}
+          DMF_EFFECT_AUDIO_REACTIVE: ${{ vars.DMF_EFFECT_AUDIO_REACTIVE }}
         run: |
           mkdir -p public/assets/images public/assets/logos public/assets/docs public/assets/models
           node scripts/check-3d.cjs

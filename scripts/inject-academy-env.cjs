@@ -11,6 +11,24 @@ const STREAM_SIGNER_URL = process.env.DMF_STREAM_SIGNER_URL || 'https://dmf-stre
 const PAYMENTS_URL = process.env.DMF_PAYMENTS_URL || 'https://dmf-payments.vibraalto-cl.workers.dev';
 const DEMO = process.env.DMF_ACADEMY_DEMO === 'true';
 
+// VibraAlto Immersive Commerce flags (see docs/IMMERSIVE_COMMERCE.md). Defaults = current production:
+// Mercado Pago only. Klap needs both DMF_PAYMENT_PROVIDER=klap and DMF_KLAP_ENABLED=true.
+function httpsOrEmpty(value) {
+  return /^https:\/\/[^\s"'<>]+$/.test(value || '') ? value : '';
+}
+const COMMERCE = {
+  payments: {
+    provider: process.env.DMF_PAYMENT_PROVIDER === 'klap' ? 'klap' : 'mercadopago',
+    fallbackProvider: process.env.DMF_PAYMENT_FALLBACK === 'none' ? 'none' : 'mercadopago',
+    klapEnabled: process.env.DMF_KLAP_ENABLED === 'true',
+    klapUrl: httpsOrEmpty(process.env.DMF_KLAP_PAYMENTS_URL),
+    klapFlexSdkUrl: httpsOrEmpty(process.env.DMF_KLAP_FLEX_SDK_URL)
+  },
+  effects: {
+    audioReactive: process.env.DMF_EFFECT_AUDIO_REACTIVE !== 'false'
+  }
+};
+
 const FIREBASE_API_KEY = process.env.DMF_FIREBASE_API_KEY || '';
 const FIREBASE_AUTH_DOMAIN = process.env.DMF_FIREBASE_AUTH_DOMAIN || '';
 const FIREBASE_PROJECT_ID = process.env.DMF_FIREBASE_PROJECT_ID || 'dmf-academy';
@@ -34,6 +52,8 @@ if (DEMO) {
   lines.push('window.__DMF_ACADEMY_DEMO__ = true;');
 }
 
+lines.push('window.__DMF_COMMERCE__ = ' + JSON.stringify(COMMERCE) + ';');
+
 if (FIREBASE_API_KEY) {
   lines.push('window.__DMF_FIREBASE_CONFIG__ = ' + JSON.stringify({
     apiKey: FIREBASE_API_KEY,
@@ -50,5 +70,6 @@ if (STREAM_BASE) console.log('  STREAM_BASE: ' + STREAM_BASE);
 if (STREAM_SIGNER_URL) console.log('  STREAM_SIGNER: configured');
 if (PAYMENTS_URL) console.log('  PAYMENTS_URL: configured');
 if (DEMO) console.log('  DEMO MODE: enabled');
+console.log('  PAYMENTS: provider=' + COMMERCE.payments.provider + ' klapEnabled=' + COMMERCE.payments.klapEnabled + ' fallback=' + COMMERCE.payments.fallbackProvider);
 if (FIREBASE_API_KEY) console.log('  FIREBASE AUTH: configured');
 if (!STREAM_BASE && !DEMO && !FIREBASE_API_KEY) console.log('  (no env vars set — defaults will apply)');
