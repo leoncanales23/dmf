@@ -104,12 +104,24 @@
       document.dispatchEvent(new CustomEvent('dmf:three', { detail: { state: state } }));
     }
     hub.three = 'loading';
+    // The Meshopt decoder (22 KB) loads in parallel with Three; the scene starts when both settle.
+    // Without it the relic falls back to the uncompressed GLB, so a CDN hiccup never blanks the stage.
+    var decoderSettled = false, loaderReady = false;
+    function startScene() {
+      if (!decoderSettled || !loaderReady) return;
+      announceThree('ready');
+      initScene(visual, band, hub);
+    }
+    var decoderScript = document.createElement('script');
+    decoderScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/meshopt_decoder.js';
+    decoderScript.onload = decoderScript.onerror = function () { decoderSettled = true; startScene(); };
+    document.head.appendChild(decoderScript);
     var threeScript = document.createElement('script');
     threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
     threeScript.onload = function () {
       var loaderScript = document.createElement('script');
       loaderScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
-      loaderScript.onload = function () { announceThree('ready'); initScene(visual, band, hub); };
+      loaderScript.onload = function () { loaderReady = true; startScene(); };
       loaderScript.onerror = function () { announceThree('failed'); };
       document.head.appendChild(loaderScript);
     };
@@ -575,11 +587,21 @@
     var modelWorldMinZ = -2, modelWorldMaxZ = 2;
     var modelBase = new THREE.Vector3();
 
-    new THREE.GLTFLoader().load(
-      'assets/models/dmf-studio-optimized.glb',
+    // Meshopt web copy (2.9 MB, float positions so the zone maths below is unchanged) when the decoder is
+    // available; the original 8.0 MB file stays the "Download Digital Relic" asset and the fallback.
+    var relicLoader = new THREE.GLTFLoader();
+    var relicUrl = 'assets/models/dmf-studio-optimized.glb';
+    var meshopt = window.MeshoptDecoder;
+    if (meshopt && meshopt.supported && typeof relicLoader.setMeshoptDecoder === 'function') {
+      relicLoader.setMeshoptDecoder(meshopt);
+      relicUrl = 'assets/models/dmf-studio-web.glb';
+    }
+    relicLoader.load(
+      relicUrl,
       function (gltf) {
         var model = gltf.scene;
         modelRef = model;
+        if (typeof window.dmfTrack === 'function') window.dmfTrack('3d_loaded', { tier: quality, status: meshopt && meshopt.supported ? 'meshopt' : 'original' }, { once: true });
 
         var box = new THREE.Box3().setFromObject(model);
         var center = box.getCenter(new THREE.Vector3());
