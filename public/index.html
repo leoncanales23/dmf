@@ -749,6 +749,28 @@ html.eh-calm .tier-card{border-color:rgba(242,237,230,.2)}
 .eh-compact .eh-blade--2,.eh-tier-lite .eh-blade--2{display:none}
 .eh-vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 92% at 50% 50%,transparent 52%,rgba(4,3,3,.9) 100%);opacity:calc((var(--eh-vig,0) * .55 + var(--eh-shadow,0) * .22) * (1 - var(--eh-calm,0)))}
 .eh-still .eh-blade,.eh-tier-static .eh-blade,.eh-still .eh-vig,.eh-tier-static .eh-vig{display:none}
+/* V7 HYPERDRIVE V2 — field layers (all zero at rest, bounded, and gone in the offer via --eh-calm):
+   background glow (energy), the drop's reflection ring and T−100 ms micro blackout, the SINGULARITY's
+   one flash and the background stretching backward (field dots streak, blades lengthen). */
+.hv-glow{position:absolute;left:50%;bottom:-30vh;width:120vw;height:80vh;margin-left:-60vw;pointer-events:none;background:radial-gradient(50% 50% at 50% 60%,rgba(255,91,30,.16),rgba(255,91,30,.05) 45%,transparent 72%);opacity:calc(var(--hv-bg,0) * .8 * (1 - var(--eh-calm,0)))}
+.hv-ring{position:absolute;left:50%;top:50%;width:64vmin;height:64vmin;margin:-32vmin 0 0 -32vmin;border-radius:50%;pointer-events:none;border:1px solid rgba(255,140,90,.4);box-shadow:0 0 24px rgba(255,91,30,.18) inset;opacity:calc(var(--hv-ring,0) * .6 * (1 - var(--eh-calm,0)));transform:scale(calc(.55 + (1 - var(--hv-ring,0)) * 1.1))}
+.hv-dim{position:absolute;inset:0;pointer-events:none;background:#050403;opacity:calc(var(--hv-edge,0) * .3 * (1 - var(--eh-calm,0)))}
+.hv-flash{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(58% 58% at 50% 50%,rgba(255,238,224,.5),rgba(255,120,60,.16) 45%,transparent 76%);opacity:calc(var(--hv-flash,0) * .6)}
+.eh-field i{scale:1 calc(1 + var(--hv-stretch,0) * 2.2)}
+.eh-blade{scale:1 calc(1 + var(--hv-stretch,0) * .22)}
+.eh-sheen::after{content:'';position:absolute;top:-20%;bottom:-20%;left:0;width:8%;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(214,230,255,.09) 50%,transparent);opacity:calc((var(--hv-rw,0) * .6 + var(--hv-rk,0) * 1.2) * var(--eh-sheenk,1));transform:translate3d(calc(var(--hv-rc,.5) * 1250% - 50%),0,0) skewX(-16deg)}
+.eh-compact .hv-ring,.eh-tier-lite .hv-ring,.eh-tier-lite .hv-glow{display:none}
+.eh-still .hv-glow,.eh-still .hv-ring,.eh-still .hv-dim,.eh-still .hv-flash,.eh-tier-static .hv-glow,.eh-tier-static .hv-ring,.eh-tier-static .hv-dim,.eh-tier-static .hv-flash{display:none}
+/* V7 MICROINTERACTIONS — nav hears the signal on hover; magnetic controls build energy on hover and release
+   one ring on click (the page wave is the bus's rate-limited pulse); cards carry a bounded pointer light
+   with ≤ 1.5° of depth. Pricing tiers are deliberately left out: nothing competes with the offer. */
+.nav-link:hover{text-shadow:0 0 calc(6px + var(--dmf-energy,0) * 10px) rgba(255,91,30,.45);color:#f2ede6}
+.hero-cta:hover,.hero-cta-2:hover,.dmf-signal-cta:hover,.tips-cta:hover,.lab-gate:hover{box-shadow:0 0 0 1px rgba(255,91,30,.35),0 0 calc(12px + var(--dmf-energy,0) * 22px) rgba(255,91,30,.22)}
+@keyframes hvFire{0%{box-shadow:0 0 0 0 rgba(255,91,30,.55)}100%{box-shadow:0 0 0 20px rgba(255,91,30,0)}}
+.hv-fire{animation:hvFire .45s cubic-bezier(.2,.7,.2,1)}
+.release-card,.rider-card,.contact-card,.fly-card{transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.hv-lit{background-image:radial-gradient(260px circle at calc(var(--hv-cx,.5) * 100%) calc(var(--hv-cy,.5) * 100%),rgba(255,140,90,.08),transparent 70%);transform:perspective(900px) rotateX(calc((var(--hv-cy,.5) - .5) * -3deg)) rotateY(calc((var(--hv-cx,.5) - .5) * 3deg))}
+@media (prefers-reduced-motion:reduce){.hv-fire{animation:none}.hv-lit{transform:none}.eh-field i,.eh-blade{scale:none}}
 /* The Receiver's title resolves last in its reveal, then carries the same pressure as every title. */
 .dmf-signal-title{transform-origin:0 100%;opacity:calc(.35 + var(--eh-reveal,1) * .65);translate:0 calc((1 - var(--eh-reveal,1)) * 14px + var(--eh-tp,0) * 1.5px - var(--eh-tv,0) * 2px + var(--eh-ts,0) * 1px - var(--eh-tsn,0) * .5px);scale:calc(1 - var(--eh-tp,0) * .012 - var(--eh-tv,0) * .006 - var(--eh-tt,0) * .004) calc(1 - var(--eh-tp,0) * .01 + var(--eh-tv,0) * .01 + var(--eh-tt,0) * .006);text-shadow:0 calc(var(--eh-tp,0) * 2px) calc(var(--eh-tp,0) * 16px) rgba(255,91,30,calc(var(--eh-tp,0) * .16)),calc(var(--eh-chroma,0) * 1.5px) 0 0 rgba(255,91,30,calc(var(--eh-chroma,0) * .28)),calc(var(--eh-tt,0) * -2px) 0 0 rgba(242,237,230,calc(var(--eh-tt,0) * .16))}
 html.eh-calm .dmf-signal-title{scale:none}
@@ -1161,7 +1183,7 @@ html.eh-calm .dmf-signal-title{scale:none}
 
 <canvas id="smoke-canvas"></canvas>
 <div class="radial-overlay"></div>
-<div class="eh-field" aria-hidden="true"><i style="--x:12%;--y:22%;--p:.2"></i><i style="--x:84%;--y:14%;--p:.45"></i><i style="--x:67%;--y:61%;--p:.3"></i><i style="--x:27%;--y:78%;--p:.6"></i><i style="--x:91%;--y:83%;--p:.15"></i><i style="--x:46%;--y:9%;--p:.5"></i><i style="--x:6%;--y:52%;--p:.35"></i><i style="--x:58%;--y:36%;--p:.25"></i><i style="--x:36%;--y:47%;--p:.4"></i><span class="eh-blade eh-blade--1"></span><span class="eh-blade eh-blade--2"></span><span class="eh-vig"></span><span class="eh-gate"></span><span class="eh-after"></span></div>
+<div class="eh-field" aria-hidden="true"><i style="--x:12%;--y:22%;--p:.2"></i><i style="--x:84%;--y:14%;--p:.45"></i><i style="--x:67%;--y:61%;--p:.3"></i><i style="--x:27%;--y:78%;--p:.6"></i><i style="--x:91%;--y:83%;--p:.15"></i><i style="--x:46%;--y:9%;--p:.5"></i><i style="--x:6%;--y:52%;--p:.35"></i><i style="--x:58%;--y:36%;--p:.25"></i><i style="--x:36%;--y:47%;--p:.4"></i><span class="eh-blade eh-blade--1"></span><span class="eh-blade eh-blade--2"></span><span class="eh-vig"></span><span class="eh-gate"></span><span class="eh-after"></span><span class="hv-glow"></span><span class="hv-ring"></span><span class="hv-dim"></span><span class="hv-flash"></span></div>
 
 
 <!-- CONCERT INTRO -->
@@ -4944,6 +4966,541 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
 </script>
 <script>
+/* DMF HYPERDRIVE V2 — cinematic choreography layer for the Event Horizon director (V7). ES5, no DOM, no
+ * clock, no timers, no allocation per frame. The director steps it after V6 Lightspeed with the same state
+ * object; it reads what already exists (bands, kick, the HYPERDRIVE moment, the kinetic SINGULARITY, the
+ * beat predictor's time-to-drop, the section/calm/silence of the stage) and writes bounded, smoothed
+ * choreography terms the Receiver and the page consume:
+ *
+ *   DMFEffectGovernor       authority per channel from tier, device, flags and measured FPS — effects shed
+ *                           in priority order (overlays → particles → reflections → lights → camera), never
+ *                           the Receiver's own interaction.
+ *   DMFDropTimeline         the DROP as a sequence anchored on the HYPERDRIVE hit: T−700 compress,
+ *                           T−100 edge, T impact, T+200 secondary highlight, T+600 recovery.
+ *   DMFSingularityTreatment the rare SINGULARITY (kinetic.js decides when) as a staged treatment:
+ *                           collapse → pull → one controlled flash → stretch → release → recovery (≤ 2.8 s).
+ *   DMFLightDirector        key / rim / accent / key-sweep / background glow / fog exposure / emissive / side.
+ *   DMFCameraDirector       named modes ICON ORBIT PUSH IMPACT FLYBY REVEAL SINGULARITY RECOVERY, followed by
+ *                           critically damped, acceleration-limited springs (no swaps, no shake).
+ *   DMFReflectionField      the signature reflections: a warm LOW band, a cold HIGH sweep, a kick wave that
+ *                           travels through the object, compression toward the centre before a SINGULARITY.
+ *   DMFPerformerMotion      head/DJ naturalness: low-passed mids, kick micro-delay, deterministic noise.
+ *
+ * Inlined into public/index.html by scripts/build-3d.cjs after lightspeed.js; required by tests. */
+(function (root) {
+  'use strict';
+
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+  function smooth01(t) { t = clamp01(t); return t * t * (3 - 2 * t); }
+  function approach(cur, target, rate, dt) { return cur + (target - cur) * (1 - Math.exp(-rate * dt)); }
+  function envelope(cur, target, attack, release, dt) { return approach(cur, target, target > cur ? attack : release, dt); }
+  // Silent until `delay`, smooth attack, smooth return to exactly 0 at `end`.
+  function pulse(t, delay, attack, end) {
+    if (t < delay || t >= end) return 0;
+    var u = t - delay;
+    if (u < attack) return attack > 0 ? smooth01(u / attack) : 1;
+    return 1 - smooth01((u - attack) / (end - delay - attack));
+  }
+  function frac(v) { return v - Math.floor(v); }
+  // Deterministic value noise in [-1, 1]: smooth between hashed integer lattice points.
+  function hash(n) { var x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+  function noise1(t) {
+    var i = Math.floor(t), f = t - i;
+    var u = f * f * (3 - 2 * f);
+    return (hash(i) * (1 - u) + hash(i + 1) * u) * 2 - 1;
+  }
+
+  // ======================================================================================================
+  // FLAGS — __DMF_COMMERCE__.effects from academy-env.js, handed in by the director. A false flag restores the pre-V7 behaviour of
+  // its channel exactly (its V7 terms are zero); nothing else changes.
+  // ======================================================================================================
+  var FLAG_KEYS = ['audioReactive', 'reflections', 'particles', 'cinematicCamera', 'singularityFX'];
+  function readFlags(raw) {
+    raw = raw || {};
+    var out = {};
+    for (var i = 0; i < FLAG_KEYS.length; i++) out[FLAG_KEYS[i]] = raw[FLAG_KEYS[i]] !== false;
+    return out;
+  }
+
+  // ======================================================================================================
+  // EFFECT GOVERNOR — who may spend the frame. Priority: receiver > camera > lights > reflections >
+  // particles > overlays. Under FPS pressure the lowest priorities shed first; the Receiver never does.
+  // ======================================================================================================
+  var CHANNELS = ['receiver', 'camera', 'lights', 'reflections', 'particles', 'overlays'];
+  var TIER_BASE = {
+    high: { receiver: 1, camera: 1, lights: 1, reflections: 1, particles: 1, overlays: 1 },
+    balanced: { receiver: 1, camera: 0.85, lights: 0.9, reflections: 0.75, particles: 0.6, overlays: 0.6 },
+    lite: { receiver: 1, camera: 0.45, lights: 0.6, reflections: 0.4, particles: 0.25, overlays: 0.2 },
+    static: { receiver: 0, camera: 0, lights: 0, reflections: 0, particles: 0, overlays: 0 }
+  };
+  var COMPACT_CAP = { receiver: 1, camera: 0.4, lights: 0.6, reflections: 0.5, particles: 0.35, overlays: 0.35 };
+  var FPS_TARGET = { high: 55, balanced: 45, lite: 30, static: 0 };
+  // Shedding order: [channel, how many "steps" of pressure before it starts, floor it never goes under].
+  var SHED = [['overlays', 0, 0], ['particles', 1, 0], ['reflections', 2, 0], ['lights', 3, 0.5], ['camera', 4, 0.5]];
+
+  function DMFEffectGovernor() {
+    this.pressure = 0;
+    this.out = { receiver: 1, camera: 1, lights: 1, reflections: 1, particles: 1, overlays: 1, singularity: 1, pressure: 0 };
+  }
+  DMFEffectGovernor.prototype.update = function (tier, compact, flags, fps, dt) {
+    var base = TIER_BASE[tier] || TIER_BASE.high;
+    var target = FPS_TARGET[tier] || 0;
+    var want = fps > 0 && target > 0 ? clamp01((target - fps) / 20) : 0;
+    // Slow in, slower out: a single bad second never strips the stage, a recovered one restores it gently.
+    this.pressure = envelope(this.pressure, want, 0.8, 0.25, dt);
+    if (this.pressure < 1e-4) this.pressure = 0;
+    var steps = this.pressure * 5;
+    var o = this.out;
+    for (var i = 0; i < CHANNELS.length; i++) {
+      var ch = CHANNELS[i];
+      o[ch] = compact ? Math.min(base[ch], COMPACT_CAP[ch]) : base[ch];
+    }
+    for (var s = 0; s < SHED.length; s++) {
+      var cut = clamp01(steps - SHED[s][1]);
+      o[SHED[s][0]] *= 1 - cut * (1 - SHED[s][2]);
+    }
+    if (flags && !flags.reflections) o.reflections = 0;
+    if (flags && !flags.particles) o.particles = 0;
+    if (flags && !flags.cinematicCamera) o.camera = 0;
+    o.singularity = flags && !flags.singularityFX ? 0 : (tier === 'static' ? 0 : 1);
+    o.pressure = this.pressure;
+    return o;
+  };
+
+  // ======================================================================================================
+  // DROP TIMELINE — anchored on the HYPERDRIVE hit (engine.js decides the drop; one per drop, 8 s apart).
+  // The run-up uses the predictor's time-to-drop, so it only happens when a drop is actually coming.
+  // ======================================================================================================
+  var DROP = {
+    lead: 0.7,                       // T−700 ms: light compresses, motion narrows, reflections retract
+    edge: 0.1,                       // T−100 ms: micro blackout / energy compression
+    punch: [0, 0.025, 0.2],          // T: impulse
+    ring: [0, 0.05, 0.5],            // reflection ring
+    secondary: [0.2, 0.06, 0.45],    // T+200 ms: secondary highlight
+    recover: 0.6,                    // T+600 ms: recovery starts …
+    end: 1.2                         // … and every term is exactly 0 at T+1.2 s
+  };
+  var DROP_PHASES = ['idle', 'compress', 'edge', 'impact', 'secondary', 'recovery'];
+
+  function DMFDropTimeline() {
+    this.t = 9;
+    this.lastHyperId = -1;
+    this.shots = 0;
+    this.firedNow = false;
+    this.phase = 'idle';
+    this.compress = 0; this.edge = 0; this.punch = 0; this.ring = 0; this.secondary = 0; this.recovery = 0;
+  }
+  DMFDropTimeline.prototype.update = function (sig, hyper, dt, live) {
+    this.firedNow = false;
+    var hid = hyper ? hyper.id : 0;
+    if (this.lastHyperId < 0) this.lastHyperId = hid;           // never fire for a moment that predates us
+    if (hyper && hyper.active && hid !== this.lastHyperId) {
+      this.t = 0; this.shots++; this.firedNow = live > 0;
+    }
+    this.lastHyperId = hid;
+    var inEvent = this.t < DROP.end;
+    if (inEvent) this.t += dt;
+    var t = inEvent ? this.t : -1;
+
+    var ttd = sig && sig.timeToDrop != null ? sig.timeToDrop : -1;
+    var canFire = !hyper || typeof hyper.canFire !== 'function' || hyper.canFire();
+    var approaching = !inEvent && ttd > 0 && ttd <= DROP.lead && canFire;
+    var compress = 0, edge = 0;
+    if (approaching) {
+      compress = smooth01((DROP.lead - ttd) / (DROP.lead - DROP.edge));
+      edge = ttd <= DROP.edge ? smooth01((DROP.edge - ttd) / DROP.edge) : 0;
+    } else if (t >= 0) {
+      compress = 1 - smooth01(t / 0.12);                      // the compression releases into the hit
+    }
+    this.compress = clamp01(compress * live);
+    this.edge = clamp01(edge * live);
+    this.punch = clamp01(pulse(t, DROP.punch[0], DROP.punch[1], DROP.punch[2]) * live);
+    this.ring = clamp01(pulse(t, DROP.ring[0], DROP.ring[1], DROP.ring[2]) * live);
+    this.secondary = clamp01(pulse(t, DROP.secondary[0], DROP.secondary[1], DROP.secondary[2]) * live);
+    this.recovery = t >= DROP.recover && t < DROP.end ? clamp01((1 - smooth01((t - DROP.recover) / (DROP.end - DROP.recover))) * live) : 0;
+    this.phase = t >= 0 ? (t < 0.2 ? 'impact' : (t < DROP.recover ? 'secondary' : 'recovery'))
+      : (approaching && live > 0 ? (edge > 0 ? 'edge' : 'compress') : 'idle');
+    return this;
+  };
+  DMFDropTimeline.prototype.compose = function () {
+    this.t = 9; this.phase = 'idle';
+    this.compress = 0; this.edge = 0; this.punch = 0; this.ring = 0; this.secondary = 0; this.recovery = 0;
+    return this;
+  };
+
+  // ======================================================================================================
+  // SINGULARITY TREATMENT — the kinetic SINGULARITY is already rare (≥ 12 s, every 2nd drop or an armed
+  // forced drop, 700 ms predicted run-up). This turns it into one staged moment and adds its own ≥ 12 s
+  // guard, so the flash can never repeat inside a cooldown whatever happens upstream.
+  // ======================================================================================================
+  var SING = {
+    gap: 12,
+    end: 2.8,
+    flash: [0, 0.02, 0.16],          // one controlled flash at impact
+    pull: [0, 0.08, 0.9],            // the camera is drawn in
+    stretch: [0, 0.14, 1.5],         // the background field stretches backward
+    dominance: [0, 0.1, 2.2],        // the Receiver dominates the frame
+    release: [0.25, 0.25, 1.4],      // spatial release
+    recover: 1.4
+  };
+  function DMFSingularityTreatment() {
+    this.t = 9;
+    this.since = 99;
+    this.lastId = -1;
+    this.shots = 0;
+    this.firedNow = false;
+    this.flashOK = false;
+    this.phase = 'idle';
+    this.collapse = 0; this.lightCompress = 0; this.pull = 0; this.flash = 0; this.stretch = 0;
+    this.dominance = 0; this.release = 0; this.recovery = 0;
+  }
+  DMFSingularityTreatment.prototype.update = function (sing, dt, authority) {
+    this.since += dt;
+    this.firedNow = false;
+    var sid = sing ? sing.id : 0;
+    if (this.lastId < 0) this.lastId = sid;
+    if (sing && sing.hit && sid !== this.lastId) {
+      this.flashOK = this.since >= SING.gap;
+      if (this.flashOK) { this.t = 0; this.since = 0; this.shots++; this.firedNow = authority > 0; }
+    }
+    this.lastId = sid;
+    var inEvent = this.t < SING.end;
+    if (inEvent) this.t += dt;
+    var t = inEvent ? this.t : -1;
+    var pre = sing && sing.active && sing.t < 0 ? clamp01(sing.pre || 0) : 0;
+    var ign = sing && sing.active ? clamp01(sing.ignition || 0) : 0;
+    var a = clamp01(authority);
+    // Before the hit: reflections collapse toward the centre and the light compresses with the precompression.
+    this.collapse = clamp01(Math.max(pre, t >= 0 ? 1 - smooth01(t / 0.35) : 0) * a);
+    this.lightCompress = clamp01(Math.max(pre, t >= 0 ? 1 - smooth01(t / 0.1) : 0) * a);
+    this.pull = clamp01(Math.max(0.6 * ign, pulse(t, SING.pull[0], SING.pull[1], SING.pull[2])) * a);
+    this.flash = this.flashOK ? clamp01(pulse(t, SING.flash[0], SING.flash[1], SING.flash[2]) * a) : 0;
+    this.stretch = clamp01(Math.max(0.25 * pre, pulse(t, SING.stretch[0], SING.stretch[1], SING.stretch[2])) * a);
+    this.dominance = clamp01(Math.max(0.4 * pre, pulse(t, SING.dominance[0], SING.dominance[1], SING.dominance[2])) * a);
+    this.release = clamp01(pulse(t, SING.release[0], SING.release[1], SING.release[2]) * a);
+    this.recovery = t >= SING.recover ? clamp01((1 - smooth01((t - SING.recover) / (SING.end - SING.recover))) * a) : 0;
+    this.phase = t >= 0 ? (t < 0.25 ? 'impact' : (t < SING.recover ? 'release' : 'recovery')) : (pre > 0.01 && a > 0 ? 'precompression' : 'idle');
+    return this;
+  };
+  DMFSingularityTreatment.prototype.compose = function () {
+    this.t = 9; this.phase = 'idle';
+    this.collapse = 0; this.lightCompress = 0; this.pull = 0; this.flash = 0; this.stretch = 0;
+    this.dominance = 0; this.release = 0; this.recovery = 0;
+    return this;
+  };
+
+  // ======================================================================================================
+  // LIGHT DIRECTOR — every output bounded, then smoothed with its own attack/release, then clamped again.
+  // Each section contributes its light (releases: side-lit observer; academy: recedes; offer: steps back).
+  // ======================================================================================================
+  var ACT_LIGHT = {
+    intro: { key: 0.05, rim: 0.05, side: 0 },
+    hero: { key: 0.08, rim: 0.12, side: 0 },
+    relic: { key: 0.12, rim: 0.2, side: 0.2 },
+    bio: { key: 0, rim: 0, side: 0.5 },
+    band: { key: 0.05, rim: 0.1, side: 0.3 },
+    releases: { key: -0.04, rim: 0.05, side: 1 },
+    sets: { key: 0, rim: 0.1, side: 0.6 },
+    platforms: { key: -0.04, rim: 0, side: 0.4 },
+    rider: { key: -0.04, rim: 0, side: 0.3 },
+    academy: { key: -0.12, rim: -0.1, side: 0 },
+    offer: { key: -0.2, rim: -0.15, side: 0 },
+    lab: { key: -0.1, rim: -0.05, side: 0.2 },
+    tips: { key: 0, rim: 0.05, side: 0.3 },
+    contact: { key: 0.1, rim: 0.15, side: 0.1 }
+  };
+  var LIGHT_BOUNDS = {
+    key: [0.55, 1.4], rim: [0, 1], accent: [0, 1], sweep: [-0.35, 0.35], bg: [0, 1], fog: [-1, 1], emissive: [0, 0.05], side: [0, 1]
+  };
+  var LIGHT_RATES = { key: [18, 4], rim: [16, 3], accent: [20, 5], sweep: [6, 6], bg: [6, 1.5], fog: [8, 2], emissive: [20, 4], side: [3, 1.5] };
+  var DEFAULT_ACT = { key: 0, rim: 0, side: 0 };
+
+  var LIGHT_KEYS = ['key', 'rim', 'accent', 'sweep', 'bg', 'fog', 'emissive', 'side'];
+  function DMFLightDirector() {
+    this.out = { key: 1, rim: 0, accent: 0, sweep: 0, bg: 0, fog: 0, emissive: 0, side: 0 };
+    this.target = { key: 1, rim: 0, accent: 0, sweep: 0, bg: 0, fog: 0, emissive: 0, side: 0 };
+    this.phase = 0;
+  }
+  DMFLightDirector.prototype.update = function (st, drop, sing, hyperLevel, a, dt) {
+    var act = ACT_LIGHT[st.section] || DEFAULT_ACT;
+    var calmD = 1 - 0.7 * clamp01(st.calm || 0);
+    var quiet = 1 - 0.6 * clamp01(st.silence || 0);
+    var low = clamp01(st.low || 0), mid = clamp01(st.mid || 0), high = clamp01(st.high || 0);
+    var e = clamp01(st.energy || 0), kick = clamp01(st.kick || 0), h = clamp01(hyperLevel || 0);
+    // The key light travels around the object with the mids: highlights move across the metal.
+    this.phase += dt * (0.05 + 0.3 * mid + 0.35 * h) * (1 - 0.85 * drop.compress) * (1 - 0.9 * sing.lightCompress);
+    this.phase = frac(this.phase);
+    var T = this.target;
+    T.key = 1 + a * (act.key + 0.18 * low * calmD + 0.22 * drop.punch + 0.12 * h - 0.28 * drop.compress - 0.45 * drop.edge - 0.3 * sing.lightCompress + 0.35 * sing.flash);
+    T.rim = a * ((0.3 * mid + 0.35 * kick + 0.3 * h + act.rim) * calmD * quiet + 0.4 * drop.ring + 0.3 * sing.release + 0.25 * sing.dominance);
+    T.accent = a * ((0.5 * high + 0.2 * h) * calmD * quiet + 0.35 * drop.secondary);
+    T.sweep = a * 0.3 * Math.sin(2 * Math.PI * this.phase);
+    T.bg = a * ((0.3 * e + 0.25 * low) * calmD + 0.3 * drop.ring + 0.45 * sing.stretch);
+    T.fog = a * (0.35 * drop.punch + 0.3 * sing.release - 0.6 * drop.compress - 0.5 * drop.edge - 0.45 * sing.lightCompress);
+    T.emissive = a * (0.012 * e * calmD + 0.02 * drop.punch + 0.03 * sing.flash + 0.01 * h);
+    T.side = a * act.side * (0.6 + 0.4 * mid) * calmD;
+    var o = this.out;
+    for (var i = 0; i < LIGHT_KEYS.length; i++) {
+      var k = LIGHT_KEYS[i], b = LIGHT_BOUNDS[k], r = LIGHT_RATES[k];
+      o[k] = clamp(envelope(o[k], clamp(T[k], b[0], b[1]), r[0], r[1], dt), b[0], b[1]);
+    }
+    return o;
+  };
+  DMFLightDirector.prototype.compose = function () {
+    var o = this.out;
+    o.key = 1; o.rim = 0; o.accent = 0; o.sweep = 0; o.bg = 0; o.fog = 0; o.emissive = 0; o.side = 0;
+    return o;
+  };
+
+  // ======================================================================================================
+  // CAMERA DIRECTOR — named modes; each mode is a target offset (dolly forward in world units, orbit in rad,
+  // lift in world units, FOV in degrees) on top of the existing shot rig. The offset is followed by
+  // critically damped springs with an acceleration limit, so a mode change is a change of force, never
+  // of position. Hard bounds per device; no noise, no shake.
+  // ======================================================================================================
+  var MODES = ['ICON', 'ORBIT', 'PUSH', 'IMPACT', 'FLYBY', 'REVEAL', 'SINGULARITY', 'RECOVERY'];
+  var MODE_TARGET = {
+    ICON: { dolly: 0, orbit: 0, lift: 0, fov: 0, k: 30 },
+    ORBIT: { dolly: 0.02, orbit: 0.035, lift: 0.01, fov: 0, k: 14 },
+    PUSH: { dolly: 0.06, orbit: 0, lift: -0.01, fov: -0.6, k: 26 },
+    IMPACT: { dolly: 0.16, orbit: 0, lift: -0.015, fov: -0.9, k: 220 },
+    FLYBY: { dolly: -0.03, orbit: 0.04, lift: 0.03, fov: 0.4, k: 18 },
+    REVEAL: { dolly: -0.05, orbit: 0.015, lift: 0.04, fov: 0.3, k: 12 },
+    SINGULARITY: { dolly: 0.24, orbit: 0, lift: -0.02, fov: 1.2, k: 120 },
+    RECOVERY: { dolly: 0, orbit: 0, lift: 0, fov: 0, k: 16 }
+  };
+  var CAM_BOUNDS = {
+    wide: { dolly: [-0.08, 0.26], orbit: [-0.05, 0.05], lift: [-0.06, 0.06], fov: [-1.5, 1.5] },
+    compact: { dolly: [-0.03, 0.08], orbit: [-0.02, 0.02], lift: [-0.025, 0.025], fov: [-0.6, 0.6] }
+  };
+  var CAM_MAX_A = { dolly: 9, orbit: 1.5, lift: 1.5, fov: 60 };     // per s²: no jolt at mode changes
+  var CAM_KEYS = ['dolly', 'orbit', 'lift', 'fov'];
+  var DWELL = 0.45;                                                   // ambient modes never flicker
+
+  function DMFCameraDirector() {
+    this.mode = 'ICON';
+    this.modeId = 0;
+    this.dwell = 9;
+    this.orbitPhase = 0;
+    this.x = { dolly: 0, orbit: 0, lift: 0, fov: 0 };
+    this.v = { dolly: 0, orbit: 0, lift: 0, fov: 0 };
+    this.out = { dolly: 0, orbit: 0, lift: 0, fov: 0 };
+    this.targets = { dolly: 0, orbit: 0, lift: 0, fov: 0 };
+    this.maxSpeed = 0;
+  }
+  DMFCameraDirector.prototype.pick = function (st, drop, sing) {
+    if (sing.pull > 0.02 || sing.collapse > 0.05) return 'SINGULARITY';
+    if (drop.punch > 0.02 || (drop.phase === 'impact')) return 'IMPACT';
+    if (drop.recovery > 0.01 || drop.phase === 'secondary' || sing.recovery > 0.01 || sing.release > 0.02) return 'RECOVERY';
+    if (drop.compress > 0.05) return 'PUSH';
+    if ((st.reveal != null && st.reveal < 0.999) || (st.section === 'relic' && st.focus < 0.6 && st.transition > 0.05)) return 'REVEAL';
+    if ((st.speed || 0) > 0.35) return 'FLYBY';
+    if ((st.mid || 0) > 0.45 && (st.energy || 0) > 0.35) return 'ORBIT';
+    return 'ICON';
+  };
+  var EVENT_MODE = { PUSH: 1, IMPACT: 1, SINGULARITY: 1, RECOVERY: 1, REVEAL: 1 };
+  DMFCameraDirector.prototype.update = function (st, drop, sing, a, compact, dt) {
+    var want = this.pick(st, drop, sing);
+    this.dwell += dt;
+    if (want !== this.mode && (EVENT_MODE[want] || EVENT_MODE[this.mode] || this.dwell >= DWELL)) {
+      this.mode = want; this.modeId = MODES.indexOf(want); this.dwell = 0;
+    }
+    var T = MODE_TARGET[this.mode];
+    this.orbitPhase = frac(this.orbitPhase + dt * 0.07);
+    var dir = st.velocity < 0 ? -1 : 1;
+    var orbitT = this.mode === 'ORBIT' ? T.orbit * Math.sin(2 * Math.PI * this.orbitPhase) : (this.mode === 'FLYBY' ? T.orbit * dir : T.orbit);
+    var B = compact ? CAM_BOUNDS.compact : CAM_BOUNDS.wide;
+    var targets = this.targets;
+    targets.dolly = T.dolly; targets.orbit = orbitT; targets.lift = T.lift; targets.fov = T.fov;
+    var k = T.k, c = 2 * Math.sqrt(k);                                // critically damped
+    var n = dt > 1 / 120 ? Math.ceil(dt * 120) : 1, hh = dt / n;
+    for (var i = 0; i < CAM_KEYS.length; i++) {
+      var key = CAM_KEYS[i];
+      var tg = clamp(targets[key] * a, B[key][0], B[key][1]);
+      for (var s = 0; s < n; s++) {
+        var acc = clamp(k * (tg - this.x[key]) - c * this.v[key], -CAM_MAX_A[key], CAM_MAX_A[key]);
+        this.v[key] += acc * hh;
+        this.x[key] += this.v[key] * hh;
+      }
+      this.x[key] = clamp(this.x[key], B[key][0], B[key][1]);
+      this.out[key] = this.x[key];
+    }
+    var spd = Math.abs(this.v.dolly);
+    if (spd > this.maxSpeed) this.maxSpeed = spd;
+    return this.out;
+  };
+  DMFCameraDirector.prototype.compose = function () {
+    this.mode = 'ICON'; this.modeId = 0; this.dwell = 9;
+    for (var i = 0; i < CAM_KEYS.length; i++) { this.x[CAM_KEYS[i]] = 0; this.v[CAM_KEYS[i]] = 0; this.out[CAM_KEYS[i]] = 0; }
+    return this.out;
+  };
+
+  // ======================================================================================================
+  // REFLECTION FIELD — the signature element. Positions are 0..1 across the object (the shader maps them on
+  // a diagonal through object space, with a per-zone phase offset so each part of the Receiver catches
+  // the light at its own moment).
+  // ======================================================================================================
+  var RF = { kickTravel: 0.38, zonePhase: 0.11 };
+  function DMFReflectionField() {
+    this.warmPhase = 0.25;
+    this.coldPhase = 0;
+    this.kickT = 9;
+    this.kickStrength = 0;
+    this.out = { warmPos: 0.5, warmWidth: 0.22, warmAmp: 0, coldPos: -0.2, coldWidth: 0.045, coldAmp: 0, kickFront: 0, kickAmp: 0, collapse: 0, zonePhase: RF.zonePhase };
+  }
+  DMFReflectionField.prototype.update = function (st, sig, drop, sing, hyperLevel, a, dt) {
+    var low = clamp01(st.low || 0), high = clamp01(st.high || 0), h = clamp01(hyperLevel || 0);
+    var calmD = 1 - 0.7 * clamp01(st.calm || 0);
+    var collapse = clamp01(Math.max(sing.collapse, 0.6 * drop.compress));
+    // Retract / compress: travel slows and the bands converge on the centre before the event.
+    var travel = (1 - 0.85 * collapse) * (1 + 0.8 * h);
+    this.warmPhase = frac(this.warmPhase + dt * (0.04 + 0.16 * low) * travel);
+    this.coldPhase = frac(this.coldPhase + dt * (0.12 + 0.85 * high + 0.5 * h) * travel);
+    if (sig && sig.beatFired && a > 0) { this.kickT = 0; this.kickStrength = clamp01(0.35 + 0.65 * (sig.kick || 0)) * (1 + 0.6 * drop.punch); }
+    if (this.kickT < RF.kickTravel) this.kickT += dt;
+    var o = this.out;
+    var warm = 0.5 + 0.55 * Math.sin(2 * Math.PI * this.warmPhase);
+    var cold = this.coldPhase * 1.3 - 0.15;
+    o.warmPos = clamp(warm + (0.5 - warm) * collapse, -0.2, 1.2);
+    o.coldPos = clamp(cold + (0.5 - cold) * collapse, -0.2, 1.2);
+    o.warmWidth = clamp((0.2 + 0.1 * low) * (1 - 0.7 * collapse), 0.02, 0.4);
+    o.coldWidth = clamp(0.045 * (1 - 0.5 * collapse), 0.02, 0.4);
+    o.warmAmp = clamp(a * ((0.08 + 0.32 * low) * calmD * (1 + 0.6 * h) * (1 - 0.5 * collapse) + 0.25 * drop.ring + 0.2 * sing.release), 0, 0.6);
+    o.coldAmp = clamp(a * ((0.05 + 0.38 * high) * calmD * (1 + 0.6 * h) * (1 - 0.4 * collapse) + 0.3 * drop.secondary), 0, 0.6);
+    var kf = this.kickT < RF.kickTravel ? this.kickT / RF.kickTravel : 1;
+    o.kickFront = kf;
+    o.kickAmp = kf < 1 ? clamp(a * this.kickStrength * (1 - kf) * (1 - kf) * 0.5 * calmD, 0, 0.6) : 0;
+    o.collapse = clamp01(collapse * a);
+    return o;
+  };
+  DMFReflectionField.prototype.compose = function () {
+    var o = this.out;
+    o.warmAmp = 0; o.coldAmp = 0; o.kickAmp = 0; o.kickFront = 0; o.collapse = 0;
+    this.kickT = 9;
+    return o;
+  };
+
+  // ======================================================================================================
+  // PERFORMER MOTION — naturalness for the existing head/DJ springs (relic.js keeps the motion itself).
+  // ======================================================================================================
+  function DMFPerformerMotion() {
+    this.midLP = 0;
+    this.t = 0;
+    this.out = { nod: 1, phase: 0, headDelay: 0.05, sway: 1, zeta: 0.38 };
+  }
+  DMFPerformerMotion.prototype.update = function (st, a, dt) {
+    this.t += dt;
+    this.midLP = approach(this.midLP, clamp01(st.mid || 0), 2.2, dt);   // ≈ 0.45 s low-pass
+    var o = this.out;
+    var n1 = noise1(this.t * 0.31), n2 = noise1(this.t * 0.23 + 17.3), n3 = noise1(this.t * 0.19 + 41.7);
+    o.nod = clamp(1 + a * (0.3 * (this.midLP - 0.5) + 0.1 * n1), 0.8, 1.2);
+    o.phase = clamp(a * 0.04 * n2, -0.05, 0.05);                       // beat fraction: breaks the loop
+    o.headDelay = clamp(0.045 + 0.02 * (1 - this.midLP), 0.04, 0.07);   // the head trails the speakers
+    o.sway = clamp(1 + a * 0.2 * n3, 0.75, 1.25);
+    o.zeta = clamp(0.38 + 0.14 * clamp01(st.energy || 0) * a, 0.38, 0.52); // louder → tighter cones
+    return o;
+  };
+  DMFPerformerMotion.prototype.compose = function () {
+    var o = this.out;
+    o.nod = 1; o.phase = 0; o.headDelay = 0.05; o.sway = 1; o.zeta = 0.38;
+    return o;
+  };
+
+  // ======================================================================================================
+  // COMPOSITE — stepped by DMFEventHorizon.update after DMFLightspeed; writes st.hv*, st.cam*, st.drop*,
+  // st.sing*, st.rf*, st.pf*, st.fx* in place.
+  // ======================================================================================================
+  var ENERGETIC = { hero: 1, relic: 1, band: 1, releases: 1, sets: 1, platforms: 1, rider: 1, tips: 1, bio: 1, intro: 1 };
+
+  function DMFHyperdriveV2() {
+    this.flags = readFlags(null);
+    this.governor = new DMFEffectGovernor();
+    this.drop = new DMFDropTimeline();
+    this.sing = new DMFSingularityTreatment();
+    this.light = new DMFLightDirector();
+    this.camera = new DMFCameraDirector();
+    this.reflection = new DMFReflectionField();
+    this.performer = new DMFPerformerMotion();
+    this.hyperFiredNow = false;
+    this.lastHyperId = -1;
+  }
+  DMFHyperdriveV2.prototype.setFlags = function (raw) { this.flags = readFlags(raw); return this.flags; };
+
+  DMFHyperdriveV2.prototype.update = function (st, inp, ids, dt) {
+    var tier = st.performanceTier;
+    var compact = !!st.compact;
+    var g = this.governor.update(tier, compact, this.flags, inp.fps || 0, dt);
+    var still = tier === 'static';
+    var calm = clamp01(st.calm || 0);
+    // The offer never sees an event; silence (V4) holds everything down; only energetic sections choreograph.
+    var sec = ids && ids[st.index] ? ids[st.index] : st.section;
+    var live = still ? 0 : (1 - clamp01(st.silence || 0)) * (1 - clamp01((calm - 0.3) / 0.3)) * (ENERGETIC[sec] ? 1 : 0.35);
+    var hyper = inp.hyper || null;
+    var hyperLevel = hyper && hyper.active ? clamp01(hyper.level || 0) : 0;
+    this.hyperFiredNow = false;
+    var hid = hyper ? hyper.id : 0;
+    if (this.lastHyperId < 0) this.lastHyperId = hid;
+    if (hyper && hyper.active && hid !== this.lastHyperId && live > 0) this.hyperFiredNow = true;
+    this.lastHyperId = hid;
+
+    var drop = this.drop.update(inp.s || null, hyper, dt, live * (g.lights > 0 || g.camera > 0 ? 1 : 0));
+    var sing = this.sing.update(inp.sing || null, dt, still ? 0 : g.singularity * (1 - clamp01((calm - 0.3) / 0.3)));
+    var L = this.light.update(st, drop, sing, hyperLevel * live, still ? 0 : g.lights, dt);
+    var C = this.camera.update(st, drop, sing, still ? 0 : g.camera, compact, dt);
+    var R = this.reflection.update(st, inp.s || null, drop, sing, hyperLevel * live, still ? 0 : g.reflections, dt);
+    var P = this.performer.update(st, still ? 0 : g.receiver, dt);
+
+    st.hvKey = L.key; st.hvRim = L.rim; st.hvAccent = L.accent; st.hvSweep = L.sweep; st.hvBg = L.bg;
+    st.hvFog = L.fog; st.hvEmissive = L.emissive; st.hvSide = L.side;
+    st.camMode = this.camera.mode; st.camModeId = this.camera.modeId;
+    st.camDolly = C.dolly; st.camOrbit = C.orbit; st.camLift = C.lift; st.camFov = C.fov;
+    st.dropPhase = drop.phase; st.dropCompress = drop.compress; st.dropEdge = drop.edge; st.dropPunch = drop.punch;
+    st.dropRing = drop.ring; st.dropSecondary = drop.secondary; st.dropRecovery = drop.recovery;
+    st.singPhase = sing.phase; st.singCollapse = sing.collapse; st.singPull = sing.pull; st.singFlash = sing.flash;
+    st.singStretch = sing.stretch; st.singDominance = sing.dominance; st.singRelease = sing.release;
+    st.rfWarmPos = R.warmPos; st.rfWarmWidth = R.warmWidth; st.rfWarmAmp = R.warmAmp;
+    st.rfColdPos = R.coldPos; st.rfColdWidth = R.coldWidth; st.rfColdAmp = R.coldAmp;
+    st.rfKickFront = R.kickFront; st.rfKickAmp = R.kickAmp; st.rfCollapse = R.collapse; st.rfZone = R.zonePhase;
+    st.pfNod = P.nod; st.pfPhase = P.phase; st.pfHeadDelay = P.headDelay; st.pfSway = P.sway; st.pfZeta = P.zeta;
+    st.fxCamera = g.camera; st.fxLights = g.lights; st.fxReflections = g.reflections; st.fxParticles = g.particles;
+    st.fxOverlays = g.overlays; st.fxPressure = g.pressure;
+    // Particles: HIGH sparkle on top of the existing embers (0 when the flag is off or shed).
+    st.hvSparkle = clamp01(g.particles * (0.6 * clamp01(st.high || 0) + 0.4 * drop.secondary + 0.5 * sing.release) * (1 - 0.7 * calm));
+    return st;
+  };
+
+  // Composed and motionless (reduced motion, Save-Data, STATIC): every V7 term at rest.
+  DMFHyperdriveV2.prototype.compose = function (st) {
+    var L = this.light.compose(), C = this.camera.compose(), R = this.reflection.compose(), P = this.performer.compose();
+    this.drop.compose(); this.sing.compose();
+    st.hvKey = L.key; st.hvRim = 0; st.hvAccent = 0; st.hvSweep = 0; st.hvBg = 0; st.hvFog = 0; st.hvEmissive = 0; st.hvSide = 0;
+    st.camMode = 'ICON'; st.camModeId = 0; st.camDolly = C.dolly; st.camOrbit = C.orbit; st.camLift = C.lift; st.camFov = C.fov;
+    st.dropPhase = 'idle'; st.dropCompress = 0; st.dropEdge = 0; st.dropPunch = 0; st.dropRing = 0; st.dropSecondary = 0; st.dropRecovery = 0;
+    st.singPhase = 'idle'; st.singCollapse = 0; st.singPull = 0; st.singFlash = 0; st.singStretch = 0; st.singDominance = 0; st.singRelease = 0;
+    st.rfWarmPos = R.warmPos; st.rfWarmWidth = R.warmWidth; st.rfWarmAmp = 0; st.rfColdPos = R.coldPos; st.rfColdWidth = R.coldWidth;
+    st.rfColdAmp = 0; st.rfKickFront = 0; st.rfKickAmp = 0; st.rfCollapse = 0; st.rfZone = R.zonePhase;
+    st.pfNod = P.nod; st.pfPhase = 0; st.pfHeadDelay = P.headDelay; st.pfSway = 1; st.pfZeta = P.zeta;
+    st.fxCamera = 0; st.fxLights = 0; st.fxReflections = 0; st.fxParticles = 0; st.fxOverlays = 0; st.fxPressure = 0; st.hvSparkle = 0;
+    return st;
+  };
+
+  var api = {
+    FLAG_KEYS: FLAG_KEYS, readFlags: readFlags,
+    CHANNELS: CHANNELS, TIER_BASE: TIER_BASE, COMPACT_CAP: COMPACT_CAP, FPS_TARGET: FPS_TARGET, SHED: SHED,
+    DROP: DROP, DROP_PHASES: DROP_PHASES, SING: SING, ACT_LIGHT: ACT_LIGHT, LIGHT_BOUNDS: LIGHT_BOUNDS,
+    LIGHT_KEYS: LIGHT_KEYS, MODES: MODES, MODE_TARGET: MODE_TARGET, CAM_BOUNDS: CAM_BOUNDS, CAM_MAX_A: CAM_MAX_A, RF: RF,
+    pulse: pulse, noise1: noise1,
+    DMFEffectGovernor: DMFEffectGovernor, DMFDropTimeline: DMFDropTimeline, DMFSingularityTreatment: DMFSingularityTreatment,
+    DMFLightDirector: DMFLightDirector, DMFCameraDirector: DMFCameraDirector, DMFReflectionField: DMFReflectionField,
+    DMFPerformerMotion: DMFPerformerMotion, DMFHyperdriveV2: DMFHyperdriveV2
+  };
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.DMFHyperdriveV2 = api;
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
 /* DMF EVENT HORIZON — one director for the landing's audiovisual world.
  * It owns no loop, no audio graph and no renderer. It listens to the DMF Signal Bus clock (hub.onFrame),
  * folds scroll, section, audio, pointer, visibility and the governor tier into one stage state
@@ -4966,6 +5523,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   var MD = typeof module === 'object' && module.exports ? require('./mass-driver.js') : root.DMFMassDriver;
   // V6 Lightspeed: the threshold crossing, stepped after the Mass Driver and triggered only by it.
   var LS = typeof module === 'object' && module.exports ? require('./lightspeed.js') : root.DMFLightspeed;
+  // V7 Hyperdrive V2: choreography (light, camera modes, reflections, drop, singularity), stepped last.
+  var HV = typeof module === 'object' && module.exports ? require('./hyperdrive-v2.js') : root.DMFHyperdriveV2;
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
@@ -5047,13 +5606,23 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       // V6 Lightspeed (written by DMFLightspeed.update)
       lightspeed: 0, spaceCompression: 0, lensPressure: 0, velocityField: 0, fovKick: 0, fovDeg: 0, depthStretch: 0,
       depthDolly: 0, receiverAnchor: 0, reflectionVelocity: 0, bladeVelocity: 0, floorVelocity: 0, titleTrail: 0,
-      titleSnap: 0, lsIgnition: 0, lsHead: 0, lsShoulder: 0, lsTorso: 0, speakerHold: 0, speakerRelease: 0
+      titleSnap: 0, lsIgnition: 0, lsHead: 0, lsShoulder: 0, lsTorso: 0, speakerHold: 0, speakerRelease: 0,
+      // V7 Hyperdrive V2 (written by DMFHyperdriveV2.update)
+      hvKey: 1, hvRim: 0, hvAccent: 0, hvSweep: 0, hvBg: 0, hvFog: 0, hvEmissive: 0, hvSide: 0, hvSparkle: 0,
+      camMode: 'ICON', camModeId: 0, camDolly: 0, camOrbit: 0, camLift: 0, camFov: 0,
+      dropPhase: 'idle', dropCompress: 0, dropEdge: 0, dropPunch: 0, dropRing: 0, dropSecondary: 0, dropRecovery: 0,
+      singPhase: 'idle', singCollapse: 0, singPull: 0, singFlash: 0, singStretch: 0, singDominance: 0, singRelease: 0,
+      rfWarmPos: 0.5, rfWarmWidth: 0.22, rfWarmAmp: 0, rfColdPos: -0.2, rfColdWidth: 0.045, rfColdAmp: 0,
+      rfKickFront: 0, rfKickAmp: 0, rfCollapse: 0, rfZone: 0.11,
+      pfNod: 1, pfPhase: 0, pfHeadDelay: 0.05, pfSway: 1, pfZeta: 0.38,
+      fxCamera: 1, fxLights: 1, fxReflections: 1, fxParticles: 1, fxOverlays: 1, fxPressure: 0
     };
     this.narrative = SN ? new SN.DMFSpatialNarrative() : null;
     this.overdrive = SO && this.narrative ? new SO.DMFStageOverdrive() : null;
     this.blackSun = BS && this.overdrive ? new BS.DMFBlackSun() : null;
     this.massDriver = MD && this.blackSun ? new MD.DMFMassDriver() : null;
     this.lightspeed = LS && this.massDriver ? new LS.DMFLightspeed() : null;
+    this.hyperdrive = HV && this.lightspeed ? new HV.DMFHyperdriveV2() : null;
     this._depthV = 0;
     this._gateT = 9;
     this._sinceGate = 9;
@@ -5157,6 +5726,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     if (this.blackSun) this.blackSun.update(st, inp, this.ids, dt);
     if (this.massDriver) this.massDriver.update(st, inp, this.ids, dt);
     if (this.lightspeed) this.lightspeed.update(st, inp, this.ids, dt);
+    if (this.hyperdrive) this.hyperdrive.update(st, inp, this.ids, dt);
     return st;
   };
 
@@ -5174,6 +5744,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     if (this.blackSun) this.blackSun.compose(st);
     if (this.massDriver) this.massDriver.compose(st);
     if (this.lightspeed) this.lightspeed.compose(st);
+    if (this.hyperdrive) this.hyperdrive.compose(st);
     return st;
   };
 
@@ -5198,7 +5769,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   // Blocks that receive per-section variables while visible (never the whole document).
   var MAGNETS = '.hero-cta, .hero-cta-2, .tier-cta, .lab-gate, .tips-cta, .acad-cta, .acad-cta-free, .dmf-signal-cta, .nav-logo';
   var SECTION_VARS = ['--eh-focus', '--eh-rel', '--eh-split', '--eh-energy', '--eh-mid', '--eh-high', '--eh-speed', '--eh-vel', '--eh-lx',
-    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk', '--eh-tp', '--eh-chroma', '--eh-reveal', '--eh-tv', '--eh-ts', '--eh-tt', '--eh-tsn', '--eh-rv'];
+    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk', '--eh-tp', '--eh-chroma', '--eh-reveal', '--eh-tv', '--eh-ts', '--eh-tt', '--eh-tsn', '--eh-rv', '--hv-rw', '--hv-rc', '--hv-rk'];
   function freshCache(n) { var c = []; for (var i = 0; i < n; i++) c.push(-9); return c; }
 
   function mount() {
@@ -5208,6 +5779,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var eh = new DMFEventHorizon();
     var st = eh.state;
     hub.eventHorizon = st;
+    // V7 flags (academy-env.js → window.__DMF_COMMERCE__.effects); defaults on, false = pre-V7 channel.
+    var fxFlags = eh.hyperdrive ? eh.hyperdrive.setFlags(root.__DMF_COMMERCE__ && root.__DMF_COMMERCE__.effects) : null;
+    hub.effects = fxFlags;
+    function trackOnce(name) { if (typeof root.dmfTrack === 'function') root.dmfTrack(name, { placement: st.section, tier: st.performanceTier }, { once: true }); }
 
     var mm = root.matchMedia;
     var coarse = !!(mm && mm('(pointer: coarse)').matches);
@@ -5271,7 +5846,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     // Decorative layers that live in the source markup.
     var field = doc.querySelector('.eh-field');
     var intro = doc.getElementById('concertIntro');
-    var fieldVals = freshCache(20);
+    var fieldVals = freshCache(26);
     // Intro variables go to the few elements that read them (never the intro, whose subtree holds the SVG).
     var introEls = doc.querySelectorAll('#concertIntro .eh-stack, #concertIntro .eh-floor, #concertIntro .eh-halo');
     for (var ie = 0; ie < introEls.length; ie++) introEls[ie].__ehVals = freshCache(11);
@@ -5315,6 +5890,40 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         ptrDirty = true;
       }, { passive: true });
       doc.addEventListener('pointerleave', function () { ptrX = 0; ptrY = 0; ptrClientX = -1; ptrDirty = true; });
+    }
+    // V7 MICROINTERACTIONS — a click on a magnetic control releases one short signal wave (the bus
+    // rate-limits it to one per 1.5 s) and a ring on the control; cards (never the pricing tiers) carry a
+    // bounded pointer light. Desktop fine pointers only for the light; the click wave works everywhere.
+    var CARDS = '.release-card, .rider-card, .contact-card, .fly-card';
+    var litCard = null, litX = 0.5, litY = 0.5, litDirty = false;
+    if (!still) {
+      doc.addEventListener('click', function (e) {
+        var el = e.target && e.target.closest ? e.target.closest(MAGNETS) : null;
+        if (!el || st.performanceTier === 'static') return;
+        var r = el.getBoundingClientRect();
+        if (hub.pulse) hub.pulse(r.top + r.height / 2 + (root.pageYOffset || 0));
+        el.classList.remove('hv-fire');
+        void el.offsetWidth;                       // restart the one-shot ring
+        el.classList.add('hv-fire');
+        el.addEventListener('animationend', function () { el.classList.remove('hv-fire'); }, { once: true });
+      }, { passive: true });
+    }
+    if (fine && !still) {
+      doc.addEventListener('pointermove', function (e) {
+        if (e.pointerType && e.pointerType !== 'mouse') return;
+        var card = e.target && e.target.closest ? e.target.closest(CARDS) : null;
+        if (card !== litCard) {
+          if (litCard) { litCard.classList.remove('hv-lit'); litCard.style.removeProperty('--hv-cx'); litCard.style.removeProperty('--hv-cy'); }
+          litCard = card;
+          if (card) card.classList.add('hv-lit');
+        }
+        if (card) {
+          var r = card.getBoundingClientRect();
+          litX = clamp((e.clientX - r.left) / Math.max(1, r.width), 0, 1);
+          litY = clamp((e.clientY - r.top) / Math.max(1, r.height), 0, 1);
+          litDirty = true;
+        }
+      }, { passive: true });
     }
     // Magnets are read on pointer movement only (rects of the few candidates near the pointer).
     function pickMagnet() {
@@ -5382,6 +5991,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         put(el, c, 19, '--eh-tt', st.titleTrail, 20);
         put(el, c, 20, '--eh-tsn', st.titleSnap, 20);
         put(el, c, 21, '--eh-rv', st.reflectionVelocity, 20);
+        // V7: the page's framed surfaces carry the same reflection field as the Receiver.
+        put(el, c, 22, '--hv-rw', st.rfWarmAmp * st.fxOverlays, 50);
+        put(el, c, 23, '--hv-rc', st.rfColdPos, 100);
+        put(el, c, 24, '--hv-rk', st.rfKickAmp * st.fxOverlays, 50);
       }
       // V3: in the offer the background holds still (only its light and calm keep settling).
       var frozen = st.calm > 0.85;
@@ -5398,6 +6011,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         put(field, fieldVals, 17, '--eh-lv', st.lightVelocity, 50);
         put(field, fieldVals, 18, '--eh-lc', st.lightCompression, 50);
         put(field, fieldVals, 19, '--eh-bv', st.bladeVelocity, 50);   // V6: blades align with the travel
+        // V7: drop edge (micro blackout), reflection ring, SINGULARITY stretch / flash, background glow.
+        put(field, fieldVals, 20, '--hv-edge', st.dropEdge, 50);
+        put(field, fieldVals, 21, '--hv-ring', st.dropRing * st.fxOverlays, 50);
+        put(field, fieldVals, 22, '--hv-stretch', st.singStretch * st.fxOverlays, 50);
+        put(field, fieldVals, 23, '--hv-flash', st.singFlash, 50);
+        put(field, fieldVals, 24, '--hv-bg', st.hvBg * st.fxOverlays, 50);
+        put(field, fieldVals, 25, '--hv-dom', st.singDominance, 50);
       }
       if (field && !frozen) {
         put(field, fieldVals, 0, '--eh-energy', st.energy, 50);
@@ -5447,6 +6067,12 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         magnetY = approach(magnetY, magnetTY * gk, rate, 0.033);
         magnet.style.setProperty('--eh-mx', magnetX.toFixed(2));
         magnet.style.setProperty('--eh-my', magnetY.toFixed(2));
+      }
+      if (litCard && litDirty) {
+        litDirty = false;
+        var lk = st.performanceTier === 'lite' ? 0.5 : 1;
+        litCard.style.setProperty('--hv-cx', (0.5 + (litX - 0.5) * lk).toFixed(3));
+        litCard.style.setProperty('--hv-cy', (0.5 + (litY - 0.5) * lk).toFixed(3));
       }
       var gating = st.transition > 0.01;
       if (field && gating !== field.__ehGating) { field.__ehGating = gating; field.classList.toggle('eh-gating', gating); }
@@ -5511,13 +6137,22 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         fovKick: +st.fovDeg.toFixed(2), depthStretch: +st.depthStretch.toFixed(2), reflectionVelocity: +st.reflectionVelocity.toFixed(2),
         bladeVelocity: +st.bladeVelocity.toFixed(2), titleTrail: +st.titleTrail.toFixed(2), shots: eh.lightspeed ? eh.lightspeed.shots : 0
       };
+      perf.hyperdriveV2 = {
+        cameraMode: st.camMode, dropPhase: st.dropPhase, singularityPhase: st.singPhase,
+        key: +st.hvKey.toFixed(2), rim: +st.hvRim.toFixed(2), accent: +st.hvAccent.toFixed(2), fog: +st.hvFog.toFixed(2),
+        camDolly: +st.camDolly.toFixed(3), camFov: +st.camFov.toFixed(2), reflWarm: +st.rfWarmAmp.toFixed(2), reflCold: +st.rfColdAmp.toFixed(2),
+        effects: { camera: +st.fxCamera.toFixed(2), lights: +st.fxLights.toFixed(2), reflections: +st.fxReflections.toFixed(2),
+          particles: +st.fxParticles.toFixed(2), overlays: +st.fxOverlays.toFixed(2), pressure: +st.fxPressure.toFixed(2) },
+        drops: eh.hyperdrive ? eh.hyperdrive.drop.shots : 0, singularities: eh.hyperdrive ? eh.hyperdrive.sing.shots : 0,
+        flags: fxFlags
+      };
       perf.dprCaps = { receiver: hub.renderScale || 1, mixer: perf.mixerFit ? perf.mixerFit.dpr : null, smoke: Math.min(root.devicePixelRatio || 1, 1.5) };
     }
 
     var frameN = 0, acc = 0;
     // One input record, reused every frame (the director reads it; nothing is allocated per frame).
     var input = { scrollY: 0, vh: 800, velocity: 0, s: null, forces: null, pointerX: 0, pointerY: 0, tier: 'high', compact: compact, wakeT: -1, pre: 0,
-      docProgress: 0, pointerActive: false };
+      docProgress: 0, pointerActive: false, sing: null, hyper: null, fps: 60 };
     function tick(s, dt, raw, bus) {
       var tier = tierOf(bus.qualityTier, compact);
       applyTier(tier);
@@ -5544,12 +6179,19 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       input.tier = tier; input.wakeT = wakeT; input.pre = pre;
       input.docProgress = clamp01(input.scrollY / Math.max(1, eh.docH - input.vh));
       input.pointerActive = ptrClientX >= 0;
+      input.sing = sg; input.hyper = hd; input.fps = bus.fps || 0;
       eh.update(input, step);
+      if (eh.hyperdrive) {
+        if (eh.hyperdrive.hyperFiredNow) trackOnce('hyperdrive_triggered');
+        if (eh.hyperdrive.drop.firedNow) trackOnce('drop_triggered');
+        if (eh.hyperdrive.sing.firedNow) trackOnce('singularity_triggered');
+      }
       if (eh.narrative && eh.narrative.heroFiredNow) { try { root.sessionStorage.setItem(HERO_KEY, '1'); } catch (e) { /* once per page then */ } }
       if (eh.blackSun && eh.blackSun.revealNow) { try { root.sessionStorage.setItem(REVEAL_KEY, '1'); } catch (e) { /* once per page then */ } }
       // DOM at ~30 Hz, except on a gate or a kick so the page lands on the beat.
       writeT += step;
       if (writeT >= 0.033 || st.transition > 0.01 || s.beatFired) { writeT = 0; write(false); }
+      else if (st.dropPunch > 0.01 || st.singFlash > 0.01) { writeT = 0; write(false); }   // V7: the hit lands on time
       perfT += step;
       if (perf && perfT > 0.5) { perfT = 0; report(); }
     }
@@ -6082,6 +6724,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       uLogoLvl: { value: [0, 0, 0, 0, 0] }, uLogoPeak: { value: [0, 0, 0, 0, 0] }, uLogoGlow: { value: 0 },
       uLogoWave: { value: 9 }, uLogoWaveAmp: { value: 0 },
       uSweep: { value: -1 }, uSweepAmt: { value: 0 },
+      // V7 REFLECTION FIELD: warm LOW band (pos, width, amp), cold HIGH sweep, kick wave (front, amp), zone phase.
+      uRfWarm: { value: new THREE.Vector3(0.5, 0.22, 0) }, uRfCold: { value: new THREE.Vector3(-0.2, 0.045, 0) },
+      uRfKick: { value: new THREE.Vector2(0, 0) }, uRfZone: { value: 0.11 },
       uActiveZone: { value: -1 }, uTime: { value: 0 }
     };
     var RELIC_CONES = [
@@ -6266,6 +6911,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
             shader.uniforms.uVelView = U.uVelView;
             shader.uniforms.uVelMag = U.uVelMag;
             shader.uniforms.uReflectDrive = U.uReflectDrive;
+            shader.uniforms.uRfWarm = U.uRfWarm;
+            shader.uniforms.uRfCold = U.uRfCold;
+            shader.uniforms.uRfKick = U.uRfKick;
+            shader.uniforms.uRfZone = U.uRfZone;
             shader.vertexShader = shader.vertexShader
               .replace('#include <common>', '#include <common>\nattribute float aZoneId;\nattribute float aNormY;\nvarying float vZoneId;\nvarying float vNormY;')
               .replace('#include <begin_vertex>', '#include <begin_vertex>\nvZoneId = aZoneId;\nvNormY = aNormY;');
@@ -6278,6 +6927,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
                 'uniform float uLogoWave;', 'uniform float uLogoWaveAmp;',
                 'uniform float uSweep;', 'uniform float uSweepAmt;', 'uniform float uLive;',
                 'uniform vec3 uVelView;', 'uniform float uVelMag;', 'uniform float uReflectDrive;',
+                'uniform vec3 uRfWarm;', 'uniform vec3 uRfCold;', 'uniform vec2 uRfKick;', 'uniform float uRfZone;',
                 'varying float vZoneId;', 'varying float vNormY;', 'varying vec3 vObjPos;'
               ].join('\n'))
               .replace('#include <tonemapping_fragment>', [
@@ -6320,6 +6970,22 @@ if (window.__DMF_FIREBASE_CONFIG__) {
                 '  float spec = smoothstep(0.28, 0.85, lum);',
                 '  gl_FragColor.rgb += gl_FragColor.rgb * spec * across * across * (0.35 + 0.65 * uReflectDrive) * uVelMag * 0.9;',
                 '  gl_FragColor.rgb += vec3(1.0, 0.36, 0.08) * max(-along, 0.0) * rim * rim * uVelMag * 0.22 * uIntensity;',
+                '}',
+                // V7 REFLECTION FIELD: light that travels across what already reflects. A warm, wide LOW band and
+                // a cold, narrow HIGH sweep run along a diagonal through the object, each zone offset in phase so
+                // parts catch the light in sequence; after a kick a wave climbs the object from its base.
+                // All three are zero at rest (no cost when still, never a strobe).
+                'if(uRfWarm.z + uRfCold.z + uRfKick.y > 0.001){',
+                '  float zq = floor(vZoneId + 0.5) * uRfZone;',
+                '  float dg = vObjPos.x * 0.5 + 0.5 + vObjPos.y * 0.35;',
+                '  float lumR = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));',
+                '  float metal = smoothstep(0.08, 0.6, lumR);',
+                '  float wb = exp(-pow((dg - uRfWarm.x - zq) / uRfWarm.y, 2.0)) * uRfWarm.z;',
+                '  float cb = exp(-pow((dg - uRfCold.x + zq) / uRfCold.y, 2.0)) * uRfCold.z;',
+                '  float kb = exp(-pow((vNormY - uRfKick.x) / 0.06, 2.0)) * uRfKick.y;',
+                '  gl_FragColor.rgb += (gl_FragColor.rgb * 0.9 + vec3(0.2, 0.11, 0.05)) * wb * (0.4 + 0.6 * metal) * uIntensity;',
+                '  gl_FragColor.rgb += vec3(0.62, 0.74, 0.9) * cb * metal * 0.55 * uIntensity;',
+                '  gl_FragColor.rgb += (gl_FragColor.rgb * 0.6 + vec3(0.25, 0.1, 0.03)) * kb * uIntensity;',
                 '}',
                 'if(uActiveZone >= 0.0){',
                 '  float zId = floor(vZoneId + 0.5);',
@@ -6590,6 +7256,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var r = (cur.r - dolly) * fit;
       r -= (e5 ? 0.28 * (e5.driveDolly || 0) : 0) * fit;
       r -= (e5 ? e5.depthDolly || 0 : 0) * fit;                      // V6 LIGHTSPEED: depth stretch (≤ 0.18 u; phones ≤ 0.07)
+      // V7 CAMERA DIRECTOR: named mode offsets, spring-followed and bounded (≤ 0.26 u forward; phones ≤ 0.08).
+      if (e5 && auto) { r -= (e5.camDolly || 0) * fit; az += e5.camOrbit || 0; }
       var y = cur.y + (auto ? parYK.x + Math.sin(autoAngle * 0.8) * 0.08 * motionScale : 0) + (e5 ? 0.05 * (e5.driveLift || 0) : 0);
       // CAMERA JOURNEY: the ACT's authored dolly/orbit/height/target/FOV, followed by kinetic bodies.
       // Scroll speed stretches the lens a little; the kick punches it only while the stage is moving.
@@ -6602,9 +7270,11 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         lookLift = sp.ty;
         stageFov = sp.fov + 1.2 * Math.abs(stageHub.scroll.velocity) - 0.5 * portal.punch * portal.intensity;
       }
+      if (e5 && auto) y += e5.camLift || 0;
       camera.position.set(Math.sin(az) * r, y, Math.cos(az) * r);
       var fov = 34 + clamp(lens.fov + stageFov, -3.5, 3.5);
       fov += e5 ? e5.fovDeg || 0 : 0;                                // V6: compression tightens, lightspeed opens (bounded)
+      if (e5 && auto) fov += e5.camFov || 0;
       if (Math.abs(camera.fov - fov) > 0.001) { camera.fov = fov; camera.updateProjectionMatrix(); }
       LOOK.set(cur.tx, cur.ty + lookLift, cur.tz);
       camera.up.set(0, 1, 0);
@@ -6722,6 +7392,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     }
 
     var lastX = 0, lastY = 0, downX = 0, downY = 0, downT = 0, lastMoveT = 0;
+    container.addEventListener('pointerdown', function () {
+      if (typeof window.dmfTrack === 'function') window.dmfTrack('relic_interaction', { placement: 'relic' }, { once: true });
+    }, { passive: true });
     container.addEventListener('pointerdown', function (e) {
       if (e.button > 0 || (e.target.closest && e.target.closest('button, a'))) return;
       if (rig.mode === 'auto') copyPose(user, cur);
@@ -6925,6 +7598,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     var twistK = new KB(50, 0.7, { maxA: 3, maxJ: 150, min: -0.05, max: 0.05 });        // counter-rotation
     var shoulderK = new KB(90, 0.55, { maxA: 4, maxJ: 300, min: -0.03, max: 0.03 });    // mids: upper body
     var coneL = new KB(1000, 0.38, { maxA: 1600, maxJ: 200000, min: -0.45, max: 1.2 });
+    var headDelayT = -1, headDelayAmp = 0;
     var coneR = new KB(1000, 0.38, { maxA: 1600, maxJ: 200000, min: -0.45, max: 1.2 });
     var cabL = new KB(1400, 0.13, { maxA: 40, maxJ: 8000, min: -0.02, max: 0.02 });    // ~6 Hz resonance
     var cabR = new KB(1250, 0.15, { maxA: 40, maxJ: 8000, min: -0.02, max: 0.02 });    // detuned: spatial asymmetry
@@ -6988,6 +7662,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
           // V6: anchored against the FOV opening (screen size ∝ 1/tan(fov/2)), so the Receiver stays heavy and dominant.
           var anch = ehv && ehv.receiverAnchor ? 1 + ehv.receiverAnchor * (Math.tan((34 + (ehv.fovDeg || 0)) * HALF_DEG) / TAN_17 - 1) : 1;
           modelRef.scale.setScalar(modelTargetScale * (1 + scaleK.x) * (sp ? 1 + sp.scale : 1) * mass * anch);
+          if (ehv && ehv.singDominance) modelRef.scale.multiplyScalar(1 + 0.02 * ehv.singDominance);   // V7: ≤ +2% while it dominates
           modelRef.rotation.y = (sp ? sp.rotY + midTorque : 0) + (ehv ? ehv.modelYaw || 0 : 0);
           modelRef.rotation.x = ehv ? ehv.modelPitch || 0 : 0;
         }
@@ -7074,7 +7749,10 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         coneRAmp = punch;
         cabRAmp = -0.35 * hit * (0.6 + 0.4 * od + (sHit ? 0.8 : 0));
         cabL.impulse(cabRAmp * 1.1);
-        headK.impulse((2.6 + 1.6 * od + 1.4 * hdLevel + (sHit ? 2.4 : 0)) * hit);
+        // V7: the head trails the speakers by a few tens of ms (the body hears the cone, then answers).
+        headDelayAmp = (2.6 + 1.6 * od + 1.4 * hdLevel + (sHit ? 2.4 : 0)) * hit;
+        headDelayT = eh && eh.pfHeadDelay != null ? eh.pfHeadDelay : 0;
+        if (headDelayT <= 0) { headK.impulse(headDelayAmp); headDelayT = -1; }
         pedK.impulse((0.25 * f.pedestal * f.amp + (sHit ? 0.6 : 0)) * hit);
         orbitSpring.impulse(0.05 * s.energy * ms);
         // Camera impulse per kick, OVERDRIVE only: silence between events matters.
@@ -7084,6 +7762,12 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         coneRDelay -= dt;
         if (coneRDelay < 0) { coneR.impulse(coneRAmp); cabR.impulse(cabRAmp); }
       }
+      if (headDelayT >= 0) {
+        headDelayT -= dt;
+        if (headDelayT < 0) headK.impulse(headDelayAmp);
+      }
+      // V7 SPEAKER PHYSICS: energy sets the cones' damping (louder → tighter, heavier), inside [0.38, 0.52].
+      if (eh && eh.pfZeta) { coneL.c = coneR.c = 2 * Math.sqrt(coneL.k) * eh.pfZeta; }
       // IGNITION preloads the cones inward; LOW pressure loads the cabinets (right side detuned).
       coneL.step(-0.35 * sIgn, dt);
       coneR.step(-0.35 * sIgn, dt);
@@ -7107,7 +7791,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       // DJ — groove nod, kick snap, delayed counter-motion; torso carries the low band with mass;
       // shoulders answer the mids; the torso counter-rotates on IGNITION.
       var beats = s.beatIndex + s.beatPhase;
-      var nodBase = (0.05 + 0.03 * od) * (0.5 + 0.5 * Math.cos(2 * Math.PI * (s.beatPhase - 0.18))) * s.energy * freeze;
+      // V7 PERFORMER: low-passed mids scale the nod, deterministic noise shifts its phase (no identical loops).
+      var pfNod = eh && eh.pfNod ? eh.pfNod : 1, pfPhase = eh ? eh.pfPhase || 0 : 0, pfSway = eh && eh.pfSway ? eh.pfSway : 1;
+      var nodBase = (0.05 + 0.03 * od) * (0.5 + 0.5 * Math.cos(2 * Math.PI * (s.beatPhase - 0.18 + pfPhase))) * s.energy * freeze * pfNod;
       headK.step(-0.02 * lsHead + nodBase - 0.03 * pressure + ehPitch + 0.03 * mdHead, dt);
       headSlow.step(headK.x, dt);
       U.uNod.value = clamp(headK.x - 0.3 * headSlow.x, -0.06, 0.22);
@@ -7115,7 +7801,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       torsoK.step(0.003 * lsTorso + (0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl + 0.0012 * ehBreath + 0.004 * mdTorso, dt);
       U.uBounce.value = torsoK.x;
       var swayWave = Math.sin(Math.PI * beats);
-      U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze;
+      U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze * pfSway;
       twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet * (1 - ehSilence) + 0.7 * ehYaw + 0.3 * ehTorso, -0.05, 0.05), dt);
       U.uTwist.value = twistK.x;
       shoulderK.step(0.008 * lsShoulder + 0.022 * f.shoulder * f.amp * swayWave * freeze + 0.25 * ehLag + 0.012 * mdShoulder, dt);
@@ -7151,6 +7837,12 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       if (sweepActive) { sweepPos += dt * sweepSpeed; if (sweepPos > 1.4) sweepActive = false; }
       U.uSweep.value = sweepPos;
       U.uSweepAmt.value = sweepActive ? (0.3 + 0.25 * od + 0.15 * hdLevel + 0.2 * sLvl) * U.uIntensity.value * (1 - 0.6 * sPre) : 0;
+      if (eh && eh.rfWarmAmp != null) {
+        U.uRfWarm.value.set(eh.rfWarmPos, Math.max(0.02, eh.rfWarmWidth), eh.rfWarmAmp);
+        U.uRfCold.value.set(eh.rfColdPos, Math.max(0.02, eh.rfColdWidth), eh.rfColdAmp);
+        U.uRfKick.value.set(eh.rfKickFront, eh.rfKickAmp);
+        U.uRfZone.value = eh.rfZone || 0.11;
+      }
 
       // Pedestal — the kick lands in the centre first, then rim, inner ring, outer ring, floor grid.
       var wv = hitStrength * Math.exp(-sinceHit * 1.6);
@@ -7177,7 +7869,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       autoAngle += dt * clamp(orbitSpring.x, 0.02, 0.4);
       lightSpring.step(0.675 + 0.25 * Math.sin(autoAngle * 1.3), dt);
       if (hit > 0 && (od > 0.3 || hdLevel > 0 || sHit)) lightSpring.impulse((s.beatIndex % 2 ? 1 : -1) * (0.9 * od + 1.2 * hdLevel + (sHit ? 1.4 : 0)));
-      keyLight.position.set(Math.sin(lightSpring.x) * 6.4, 7, Math.cos(lightSpring.x) * 6.4);
+      // V7 LIGHT DIRECTOR: the key travels around the object with the mids (highlights move across the metal).
+      var keyAz = lightSpring.x + (eh ? eh.hvSweep || 0 : 0);
+      keyLight.position.set(Math.sin(keyAz) * 6.4, 7, Math.cos(keyAz) * 6.4);
 
       // BODY lights; HIGH drives the light edges; each ACT sets its own key/rim emphasis.
       var stageLight = staged ? follower.pose.light : 0;
@@ -7186,8 +7880,16 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 * (1 - ehSilence) + s.body * 0.3 * (1 + 0.6 * od) + hdLevel * 0.4 + sLvl * 0.5 + 0.3 * stageLight + 0.25 * ehFocus;
       accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15 + f.edge * 0.2 + 0.3 * ehSpec + 0.35 * ehImpact;
       fillLight.intensity = 0.3 + Math.sin(autoAngle + 2) * 0.06;
+      if (eh && eh.hvKey != null) {
+        // Bounded, smoothed outputs (hyperdrive-v2.js): key ×[0.55, 1.4], rim/accent/side/bg ∈ [0, 1].
+        keyLight.intensity *= eh.hvKey;
+        rimLight.intensity += 0.6 * (eh.hvRim || 0);
+        accentLight.intensity += 0.5 * (eh.hvAccent || 0);
+        fillLight.intensity += 0.35 * (eh.hvSide || 0);
+      }
       underGlow.intensity = (0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.body * 0.35 * (1 + od) + hdLevel * 0.3 + sLvl * 0.4) * ehQuiet;
       haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1 + hdLevel * 0.2 + sLvl * 0.25 + 0.3 * lsIgn;
+      if (eh) haloLight.intensity += 0.25 * (eh.hvBg || 0) + 0.35 * (eh.singFlash || 0);
       screenGlow.color.setHSL(0.62 + Math.sin(autoAngle * 0.4) * 0.04, 0.45, 0.35);
       coneMat.opacity = (0.012 + Math.sin(autoAngle * 1.3) * 0.005 + od * 0.008 + hdLevel * 0.01) * ehQuiet;
 
@@ -7205,7 +7907,8 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         }
       }
       pGeom.attributes.position.needsUpdate = true;
-      pMat.opacity = 0.4 + Math.sin(autoAngle * 1.6) * 0.12;
+      pMat.opacity = 0.4 + Math.sin(autoAngle * 1.6) * 0.12 + (eh ? 0.28 * (eh.hvSparkle || 0) : 0);
+      pMat.size = 0.07 * (1 + (eh ? 0.35 * (eh.hvSparkle || 0) : 0));
 
       haloMat.opacity = 0.06 + Math.sin(autoAngle * 0.9) * 0.03 + od * 0.04 + hdLevel * 0.05 + sLvl * 0.05;
       halo2Mat.opacity = 0.03 + Math.sin(autoAngle * 0.7 + 1) * 0.015;
@@ -7218,6 +7921,12 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       // CINEMA — exposure and fog breathe; the environment darkens and contracts before a big hit.
       renderer.toneMappingExposure = 0.95 + Math.sin(autoAngle * 0.7) * 0.06 + od * 0.06 + s.cinema * 0.05 + hdLevel * 0.1 - hdPre * 0.08 - sPre * 0.12 + sLvl * 0.08;
       scene.fog.density = baseFog + hdPre * 0.012 + sPre * 0.014 - hdLevel * 0.003 - sLvl * 0.004;
+      if (eh) {
+        // V7: fog exposure (compress before the drop, open on the hit), one controlled SINGULARITY flash,
+        // and the drop's micro blackout at T−100 ms. Bounded: exposure ±0.16, fog ≥ half its base.
+        renderer.toneMappingExposure += clamp(0.06 * (eh.hvFog || 0) + 0.14 * (eh.singFlash || 0) - 0.12 * (eh.dropEdge || 0), -0.16, 0.16);
+        scene.fog.density = Math.max(baseFog * 0.5, scene.fog.density - 0.003 * (eh.hvFog || 0));
+      }
 
       // CAMERA SHOT ENGINE V3 — kinetic overlay on the shot pose.
       // PRESSURE: before a predicted beat/drop the camera eases back and the FOV opens slightly.
@@ -7494,7 +8203,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         return;
       }
       var amp = 0.6 + 0.4 * f.amp;
-      var spacing = 2.2 * (1 + 0.15 * portal.pressure) * (1 - 0.1 * portal.compression);
+      var spacing = 2.2 * (1 + 0.15 * portal.pressure) * (1 - 0.1 * portal.compression) * (1 + 0.35 * (hub.eventHorizon ? hub.eventHorizon.singStretch || 0 : 0));
       var rs = 1 - 0.06 * portal.compression;
       pQ.set(0, 0, 0, 1);
       for (var i = 0; i < portalRings.count; i++) {
