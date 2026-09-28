@@ -55,6 +55,7 @@
     this.lastBeatIndex = null;
     this.lastFiredBeat = -1e9;
     this.prevSection = '';
+    this.prevForced = false;
     this.energySlow = 0;
     this.bodyStage = 0;
     this.audioCalm = 0;
@@ -216,8 +217,12 @@
       var cycleBeat = ((beats % cycleBeats) + cycleBeats) % cycleBeats;
       o.timeToDrop = (cycleBeat < 96 ? 96 - cycleBeat : cycleBeats - cycleBeat + 96) * interval;
     }
-    o.dropHit = section === 'drop' && this.prevSection !== 'drop' && this.prevSection !== '' && !audioLed;
+    // A forced drop always lands its hit on the armed downbeat, even when the clock arrangement is already in
+    // its own drop section (otherwise its precompression would play and no impact would ever arrive).
+    var forceEdge = forced && !this.prevForced;
+    o.dropHit = !audioLed && ((section === 'drop' && this.prevSection !== 'drop' && this.prevSection !== '') || forceEdge);
     this.prevSection = section;
+    this.prevForced = forced;
     // An analyser drop must be earned: ≥4 s of calm, then sustained drop energy; it lands on the next beat.
     if (audioLed) {
       if (o.dropEnergy < 0.45) this.audioCalm += dt;
