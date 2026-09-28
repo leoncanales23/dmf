@@ -133,6 +133,7 @@ jobs:
           node scripts/overdrive/test/academy-pages-i18n.test.cjs
           node scripts/overdrive/test/commerce.test.cjs
           node scripts/overdrive/test/hyperdrive-v2.test.cjs
+          node scripts/overdrive/test/relic-fallback.test.cjs
           node scripts/overdrive/test/dev-hyperdrive.test.cjs
 
   validate-academy:
