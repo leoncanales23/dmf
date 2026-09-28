@@ -505,6 +505,9 @@
       uLogoLvl: { value: [0, 0, 0, 0, 0] }, uLogoPeak: { value: [0, 0, 0, 0, 0] }, uLogoGlow: { value: 0 },
       uLogoWave: { value: 9 }, uLogoWaveAmp: { value: 0 },
       uSweep: { value: -1 }, uSweepAmt: { value: 0 },
+      // V7 REFLECTION FIELD: warm LOW band (pos, width, amp), cold HIGH sweep, kick wave (front, amp), zone phase.
+      uRfWarm: { value: new THREE.Vector3(0.5, 0.22, 0) }, uRfCold: { value: new THREE.Vector3(-0.2, 0.045, 0) },
+      uRfKick: { value: new THREE.Vector2(0, 0) }, uRfZone: { value: 0.11 },
       uActiveZone: { value: -1 }, uTime: { value: 0 }
     };
     var RELIC_CONES = [
@@ -689,6 +692,10 @@
             shader.uniforms.uVelView = U.uVelView;
             shader.uniforms.uVelMag = U.uVelMag;
             shader.uniforms.uReflectDrive = U.uReflectDrive;
+            shader.uniforms.uRfWarm = U.uRfWarm;
+            shader.uniforms.uRfCold = U.uRfCold;
+            shader.uniforms.uRfKick = U.uRfKick;
+            shader.uniforms.uRfZone = U.uRfZone;
             shader.vertexShader = shader.vertexShader
               .replace('#include <common>', '#include <common>\nattribute float aZoneId;\nattribute float aNormY;\nvarying float vZoneId;\nvarying float vNormY;')
               .replace('#include <begin_vertex>', '#include <begin_vertex>\nvZoneId = aZoneId;\nvNormY = aNormY;');
@@ -701,6 +708,7 @@
                 'uniform float uLogoWave;', 'uniform float uLogoWaveAmp;',
                 'uniform float uSweep;', 'uniform float uSweepAmt;', 'uniform float uLive;',
                 'uniform vec3 uVelView;', 'uniform float uVelMag;', 'uniform float uReflectDrive;',
+                'uniform vec3 uRfWarm;', 'uniform vec3 uRfCold;', 'uniform vec2 uRfKick;', 'uniform float uRfZone;',
                 'varying float vZoneId;', 'varying float vNormY;', 'varying vec3 vObjPos;'
               ].join('\n'))
               .replace('#include <tonemapping_fragment>', [
@@ -743,6 +751,22 @@
                 '  float spec = smoothstep(0.28, 0.85, lum);',
                 '  gl_FragColor.rgb += gl_FragColor.rgb * spec * across * across * (0.35 + 0.65 * uReflectDrive) * uVelMag * 0.9;',
                 '  gl_FragColor.rgb += vec3(1.0, 0.36, 0.08) * max(-along, 0.0) * rim * rim * uVelMag * 0.22 * uIntensity;',
+                '}',
+                // V7 REFLECTION FIELD: light that travels across what already reflects. A warm, wide LOW band and
+                // a cold, narrow HIGH sweep run along a diagonal through the object, each zone offset in phase so
+                // parts catch the light in sequence; after a kick a wave climbs the object from its base.
+                // All three are zero at rest (no cost when still, never a strobe).
+                'if(uRfWarm.z + uRfCold.z + uRfKick.y > 0.001){',
+                '  float zq = floor(vZoneId + 0.5) * uRfZone;',
+                '  float dg = vObjPos.x * 0.5 + 0.5 + vObjPos.y * 0.35;',
+                '  float lumR = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));',
+                '  float metal = smoothstep(0.08, 0.6, lumR);',
+                '  float wb = exp(-pow((dg - uRfWarm.x - zq) / uRfWarm.y, 2.0)) * uRfWarm.z;',
+                '  float cb = exp(-pow((dg - uRfCold.x + zq) / uRfCold.y, 2.0)) * uRfCold.z;',
+                '  float kb = exp(-pow((vNormY - uRfKick.x) / 0.06, 2.0)) * uRfKick.y;',
+                '  gl_FragColor.rgb += (gl_FragColor.rgb * 0.9 + vec3(0.2, 0.11, 0.05)) * wb * (0.4 + 0.6 * metal) * uIntensity;',
+                '  gl_FragColor.rgb += vec3(0.62, 0.74, 0.9) * cb * metal * 0.55 * uIntensity;',
+                '  gl_FragColor.rgb += (gl_FragColor.rgb * 0.6 + vec3(0.25, 0.1, 0.03)) * kb * uIntensity;',
                 '}',
                 'if(uActiveZone >= 0.0){',
                 '  float zId = floor(vZoneId + 0.5);',
@@ -1013,6 +1037,8 @@
       var r = (cur.r - dolly) * fit;
       r -= (e5 ? 0.28 * (e5.driveDolly || 0) : 0) * fit;
       r -= (e5 ? e5.depthDolly || 0 : 0) * fit;                      // V6 LIGHTSPEED: depth stretch (≤ 0.18 u; phones ≤ 0.07)
+      // V7 CAMERA DIRECTOR: named mode offsets, spring-followed and bounded (≤ 0.26 u forward; phones ≤ 0.08).
+      if (e5 && auto) { r -= (e5.camDolly || 0) * fit; az += e5.camOrbit || 0; }
       var y = cur.y + (auto ? parYK.x + Math.sin(autoAngle * 0.8) * 0.08 * motionScale : 0) + (e5 ? 0.05 * (e5.driveLift || 0) : 0);
       // CAMERA JOURNEY: the ACT's authored dolly/orbit/height/target/FOV, followed by kinetic bodies.
       // Scroll speed stretches the lens a little; the kick punches it only while the stage is moving.
@@ -1025,9 +1051,11 @@
         lookLift = sp.ty;
         stageFov = sp.fov + 1.2 * Math.abs(stageHub.scroll.velocity) - 0.5 * portal.punch * portal.intensity;
       }
+      if (e5 && auto) y += e5.camLift || 0;
       camera.position.set(Math.sin(az) * r, y, Math.cos(az) * r);
       var fov = 34 + clamp(lens.fov + stageFov, -3.5, 3.5);
       fov += e5 ? e5.fovDeg || 0 : 0;                                // V6: compression tightens, lightspeed opens (bounded)
+      if (e5 && auto) fov += e5.camFov || 0;
       if (Math.abs(camera.fov - fov) > 0.001) { camera.fov = fov; camera.updateProjectionMatrix(); }
       LOOK.set(cur.tx, cur.ty + lookLift, cur.tz);
       camera.up.set(0, 1, 0);
@@ -1145,6 +1173,9 @@
     }
 
     var lastX = 0, lastY = 0, downX = 0, downY = 0, downT = 0, lastMoveT = 0;
+    container.addEventListener('pointerdown', function () {
+      if (typeof window.dmfTrack === 'function') window.dmfTrack('relic_interaction', { placement: 'relic' }, { once: true });
+    }, { passive: true });
     container.addEventListener('pointerdown', function (e) {
       if (e.button > 0 || (e.target.closest && e.target.closest('button, a'))) return;
       if (rig.mode === 'auto') copyPose(user, cur);
@@ -1348,6 +1379,7 @@
     var twistK = new KB(50, 0.7, { maxA: 3, maxJ: 150, min: -0.05, max: 0.05 });        // counter-rotation
     var shoulderK = new KB(90, 0.55, { maxA: 4, maxJ: 300, min: -0.03, max: 0.03 });    // mids: upper body
     var coneL = new KB(1000, 0.38, { maxA: 1600, maxJ: 200000, min: -0.45, max: 1.2 });
+    var headDelayT = -1, headDelayAmp = 0;
     var coneR = new KB(1000, 0.38, { maxA: 1600, maxJ: 200000, min: -0.45, max: 1.2 });
     var cabL = new KB(1400, 0.13, { maxA: 40, maxJ: 8000, min: -0.02, max: 0.02 });    // ~6 Hz resonance
     var cabR = new KB(1250, 0.15, { maxA: 40, maxJ: 8000, min: -0.02, max: 0.02 });    // detuned: spatial asymmetry
@@ -1411,6 +1443,7 @@
           // V6: anchored against the FOV opening (screen size ∝ 1/tan(fov/2)), so the Receiver stays heavy and dominant.
           var anch = ehv && ehv.receiverAnchor ? 1 + ehv.receiverAnchor * (Math.tan((34 + (ehv.fovDeg || 0)) * HALF_DEG) / TAN_17 - 1) : 1;
           modelRef.scale.setScalar(modelTargetScale * (1 + scaleK.x) * (sp ? 1 + sp.scale : 1) * mass * anch);
+          if (ehv && ehv.singDominance) modelRef.scale.multiplyScalar(1 + 0.02 * ehv.singDominance);   // V7: ≤ +2% while it dominates
           modelRef.rotation.y = (sp ? sp.rotY + midTorque : 0) + (ehv ? ehv.modelYaw || 0 : 0);
           modelRef.rotation.x = ehv ? ehv.modelPitch || 0 : 0;
         }
@@ -1497,7 +1530,10 @@
         coneRAmp = punch;
         cabRAmp = -0.35 * hit * (0.6 + 0.4 * od + (sHit ? 0.8 : 0));
         cabL.impulse(cabRAmp * 1.1);
-        headK.impulse((2.6 + 1.6 * od + 1.4 * hdLevel + (sHit ? 2.4 : 0)) * hit);
+        // V7: the head trails the speakers by a few tens of ms (the body hears the cone, then answers).
+        headDelayAmp = (2.6 + 1.6 * od + 1.4 * hdLevel + (sHit ? 2.4 : 0)) * hit;
+        headDelayT = eh && eh.pfHeadDelay != null ? eh.pfHeadDelay : 0;
+        if (headDelayT <= 0) { headK.impulse(headDelayAmp); headDelayT = -1; }
         pedK.impulse((0.25 * f.pedestal * f.amp + (sHit ? 0.6 : 0)) * hit);
         orbitSpring.impulse(0.05 * s.energy * ms);
         // Camera impulse per kick, OVERDRIVE only: silence between events matters.
@@ -1507,6 +1543,12 @@
         coneRDelay -= dt;
         if (coneRDelay < 0) { coneR.impulse(coneRAmp); cabR.impulse(cabRAmp); }
       }
+      if (headDelayT >= 0) {
+        headDelayT -= dt;
+        if (headDelayT < 0) headK.impulse(headDelayAmp);
+      }
+      // V7 SPEAKER PHYSICS: energy sets the cones' damping (louder → tighter, heavier), inside [0.38, 0.52].
+      if (eh && eh.pfZeta) { coneL.c = coneR.c = 2 * Math.sqrt(coneL.k) * eh.pfZeta; }
       // IGNITION preloads the cones inward; LOW pressure loads the cabinets (right side detuned).
       coneL.step(-0.35 * sIgn, dt);
       coneR.step(-0.35 * sIgn, dt);
@@ -1530,7 +1572,9 @@
       // DJ — groove nod, kick snap, delayed counter-motion; torso carries the low band with mass;
       // shoulders answer the mids; the torso counter-rotates on IGNITION.
       var beats = s.beatIndex + s.beatPhase;
-      var nodBase = (0.05 + 0.03 * od) * (0.5 + 0.5 * Math.cos(2 * Math.PI * (s.beatPhase - 0.18))) * s.energy * freeze;
+      // V7 PERFORMER: low-passed mids scale the nod, deterministic noise shifts its phase (no identical loops).
+      var pfNod = eh && eh.pfNod ? eh.pfNod : 1, pfPhase = eh ? eh.pfPhase || 0 : 0, pfSway = eh && eh.pfSway ? eh.pfSway : 1;
+      var nodBase = (0.05 + 0.03 * od) * (0.5 + 0.5 * Math.cos(2 * Math.PI * (s.beatPhase - 0.18 + pfPhase))) * s.energy * freeze * pfNod;
       headK.step(-0.02 * lsHead + nodBase - 0.03 * pressure + ehPitch + 0.03 * mdHead, dt);
       headSlow.step(headK.x, dt);
       U.uNod.value = clamp(headK.x - 0.3 * headSlow.x, -0.06, 0.22);
@@ -1538,7 +1582,7 @@
       torsoK.step(0.003 * lsTorso + (0.004 * groove * (1 + 0.6 * od) + 0.004 * f.torso * f.amp + s.body * 0.009 * (1 + od + hdLevel)) * freeze + 0.012 * sLvl + 0.0012 * ehBreath + 0.004 * mdTorso, dt);
       U.uBounce.value = torsoK.x;
       var swayWave = Math.sin(Math.PI * beats);
-      U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze;
+      U.uSway.value = (0.006 + 0.004 * od) * swayWave * freeze * pfSway;
       twistK.step(clamp(-0.015 * (0.4 + 0.6 * od) * swayWave * freeze - 0.12 * (headK.x - nodBase) - 0.035 * sIgn + 0.005 * Math.sin(liveTime * 0.17) * ehQuiet * (1 - ehSilence) + 0.7 * ehYaw + 0.3 * ehTorso, -0.05, 0.05), dt);
       U.uTwist.value = twistK.x;
       shoulderK.step(0.008 * lsShoulder + 0.022 * f.shoulder * f.amp * swayWave * freeze + 0.25 * ehLag + 0.012 * mdShoulder, dt);
@@ -1574,6 +1618,12 @@
       if (sweepActive) { sweepPos += dt * sweepSpeed; if (sweepPos > 1.4) sweepActive = false; }
       U.uSweep.value = sweepPos;
       U.uSweepAmt.value = sweepActive ? (0.3 + 0.25 * od + 0.15 * hdLevel + 0.2 * sLvl) * U.uIntensity.value * (1 - 0.6 * sPre) : 0;
+      if (eh && eh.rfWarmAmp != null) {
+        U.uRfWarm.value.set(eh.rfWarmPos, Math.max(0.02, eh.rfWarmWidth), eh.rfWarmAmp);
+        U.uRfCold.value.set(eh.rfColdPos, Math.max(0.02, eh.rfColdWidth), eh.rfColdAmp);
+        U.uRfKick.value.set(eh.rfKickFront, eh.rfKickAmp);
+        U.uRfZone.value = eh.rfZone || 0.11;
+      }
 
       // Pedestal — the kick lands in the centre first, then rim, inner ring, outer ring, floor grid.
       var wv = hitStrength * Math.exp(-sinceHit * 1.6);
@@ -1600,7 +1650,9 @@
       autoAngle += dt * clamp(orbitSpring.x, 0.02, 0.4);
       lightSpring.step(0.675 + 0.25 * Math.sin(autoAngle * 1.3), dt);
       if (hit > 0 && (od > 0.3 || hdLevel > 0 || sHit)) lightSpring.impulse((s.beatIndex % 2 ? 1 : -1) * (0.9 * od + 1.2 * hdLevel + (sHit ? 1.4 : 0)));
-      keyLight.position.set(Math.sin(lightSpring.x) * 6.4, 7, Math.cos(lightSpring.x) * 6.4);
+      // V7 LIGHT DIRECTOR: the key travels around the object with the mids (highlights move across the metal).
+      var keyAz = lightSpring.x + (eh ? eh.hvSweep || 0 : 0);
+      keyLight.position.set(Math.sin(keyAz) * 6.4, 7, Math.cos(keyAz) * 6.4);
 
       // BODY lights; HIGH drives the light edges; each ACT sets its own key/rim emphasis.
       var stageLight = staged ? follower.pose.light : 0;
@@ -1609,8 +1661,16 @@
       rimLight.intensity = 0.8 + Math.sin(autoAngle * 2.0) * 0.2 * (1 - ehSilence) + s.body * 0.3 * (1 + 0.6 * od) + hdLevel * 0.4 + sLvl * 0.5 + 0.3 * stageLight + 0.25 * ehFocus;
       accentLight.intensity = 0.25 + Math.sin(autoAngle * 1.5 + 1) * 0.12 + s.high * 0.15 + f.edge * 0.2 + 0.3 * ehSpec + 0.35 * ehImpact;
       fillLight.intensity = 0.3 + Math.sin(autoAngle + 2) * 0.06;
+      if (eh && eh.hvKey != null) {
+        // Bounded, smoothed outputs (hyperdrive-v2.js): key ×[0.55, 1.4], rim/accent/side/bg ∈ [0, 1].
+        keyLight.intensity *= eh.hvKey;
+        rimLight.intensity += 0.6 * (eh.hvRim || 0);
+        accentLight.intensity += 0.5 * (eh.hvAccent || 0);
+        fillLight.intensity += 0.35 * (eh.hvSide || 0);
+      }
       underGlow.intensity = (0.15 + Math.sin(autoAngle * 2.8) * 0.08 + s.body * 0.35 * (1 + od) + hdLevel * 0.3 + sLvl * 0.4) * ehQuiet;
       haloLight.intensity = 0.12 + Math.sin(autoAngle * 1.3) * 0.06 + od * 0.1 + hdLevel * 0.2 + sLvl * 0.25 + 0.3 * lsIgn;
+      if (eh) haloLight.intensity += 0.25 * (eh.hvBg || 0) + 0.35 * (eh.singFlash || 0);
       screenGlow.color.setHSL(0.62 + Math.sin(autoAngle * 0.4) * 0.04, 0.45, 0.35);
       coneMat.opacity = (0.012 + Math.sin(autoAngle * 1.3) * 0.005 + od * 0.008 + hdLevel * 0.01) * ehQuiet;
 
@@ -1628,7 +1688,8 @@
         }
       }
       pGeom.attributes.position.needsUpdate = true;
-      pMat.opacity = 0.4 + Math.sin(autoAngle * 1.6) * 0.12;
+      pMat.opacity = 0.4 + Math.sin(autoAngle * 1.6) * 0.12 + (eh ? 0.28 * (eh.hvSparkle || 0) : 0);
+      pMat.size = 0.07 * (1 + (eh ? 0.35 * (eh.hvSparkle || 0) : 0));
 
       haloMat.opacity = 0.06 + Math.sin(autoAngle * 0.9) * 0.03 + od * 0.04 + hdLevel * 0.05 + sLvl * 0.05;
       halo2Mat.opacity = 0.03 + Math.sin(autoAngle * 0.7 + 1) * 0.015;
@@ -1641,6 +1702,12 @@
       // CINEMA — exposure and fog breathe; the environment darkens and contracts before a big hit.
       renderer.toneMappingExposure = 0.95 + Math.sin(autoAngle * 0.7) * 0.06 + od * 0.06 + s.cinema * 0.05 + hdLevel * 0.1 - hdPre * 0.08 - sPre * 0.12 + sLvl * 0.08;
       scene.fog.density = baseFog + hdPre * 0.012 + sPre * 0.014 - hdLevel * 0.003 - sLvl * 0.004;
+      if (eh) {
+        // V7: fog exposure (compress before the drop, open on the hit), one controlled SINGULARITY flash,
+        // and the drop's micro blackout at T−100 ms. Bounded: exposure ±0.16, fog ≥ half its base.
+        renderer.toneMappingExposure += clamp(0.06 * (eh.hvFog || 0) + 0.14 * (eh.singFlash || 0) - 0.12 * (eh.dropEdge || 0), -0.16, 0.16);
+        scene.fog.density = Math.max(baseFog * 0.5, scene.fog.density - 0.003 * (eh.hvFog || 0));
+      }
 
       // CAMERA SHOT ENGINE V3 — kinetic overlay on the shot pose.
       // PRESSURE: before a predicted beat/drop the camera eases back and the FOV opens slightly.
@@ -1917,7 +1984,7 @@
         return;
       }
       var amp = 0.6 + 0.4 * f.amp;
-      var spacing = 2.2 * (1 + 0.15 * portal.pressure) * (1 - 0.1 * portal.compression);
+      var spacing = 2.2 * (1 + 0.15 * portal.pressure) * (1 - 0.1 * portal.compression) * (1 + 0.35 * (hub.eventHorizon ? hub.eventHorizon.singStretch || 0 : 0));
       var rs = 1 - 0.06 * portal.compression;
       pQ.set(0, 0, 0, 1);
       for (var i = 0; i < portalRings.count; i++) {
