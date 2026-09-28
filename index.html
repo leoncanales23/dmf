@@ -749,6 +749,28 @@ html.eh-calm .tier-card{border-color:rgba(242,237,230,.2)}
 .eh-compact .eh-blade--2,.eh-tier-lite .eh-blade--2{display:none}
 .eh-vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 92% at 50% 50%,transparent 52%,rgba(4,3,3,.9) 100%);opacity:calc((var(--eh-vig,0) * .55 + var(--eh-shadow,0) * .22) * (1 - var(--eh-calm,0)))}
 .eh-still .eh-blade,.eh-tier-static .eh-blade,.eh-still .eh-vig,.eh-tier-static .eh-vig{display:none}
+/* V7 HYPERDRIVE V2 — field layers (all zero at rest, bounded, and gone in the offer via --eh-calm):
+   background glow (energy), the drop's reflection ring and T−100 ms micro blackout, the SINGULARITY's
+   one flash and the background stretching backward (field dots streak, blades lengthen). */
+.hv-glow{position:absolute;left:50%;bottom:-30vh;width:120vw;height:80vh;margin-left:-60vw;pointer-events:none;background:radial-gradient(50% 50% at 50% 60%,rgba(255,91,30,.16),rgba(255,91,30,.05) 45%,transparent 72%);opacity:calc(var(--hv-bg,0) * .8 * (1 - var(--eh-calm,0)))}
+.hv-ring{position:absolute;left:50%;top:50%;width:64vmin;height:64vmin;margin:-32vmin 0 0 -32vmin;border-radius:50%;pointer-events:none;border:1px solid rgba(255,140,90,.4);box-shadow:0 0 24px rgba(255,91,30,.18) inset;opacity:calc(var(--hv-ring,0) * .6 * (1 - var(--eh-calm,0)));transform:scale(calc(.55 + (1 - var(--hv-ring,0)) * 1.1))}
+.hv-dim{position:absolute;inset:0;pointer-events:none;background:#050403;opacity:calc(var(--hv-edge,0) * .3 * (1 - var(--eh-calm,0)))}
+.hv-flash{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(58% 58% at 50% 50%,rgba(255,238,224,.5),rgba(255,120,60,.16) 45%,transparent 76%);opacity:calc(var(--hv-flash,0) * .6)}
+.eh-field i{scale:1 calc(1 + var(--hv-stretch,0) * 2.2)}
+.eh-blade{scale:1 calc(1 + var(--hv-stretch,0) * .22)}
+.eh-sheen::after{content:'';position:absolute;top:-20%;bottom:-20%;left:0;width:8%;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(214,230,255,.09) 50%,transparent);opacity:calc((var(--hv-rw,0) * .6 + var(--hv-rk,0) * 1.2) * var(--eh-sheenk,1));transform:translate3d(calc(var(--hv-rc,.5) * 1250% - 50%),0,0) skewX(-16deg)}
+.eh-compact .hv-ring,.eh-tier-lite .hv-ring,.eh-tier-lite .hv-glow{display:none}
+.eh-still .hv-glow,.eh-still .hv-ring,.eh-still .hv-dim,.eh-still .hv-flash,.eh-tier-static .hv-glow,.eh-tier-static .hv-ring,.eh-tier-static .hv-dim,.eh-tier-static .hv-flash{display:none}
+/* V7 MICROINTERACTIONS — nav hears the signal on hover; magnetic controls build energy on hover and release
+   one ring on click (the page wave is the bus's rate-limited pulse); cards carry a bounded pointer light
+   with ≤ 1.5° of depth. Pricing tiers are deliberately left out: nothing competes with the offer. */
+.nav-link:hover{text-shadow:0 0 calc(6px + var(--dmf-energy,0) * 10px) rgba(255,91,30,.45);color:#f2ede6}
+.hero-cta:hover,.hero-cta-2:hover,.dmf-signal-cta:hover,.tips-cta:hover,.lab-gate:hover{box-shadow:0 0 0 1px rgba(255,91,30,.35),0 0 calc(12px + var(--dmf-energy,0) * 22px) rgba(255,91,30,.22)}
+@keyframes hvFire{0%{box-shadow:0 0 0 0 rgba(255,91,30,.55)}100%{box-shadow:0 0 0 20px rgba(255,91,30,0)}}
+.hv-fire{animation:hvFire .45s cubic-bezier(.2,.7,.2,1)}
+.release-card,.rider-card,.contact-card,.fly-card{transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.hv-lit{background-image:radial-gradient(260px circle at calc(var(--hv-cx,.5) * 100%) calc(var(--hv-cy,.5) * 100%),rgba(255,140,90,.08),transparent 70%);transform:perspective(900px) rotateX(calc((var(--hv-cy,.5) - .5) * -3deg)) rotateY(calc((var(--hv-cx,.5) - .5) * 3deg))}
+@media (prefers-reduced-motion:reduce){.hv-fire{animation:none}.hv-lit{transform:none}.eh-field i,.eh-blade{scale:none}}
 /* The Receiver's title resolves last in its reveal, then carries the same pressure as every title. */
 .dmf-signal-title{transform-origin:0 100%;opacity:calc(.35 + var(--eh-reveal,1) * .65);translate:0 calc((1 - var(--eh-reveal,1)) * 14px + var(--eh-tp,0) * 1.5px - var(--eh-tv,0) * 2px + var(--eh-ts,0) * 1px - var(--eh-tsn,0) * .5px);scale:calc(1 - var(--eh-tp,0) * .012 - var(--eh-tv,0) * .006 - var(--eh-tt,0) * .004) calc(1 - var(--eh-tp,0) * .01 + var(--eh-tv,0) * .01 + var(--eh-tt,0) * .006);text-shadow:0 calc(var(--eh-tp,0) * 2px) calc(var(--eh-tp,0) * 16px) rgba(255,91,30,calc(var(--eh-tp,0) * .16)),calc(var(--eh-chroma,0) * 1.5px) 0 0 rgba(255,91,30,calc(var(--eh-chroma,0) * .28)),calc(var(--eh-tt,0) * -2px) 0 0 rgba(242,237,230,calc(var(--eh-tt,0) * .16))}
 html.eh-calm .dmf-signal-title{scale:none}
@@ -765,7 +787,7 @@ html.eh-calm .dmf-signal-title{scale:none}
 
 <canvas id="smoke-canvas"></canvas>
 <div class="radial-overlay"></div>
-<div class="eh-field" aria-hidden="true"><i style="--x:12%;--y:22%;--p:.2"></i><i style="--x:84%;--y:14%;--p:.45"></i><i style="--x:67%;--y:61%;--p:.3"></i><i style="--x:27%;--y:78%;--p:.6"></i><i style="--x:91%;--y:83%;--p:.15"></i><i style="--x:46%;--y:9%;--p:.5"></i><i style="--x:6%;--y:52%;--p:.35"></i><i style="--x:58%;--y:36%;--p:.25"></i><i style="--x:36%;--y:47%;--p:.4"></i><span class="eh-blade eh-blade--1"></span><span class="eh-blade eh-blade--2"></span><span class="eh-vig"></span><span class="eh-gate"></span><span class="eh-after"></span></div>
+<div class="eh-field" aria-hidden="true"><i style="--x:12%;--y:22%;--p:.2"></i><i style="--x:84%;--y:14%;--p:.45"></i><i style="--x:67%;--y:61%;--p:.3"></i><i style="--x:27%;--y:78%;--p:.6"></i><i style="--x:91%;--y:83%;--p:.15"></i><i style="--x:46%;--y:9%;--p:.5"></i><i style="--x:6%;--y:52%;--p:.35"></i><i style="--x:58%;--y:36%;--p:.25"></i><i style="--x:36%;--y:47%;--p:.4"></i><span class="eh-blade eh-blade--1"></span><span class="eh-blade eh-blade--2"></span><span class="eh-vig"></span><span class="eh-gate"></span><span class="eh-after"></span><span class="hv-glow"></span><span class="hv-ring"></span><span class="hv-dim"></span><span class="hv-flash"></span></div>
 
 
 <!-- CONCERT INTRO -->

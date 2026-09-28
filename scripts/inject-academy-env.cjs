@@ -24,8 +24,13 @@ const COMMERCE = {
     klapUrl: httpsOrEmpty(process.env.DMF_KLAP_PAYMENTS_URL),
     klapFlexSdkUrl: httpsOrEmpty(process.env.DMF_KLAP_FLEX_SDK_URL)
   },
+  // Effects: on unless explicitly 'false'. false = that channel's pre-Hyperdrive-V2 behaviour.
   effects: {
-    audioReactive: process.env.DMF_EFFECT_AUDIO_REACTIVE !== 'false'
+    audioReactive: process.env.DMF_EFFECT_AUDIO_REACTIVE !== 'false',
+    reflections: process.env.DMF_EFFECT_REFLECTIONS !== 'false',
+    particles: process.env.DMF_EFFECT_PARTICLES !== 'false',
+    cinematicCamera: process.env.DMF_EFFECT_CINEMATIC_CAMERA !== 'false',
+    singularityFX: process.env.DMF_EFFECT_SINGULARITY_FX !== 'false'
   }
 };
 

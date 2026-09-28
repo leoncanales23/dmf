@@ -10,7 +10,9 @@
   var EVENTS = [
     'landing_view', 'hero_interaction', 'audio_enabled', '3d_loaded', 'academy_view', 'pricing_view',
     'cta_click', 'checkout_started', 'checkout_provider', 'checkout_failed', 'payment_approved',
-    'payment_rejected', 'payment_pending', 'conversion_complete'
+    'payment_rejected', 'payment_pending', 'conversion_complete',
+    // Hyperdrive V2 moments (no audio metadata, no identity)
+    'hyperdrive_triggered', 'singularity_triggered', 'relic_interaction', 'drop_triggered'
   ];
   var PROPS = ['product', 'provider', 'environment', 'placement', 'status', 'lang', 'tier', 'reason', 'fallback'];
   var once = {};

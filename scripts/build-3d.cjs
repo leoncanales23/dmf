@@ -193,6 +193,7 @@ const bodyInjection = [
   inlineModule('black-sun.js'),
   inlineModule('mass-driver.js'),
   inlineModule('lightspeed.js'),
+  inlineModule('hyperdrive-v2.js'),
   inlineModule('event-horizon.js'),
   inlineModule('relic.js'),
   inlineModule('mixer-stage.js')
