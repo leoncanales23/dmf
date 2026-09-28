@@ -20,6 +20,8 @@
   var MD = typeof module === 'object' && module.exports ? require('./mass-driver.js') : root.DMFMassDriver;
   // V6 Lightspeed: the threshold crossing, stepped after the Mass Driver and triggered only by it.
   var LS = typeof module === 'object' && module.exports ? require('./lightspeed.js') : root.DMFLightspeed;
+  // V7 Hyperdrive V2: choreography (light, camera modes, reflections, drop, singularity), stepped last.
+  var HV = typeof module === 'object' && module.exports ? require('./hyperdrive-v2.js') : root.DMFHyperdriveV2;
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
@@ -101,13 +103,23 @@
       // V6 Lightspeed (written by DMFLightspeed.update)
       lightspeed: 0, spaceCompression: 0, lensPressure: 0, velocityField: 0, fovKick: 0, fovDeg: 0, depthStretch: 0,
       depthDolly: 0, receiverAnchor: 0, reflectionVelocity: 0, bladeVelocity: 0, floorVelocity: 0, titleTrail: 0,
-      titleSnap: 0, lsIgnition: 0, lsHead: 0, lsShoulder: 0, lsTorso: 0, speakerHold: 0, speakerRelease: 0
+      titleSnap: 0, lsIgnition: 0, lsHead: 0, lsShoulder: 0, lsTorso: 0, speakerHold: 0, speakerRelease: 0,
+      // V7 Hyperdrive V2 (written by DMFHyperdriveV2.update)
+      hvKey: 1, hvRim: 0, hvAccent: 0, hvSweep: 0, hvBg: 0, hvFog: 0, hvEmissive: 0, hvSide: 0, hvSparkle: 0,
+      camMode: 'ICON', camModeId: 0, camDolly: 0, camOrbit: 0, camLift: 0, camFov: 0,
+      dropPhase: 'idle', dropCompress: 0, dropEdge: 0, dropPunch: 0, dropRing: 0, dropSecondary: 0, dropRecovery: 0,
+      singPhase: 'idle', singCollapse: 0, singPull: 0, singFlash: 0, singStretch: 0, singDominance: 0, singRelease: 0,
+      rfWarmPos: 0.5, rfWarmWidth: 0.22, rfWarmAmp: 0, rfColdPos: -0.2, rfColdWidth: 0.045, rfColdAmp: 0,
+      rfKickFront: 0, rfKickAmp: 0, rfCollapse: 0, rfZone: 0.11,
+      pfNod: 1, pfPhase: 0, pfHeadDelay: 0.05, pfSway: 1, pfZeta: 0.38,
+      fxCamera: 1, fxLights: 1, fxReflections: 1, fxParticles: 1, fxOverlays: 1, fxPressure: 0
     };
     this.narrative = SN ? new SN.DMFSpatialNarrative() : null;
     this.overdrive = SO && this.narrative ? new SO.DMFStageOverdrive() : null;
     this.blackSun = BS && this.overdrive ? new BS.DMFBlackSun() : null;
     this.massDriver = MD && this.blackSun ? new MD.DMFMassDriver() : null;
     this.lightspeed = LS && this.massDriver ? new LS.DMFLightspeed() : null;
+    this.hyperdrive = HV && this.lightspeed ? new HV.DMFHyperdriveV2() : null;
     this._depthV = 0;
     this._gateT = 9;
     this._sinceGate = 9;
@@ -211,6 +223,7 @@
     if (this.blackSun) this.blackSun.update(st, inp, this.ids, dt);
     if (this.massDriver) this.massDriver.update(st, inp, this.ids, dt);
     if (this.lightspeed) this.lightspeed.update(st, inp, this.ids, dt);
+    if (this.hyperdrive) this.hyperdrive.update(st, inp, this.ids, dt);
     return st;
   };
 
@@ -228,6 +241,7 @@
     if (this.blackSun) this.blackSun.compose(st);
     if (this.massDriver) this.massDriver.compose(st);
     if (this.lightspeed) this.lightspeed.compose(st);
+    if (this.hyperdrive) this.hyperdrive.compose(st);
     return st;
   };
 
@@ -252,7 +266,7 @@
   // Blocks that receive per-section variables while visible (never the whole document).
   var MAGNETS = '.hero-cta, .hero-cta-2, .tier-cta, .lab-gate, .tips-cta, .acad-cta, .acad-cta-free, .dmf-signal-cta, .nav-logo';
   var SECTION_VARS = ['--eh-focus', '--eh-rel', '--eh-split', '--eh-energy', '--eh-mid', '--eh-high', '--eh-speed', '--eh-vel', '--eh-lx',
-    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk', '--eh-tp', '--eh-chroma', '--eh-reveal', '--eh-tv', '--eh-ts', '--eh-tt', '--eh-tsn', '--eh-rv'];
+    '--eh-pan', '--eh-tilt', '--eh-dolly', '--eh-zk', '--eh-sheenk', '--eh-tp', '--eh-chroma', '--eh-reveal', '--eh-tv', '--eh-ts', '--eh-tt', '--eh-tsn', '--eh-rv', '--hv-rw', '--hv-rc', '--hv-rk'];
   function freshCache(n) { var c = []; for (var i = 0; i < n; i++) c.push(-9); return c; }
 
   function mount() {
@@ -262,6 +276,10 @@
     var eh = new DMFEventHorizon();
     var st = eh.state;
     hub.eventHorizon = st;
+    // V7 flags (academy-env.js → window.__DMF_COMMERCE__.effects); defaults on, false = pre-V7 channel.
+    var fxFlags = eh.hyperdrive ? eh.hyperdrive.setFlags(root.__DMF_COMMERCE__ && root.__DMF_COMMERCE__.effects) : null;
+    hub.effects = fxFlags;
+    function trackOnce(name) { if (typeof root.dmfTrack === 'function') root.dmfTrack(name, { placement: st.section, tier: st.performanceTier }, { once: true }); }
 
     var mm = root.matchMedia;
     var coarse = !!(mm && mm('(pointer: coarse)').matches);
@@ -325,7 +343,7 @@
     // Decorative layers that live in the source markup.
     var field = doc.querySelector('.eh-field');
     var intro = doc.getElementById('concertIntro');
-    var fieldVals = freshCache(20);
+    var fieldVals = freshCache(26);
     // Intro variables go to the few elements that read them (never the intro, whose subtree holds the SVG).
     var introEls = doc.querySelectorAll('#concertIntro .eh-stack, #concertIntro .eh-floor, #concertIntro .eh-halo');
     for (var ie = 0; ie < introEls.length; ie++) introEls[ie].__ehVals = freshCache(11);
@@ -369,6 +387,40 @@
         ptrDirty = true;
       }, { passive: true });
       doc.addEventListener('pointerleave', function () { ptrX = 0; ptrY = 0; ptrClientX = -1; ptrDirty = true; });
+    }
+    // V7 MICROINTERACTIONS — a click on a magnetic control releases one short signal wave (the bus
+    // rate-limits it to one per 1.5 s) and a ring on the control; cards (never the pricing tiers) carry a
+    // bounded pointer light. Desktop fine pointers only for the light; the click wave works everywhere.
+    var CARDS = '.release-card, .rider-card, .contact-card, .fly-card';
+    var litCard = null, litX = 0.5, litY = 0.5, litDirty = false;
+    if (!still) {
+      doc.addEventListener('click', function (e) {
+        var el = e.target && e.target.closest ? e.target.closest(MAGNETS) : null;
+        if (!el || st.performanceTier === 'static') return;
+        var r = el.getBoundingClientRect();
+        if (hub.pulse) hub.pulse(r.top + r.height / 2 + (root.pageYOffset || 0));
+        el.classList.remove('hv-fire');
+        void el.offsetWidth;                       // restart the one-shot ring
+        el.classList.add('hv-fire');
+        el.addEventListener('animationend', function () { el.classList.remove('hv-fire'); }, { once: true });
+      }, { passive: true });
+    }
+    if (fine && !still) {
+      doc.addEventListener('pointermove', function (e) {
+        if (e.pointerType && e.pointerType !== 'mouse') return;
+        var card = e.target && e.target.closest ? e.target.closest(CARDS) : null;
+        if (card !== litCard) {
+          if (litCard) { litCard.classList.remove('hv-lit'); litCard.style.removeProperty('--hv-cx'); litCard.style.removeProperty('--hv-cy'); }
+          litCard = card;
+          if (card) card.classList.add('hv-lit');
+        }
+        if (card) {
+          var r = card.getBoundingClientRect();
+          litX = clamp((e.clientX - r.left) / Math.max(1, r.width), 0, 1);
+          litY = clamp((e.clientY - r.top) / Math.max(1, r.height), 0, 1);
+          litDirty = true;
+        }
+      }, { passive: true });
     }
     // Magnets are read on pointer movement only (rects of the few candidates near the pointer).
     function pickMagnet() {
@@ -436,6 +488,10 @@
         put(el, c, 19, '--eh-tt', st.titleTrail, 20);
         put(el, c, 20, '--eh-tsn', st.titleSnap, 20);
         put(el, c, 21, '--eh-rv', st.reflectionVelocity, 20);
+        // V7: the page's framed surfaces carry the same reflection field as the Receiver.
+        put(el, c, 22, '--hv-rw', st.rfWarmAmp * st.fxOverlays, 50);
+        put(el, c, 23, '--hv-rc', st.rfColdPos, 100);
+        put(el, c, 24, '--hv-rk', st.rfKickAmp * st.fxOverlays, 50);
       }
       // V3: in the offer the background holds still (only its light and calm keep settling).
       var frozen = st.calm > 0.85;
@@ -452,6 +508,13 @@
         put(field, fieldVals, 17, '--eh-lv', st.lightVelocity, 50);
         put(field, fieldVals, 18, '--eh-lc', st.lightCompression, 50);
         put(field, fieldVals, 19, '--eh-bv', st.bladeVelocity, 50);   // V6: blades align with the travel
+        // V7: drop edge (micro blackout), reflection ring, SINGULARITY stretch / flash, background glow.
+        put(field, fieldVals, 20, '--hv-edge', st.dropEdge, 50);
+        put(field, fieldVals, 21, '--hv-ring', st.dropRing * st.fxOverlays, 50);
+        put(field, fieldVals, 22, '--hv-stretch', st.singStretch * st.fxOverlays, 50);
+        put(field, fieldVals, 23, '--hv-flash', st.singFlash, 50);
+        put(field, fieldVals, 24, '--hv-bg', st.hvBg * st.fxOverlays, 50);
+        put(field, fieldVals, 25, '--hv-dom', st.singDominance, 50);
       }
       if (field && !frozen) {
         put(field, fieldVals, 0, '--eh-energy', st.energy, 50);
@@ -501,6 +564,12 @@
         magnetY = approach(magnetY, magnetTY * gk, rate, 0.033);
         magnet.style.setProperty('--eh-mx', magnetX.toFixed(2));
         magnet.style.setProperty('--eh-my', magnetY.toFixed(2));
+      }
+      if (litCard && litDirty) {
+        litDirty = false;
+        var lk = st.performanceTier === 'lite' ? 0.5 : 1;
+        litCard.style.setProperty('--hv-cx', (0.5 + (litX - 0.5) * lk).toFixed(3));
+        litCard.style.setProperty('--hv-cy', (0.5 + (litY - 0.5) * lk).toFixed(3));
       }
       var gating = st.transition > 0.01;
       if (field && gating !== field.__ehGating) { field.__ehGating = gating; field.classList.toggle('eh-gating', gating); }
@@ -565,13 +634,22 @@
         fovKick: +st.fovDeg.toFixed(2), depthStretch: +st.depthStretch.toFixed(2), reflectionVelocity: +st.reflectionVelocity.toFixed(2),
         bladeVelocity: +st.bladeVelocity.toFixed(2), titleTrail: +st.titleTrail.toFixed(2), shots: eh.lightspeed ? eh.lightspeed.shots : 0
       };
+      perf.hyperdriveV2 = {
+        cameraMode: st.camMode, dropPhase: st.dropPhase, singularityPhase: st.singPhase,
+        key: +st.hvKey.toFixed(2), rim: +st.hvRim.toFixed(2), accent: +st.hvAccent.toFixed(2), fog: +st.hvFog.toFixed(2),
+        camDolly: +st.camDolly.toFixed(3), camFov: +st.camFov.toFixed(2), reflWarm: +st.rfWarmAmp.toFixed(2), reflCold: +st.rfColdAmp.toFixed(2),
+        effects: { camera: +st.fxCamera.toFixed(2), lights: +st.fxLights.toFixed(2), reflections: +st.fxReflections.toFixed(2),
+          particles: +st.fxParticles.toFixed(2), overlays: +st.fxOverlays.toFixed(2), pressure: +st.fxPressure.toFixed(2) },
+        drops: eh.hyperdrive ? eh.hyperdrive.drop.shots : 0, singularities: eh.hyperdrive ? eh.hyperdrive.sing.shots : 0,
+        flags: fxFlags
+      };
       perf.dprCaps = { receiver: hub.renderScale || 1, mixer: perf.mixerFit ? perf.mixerFit.dpr : null, smoke: Math.min(root.devicePixelRatio || 1, 1.5) };
     }
 
     var frameN = 0, acc = 0;
     // One input record, reused every frame (the director reads it; nothing is allocated per frame).
     var input = { scrollY: 0, vh: 800, velocity: 0, s: null, forces: null, pointerX: 0, pointerY: 0, tier: 'high', compact: compact, wakeT: -1, pre: 0,
-      docProgress: 0, pointerActive: false };
+      docProgress: 0, pointerActive: false, sing: null, hyper: null, fps: 60 };
     function tick(s, dt, raw, bus) {
       var tier = tierOf(bus.qualityTier, compact);
       applyTier(tier);
@@ -598,12 +676,19 @@
       input.tier = tier; input.wakeT = wakeT; input.pre = pre;
       input.docProgress = clamp01(input.scrollY / Math.max(1, eh.docH - input.vh));
       input.pointerActive = ptrClientX >= 0;
+      input.sing = sg; input.hyper = hd; input.fps = bus.fps || 0;
       eh.update(input, step);
+      if (eh.hyperdrive) {
+        if (eh.hyperdrive.hyperFiredNow) trackOnce('hyperdrive_triggered');
+        if (eh.hyperdrive.drop.firedNow) trackOnce('drop_triggered');
+        if (eh.hyperdrive.sing.firedNow) trackOnce('singularity_triggered');
+      }
       if (eh.narrative && eh.narrative.heroFiredNow) { try { root.sessionStorage.setItem(HERO_KEY, '1'); } catch (e) { /* once per page then */ } }
       if (eh.blackSun && eh.blackSun.revealNow) { try { root.sessionStorage.setItem(REVEAL_KEY, '1'); } catch (e) { /* once per page then */ } }
       // DOM at ~30 Hz, except on a gate or a kick so the page lands on the beat.
       writeT += step;
       if (writeT >= 0.033 || st.transition > 0.01 || s.beatFired) { writeT = 0; write(false); }
+      else if (st.dropPunch > 0.01 || st.singFlash > 0.01) { writeT = 0; write(false); }   // V7: the hit lands on time
       perfT += step;
       if (perf && perfT > 0.5) { perfT = 0; report(); }
     }
