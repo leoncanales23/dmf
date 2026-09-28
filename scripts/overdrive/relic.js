@@ -44,7 +44,9 @@
           '<span class="dmf-signal-hint" data-dmf-en="Interactive · drag to orbit" data-dmf-es="Interactivo · arrastra para rotar">Interactive · drag to orbit</span>',
         '</div>',
         '<div class="dmf-signal-visual">',
-          '<div class="dmf-signal-fallback" aria-hidden="true">RELIC</div>',
+          // The composed still of the Receiver: the stage while the model loads, and the whole stage when
+          // there is no 3D (Save-Data, no WebGL, Three or the model failed, the context was lost).
+          '<div class="dmf-signal-fallback" aria-hidden="true"><img class="dmf-signal-poster" src="assets/images/dmf-relic-poster.webp" alt="" width="1000" height="1113" loading="lazy" decoding="async"></div>',
           '<div class="dmf-signal-loader" aria-hidden="true"></div>',
           '<div class="dmf-signal-arrival" aria-hidden="true"></div>',
           '<div class="dmf-signal-scan" aria-hidden="true"></div>',
@@ -95,7 +97,7 @@
 
     var hub = window.DMFSignal;
     if (hub && hub.scan) hub.scan();
-    if (!hub || hub.saveData) return;
+    if (!hub || hub.saveData) { relicStatic(band, hub ? 'save-data' : 'no-signal'); return; }
 
     var visual = band.querySelector('.dmf-signal-visual');
     // The one Three.js r128 + GLTFLoader load of the page; other scenes (the Tips mixer) wait on hub.three.
@@ -122,11 +124,20 @@
       var loaderScript = document.createElement('script');
       loaderScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
       loaderScript.onload = function () { loaderReady = true; startScene(); };
-      loaderScript.onerror = function () { announceThree('failed'); };
+      loaderScript.onerror = function () { announceThree('failed'); relicStatic(band, 'three'); };
       document.head.appendChild(loaderScript);
     };
-    threeScript.onerror = function () { announceThree('failed'); };
+    threeScript.onerror = function () { announceThree('failed'); relicStatic(band, 'three'); };
     document.head.appendChild(threeScript);
+  }
+
+  // No live scene: the still stays as the stage, the loader stops and the controls that need the scene step aside.
+  function relicStatic(band, reason) {
+    if (band.classList.contains('is-static-relic')) return;
+    band.classList.add('is-ready', 'is-static-relic');
+    band.setAttribute('data-relic-static', reason);
+    document.documentElement.classList.add('dmf-relic-static');   // also retires the fixed stage layer
+    if (typeof window.dmfTrack === 'function') window.dmfTrack('3d_loaded', { status: 'static', reason: reason }, { once: true });
   }
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
@@ -137,7 +148,7 @@
 
   function initScene(container, band, hub) {
     var THREE = window.THREE;
-    if (!THREE || !THREE.GLTFLoader) return;
+    if (!THREE || !THREE.GLTFLoader) { relicStatic(band, 'three'); return; }
     var O = window.DMFOverdrive;
     var KN = window.DMFKinetic;
     var reduceMotion = hub.reduced || !hub.onFrame;
@@ -153,7 +164,12 @@
     camera.position.set(4, 2.8, 5);
     camera.lookAt(0, 0.9, 0);
 
-    var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    var renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    } catch (e) { relicStatic(band, 'webgl'); return; }
+    // A lost context (mobile memory pressure, GPU reset) hands the stage back to the still.
+    renderer.domElement.addEventListener('webglcontextlost', function () { relicStatic(band, 'context-lost'); });
     renderer.setSize(w, h);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -848,7 +864,7 @@
         hub.onFrame(tick);
       },
       undefined,
-      function () { band.classList.add('is-ready'); }
+      function () { relicStatic(band, 'model'); }
     );
 
     // Tier ranges for dynamic render resolution; the scaler moves inside them, the governor moves between them.

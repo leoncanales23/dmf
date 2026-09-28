@@ -830,7 +830,8 @@ html.eh-calm .dmf-signal-title{scale:none}
 .dmf-signal-loader{position:absolute;z-index:6;left:18%;right:18%;bottom:14%;height:1px;overflow:hidden;background:rgba(242,237,230,.06)}
 .dmf-signal-loader::after{content:'';display:block;width:34%;height:100%;background:#ff5b1e;box-shadow:0 0 14px rgba(255,91,30,.65);animation:dmfSignalLoad 1.55s ease-in-out infinite}
 .dmf-signal-band.is-ready .dmf-signal-loader{opacity:0;transition:opacity .35s}
-.dmf-signal-fallback{position:absolute;z-index:1;inset:0;display:grid;place-items:center;font-family:'Anton',sans-serif;font-size:clamp(38px,7vw,88px);letter-spacing:.05em;text-transform:uppercase;color:rgba(242,237,230,.04)}
+.dmf-signal-fallback{position:absolute;z-index:1;inset:0;transition:opacity .8s ease}
+.dmf-signal-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 42%;opacity:.5;filter:saturate(.8) brightness(.85);transition:opacity .8s ease,filter .8s ease}
 .dmf-signal-edition-tag{position:absolute;z-index:5;left:clamp(18px,3vw,38px);bottom:clamp(18px,3vw,32px);pointer-events:none;font-size:7px;letter-spacing:.22em;text-transform:uppercase;color:#4a443e}
 
 .dmf-relic-readout{position:absolute;z-index:10;pointer-events:none;padding:6px 14px;border-left:2px solid #ff5b1e;background:rgba(4,3,3,.88);transform:translate(18px,-50%);opacity:0;transition:opacity .25s,transform .25s}
@@ -873,6 +874,15 @@ html.eh-calm .dmf-signal-title{scale:none}
 }
 /* DMF OVERDRIVE — state, arrival from the hero signal line, LIVE SIGNAL HUD */
 .dmf-signal-band.has-scene .dmf-signal-fallback{opacity:0}
+/* The canvas fades in over the still once the model is in the scene (never a black frame while loading). */
+.dmf-signal-band:not(.has-scene) .dmf-signal-visual canvas{opacity:0}
+.dmf-signal-visual canvas{transition:opacity .8s ease}
+/* STATIC RELIC — no live scene: the still is the stage; controls that need the scene step aside. */
+.dmf-signal-band.is-static-relic .dmf-signal-fallback{opacity:1}
+.dmf-signal-band.is-static-relic .dmf-signal-poster{opacity:1;filter:none}
+.dmf-signal-band.is-static-relic .dmf-signal-visual canvas,.dmf-signal-band.is-static-relic .dmf-signal-loader,.dmf-signal-band.is-static-relic .dmf-signal-view3d,.dmf-signal-band.is-static-relic .dmf-signal-hint,.dmf-signal-band.is-static-relic .dmf-live-hud{display:none}
+.dmf-signal-band.is-static-relic .dmf-signal-visual{cursor:default}
+.dmf-relic-static .dmf-stage-layer{display:none}
 .dmf-signal-band{box-shadow:inset 0 1px 0 rgba(255,91,30,calc(var(--dmf-overdrive,0) * .45)),inset 0 -1px 0 rgba(255,91,30,calc(var(--dmf-overdrive,0) * .25))}
 .dmf-relic-state.is-overdrive{color:#fff1e6;text-shadow:0 0 12px rgba(255,91,30,.75),0 0 2px rgba(255,91,30,.9)}
 .dmf-signal-band.is-overdrive .dmf-signal-corner strong{color:#fff1e6;text-shadow:0 0 14px rgba(255,91,30,.55)}
@@ -6270,7 +6280,9 @@ if (window.__DMF_FIREBASE_CONFIG__) {
           '<span class="dmf-signal-hint" data-dmf-en="Interactive · drag to orbit" data-dmf-es="Interactivo · arrastra para rotar">Interactive · drag to orbit</span>',
         '</div>',
         '<div class="dmf-signal-visual">',
-          '<div class="dmf-signal-fallback" aria-hidden="true">RELIC</div>',
+          // The composed still of the Receiver: the stage while the model loads, and the whole stage when
+          // there is no 3D (Save-Data, no WebGL, Three or the model failed, the context was lost).
+          '<div class="dmf-signal-fallback" aria-hidden="true"><img class="dmf-signal-poster" src="assets/images/dmf-relic-poster.webp" alt="" width="1000" height="1113" loading="lazy" decoding="async"></div>',
           '<div class="dmf-signal-loader" aria-hidden="true"></div>',
           '<div class="dmf-signal-arrival" aria-hidden="true"></div>',
           '<div class="dmf-signal-scan" aria-hidden="true"></div>',
@@ -6321,7 +6333,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
     var hub = window.DMFSignal;
     if (hub && hub.scan) hub.scan();
-    if (!hub || hub.saveData) return;
+    if (!hub || hub.saveData) { relicStatic(band, hub ? 'save-data' : 'no-signal'); return; }
 
     var visual = band.querySelector('.dmf-signal-visual');
     // The one Three.js r128 + GLTFLoader load of the page; other scenes (the Tips mixer) wait on hub.three.
@@ -6348,11 +6360,20 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var loaderScript = document.createElement('script');
       loaderScript.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
       loaderScript.onload = function () { loaderReady = true; startScene(); };
-      loaderScript.onerror = function () { announceThree('failed'); };
+      loaderScript.onerror = function () { announceThree('failed'); relicStatic(band, 'three'); };
       document.head.appendChild(loaderScript);
     };
-    threeScript.onerror = function () { announceThree('failed'); };
+    threeScript.onerror = function () { announceThree('failed'); relicStatic(band, 'three'); };
     document.head.appendChild(threeScript);
+  }
+
+  // No live scene: the still stays as the stage, the loader stops and the controls that need the scene step aside.
+  function relicStatic(band, reason) {
+    if (band.classList.contains('is-static-relic')) return;
+    band.classList.add('is-ready', 'is-static-relic');
+    band.setAttribute('data-relic-static', reason);
+    document.documentElement.classList.add('dmf-relic-static');   // also retires the fixed stage layer
+    if (typeof window.dmfTrack === 'function') window.dmfTrack('3d_loaded', { status: 'static', reason: reason }, { once: true });
   }
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
@@ -6363,7 +6384,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
 
   function initScene(container, band, hub) {
     var THREE = window.THREE;
-    if (!THREE || !THREE.GLTFLoader) return;
+    if (!THREE || !THREE.GLTFLoader) { relicStatic(band, 'three'); return; }
     var O = window.DMFOverdrive;
     var KN = window.DMFKinetic;
     var reduceMotion = hub.reduced || !hub.onFrame;
@@ -6379,7 +6400,12 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     camera.position.set(4, 2.8, 5);
     camera.lookAt(0, 0.9, 0);
 
-    var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    var renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    } catch (e) { relicStatic(band, 'webgl'); return; }
+    // A lost context (mobile memory pressure, GPU reset) hands the stage back to the still.
+    renderer.domElement.addEventListener('webglcontextlost', function () { relicStatic(band, 'context-lost'); });
     renderer.setSize(w, h);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -7074,7 +7100,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
         hub.onFrame(tick);
       },
       undefined,
-      function () { band.classList.add('is-ready'); }
+      function () { relicStatic(band, 'model'); }
     );
 
     // Tier ranges for dynamic render resolution; the scaler moves inside them, the governor moves between them.
