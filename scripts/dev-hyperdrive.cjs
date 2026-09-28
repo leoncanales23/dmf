@@ -110,6 +110,7 @@ function verifyRuntimeAssets() {
     'scripts/overdrive/kinetic.js',
     'scripts/overdrive/spatial-stage.js',
     'scripts/overdrive/signal-bus.js',
+    'scripts/overdrive/hyperresonance.js',
     'scripts/overdrive/spatial-narrative.js',
     'scripts/overdrive/stage-overdrive.js',
     'scripts/overdrive/black-sun.js',
