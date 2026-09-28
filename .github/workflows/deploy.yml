@@ -37,6 +37,10 @@ jobs:
           DMF_KLAP_PAYMENTS_URL: ${{ vars.DMF_KLAP_PAYMENTS_URL }}
           DMF_KLAP_FLEX_SDK_URL: ${{ vars.DMF_KLAP_FLEX_SDK_URL }}
           DMF_EFFECT_AUDIO_REACTIVE: ${{ vars.DMF_EFFECT_AUDIO_REACTIVE }}
+          DMF_EFFECT_REFLECTIONS: ${{ vars.DMF_EFFECT_REFLECTIONS }}
+          DMF_EFFECT_PARTICLES: ${{ vars.DMF_EFFECT_PARTICLES }}
+          DMF_EFFECT_CINEMATIC_CAMERA: ${{ vars.DMF_EFFECT_CINEMATIC_CAMERA }}
+          DMF_EFFECT_SINGULARITY_FX: ${{ vars.DMF_EFFECT_SINGULARITY_FX }}
         run: |
           mkdir -p public/assets/images public/assets/logos public/assets/docs public/assets/models
           node scripts/check-3d.cjs

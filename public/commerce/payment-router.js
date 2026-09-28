@@ -42,9 +42,14 @@
         klapUrl: httpsUrl(p.klapUrl),
         mercadopagoUrl: httpsUrl(win && win.__DMF_PAYMENTS_URL__)
       },
-      // v1 wires audioReactive (signal-bus.js). Quality stays with the adaptive governor in engine.js.
+      // audioReactive: signal-bus.js. The rest: Hyperdrive V2 channels (scripts/overdrive/hyperdrive-v2.js);
+      // false restores that channel's pre-V2 behaviour. Quality stays with the adaptive governors.
       effects: {
-        audioReactive: e.audioReactive !== false
+        audioReactive: e.audioReactive !== false,
+        reflections: e.reflections !== false,
+        particles: e.particles !== false,
+        cinematicCamera: e.cinematicCamera !== false,
+        singularityFX: e.singularityFX !== false
       }
     };
   }
