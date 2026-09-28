@@ -41,7 +41,7 @@ test('source index.html carries the hero and choreography (not generated-only ed
 
 test('reduced motion and Save-Data never start the signal clock', function () {
   assert.ok(/if \(reduce \|\| saveData\) return;/.test(BUS));
-  assert.ok(RELIC.includes('if (!hub || hub.saveData) return;'));
+  assert.ok(RELIC.includes("if (!hub || hub.saveData) { relicStatic(band, hub ? 'save-data' : 'no-signal'); return; }"));
   assert.ok(RELIC.includes('var reduceMotion = hub.reduced || !hub.onFrame;'));
   assert.ok(SRC.includes("if (reduce || !('IntersectionObserver' in window)) return;"));
 });

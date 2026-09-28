@@ -58,7 +58,8 @@ const headInjection = `${HEAD_MARKER}
 .dmf-signal-loader{position:absolute;z-index:6;left:18%;right:18%;bottom:14%;height:1px;overflow:hidden;background:rgba(242,237,230,.06)}
 .dmf-signal-loader::after{content:'';display:block;width:34%;height:100%;background:#ff5b1e;box-shadow:0 0 14px rgba(255,91,30,.65);animation:dmfSignalLoad 1.55s ease-in-out infinite}
 .dmf-signal-band.is-ready .dmf-signal-loader{opacity:0;transition:opacity .35s}
-.dmf-signal-fallback{position:absolute;z-index:1;inset:0;display:grid;place-items:center;font-family:'Anton',sans-serif;font-size:clamp(38px,7vw,88px);letter-spacing:.05em;text-transform:uppercase;color:rgba(242,237,230,.04)}
+.dmf-signal-fallback{position:absolute;z-index:1;inset:0;transition:opacity .8s ease}
+.dmf-signal-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 42%;opacity:.5;filter:saturate(.8) brightness(.85);transition:opacity .8s ease,filter .8s ease}
 .dmf-signal-edition-tag{position:absolute;z-index:5;left:clamp(18px,3vw,38px);bottom:clamp(18px,3vw,32px);pointer-events:none;font-size:7px;letter-spacing:.22em;text-transform:uppercase;color:#4a443e}
 
 .dmf-relic-readout{position:absolute;z-index:10;pointer-events:none;padding:6px 14px;border-left:2px solid #ff5b1e;background:rgba(4,3,3,.88);transform:translate(18px,-50%);opacity:0;transition:opacity .25s,transform .25s}
@@ -101,6 +102,15 @@ const headInjection = `${HEAD_MARKER}
 }
 /* DMF OVERDRIVE — state, arrival from the hero signal line, LIVE SIGNAL HUD */
 .dmf-signal-band.has-scene .dmf-signal-fallback{opacity:0}
+/* The canvas fades in over the still once the model is in the scene (never a black frame while loading). */
+.dmf-signal-band:not(.has-scene) .dmf-signal-visual canvas{opacity:0}
+.dmf-signal-visual canvas{transition:opacity .8s ease}
+/* STATIC RELIC — no live scene: the still is the stage; controls that need the scene step aside. */
+.dmf-signal-band.is-static-relic .dmf-signal-fallback{opacity:1}
+.dmf-signal-band.is-static-relic .dmf-signal-poster{opacity:1;filter:none}
+.dmf-signal-band.is-static-relic .dmf-signal-visual canvas,.dmf-signal-band.is-static-relic .dmf-signal-loader,.dmf-signal-band.is-static-relic .dmf-signal-view3d,.dmf-signal-band.is-static-relic .dmf-signal-hint,.dmf-signal-band.is-static-relic .dmf-live-hud{display:none}
+.dmf-signal-band.is-static-relic .dmf-signal-visual{cursor:default}
+.dmf-relic-static .dmf-stage-layer{display:none}
 .dmf-signal-band{box-shadow:inset 0 1px 0 rgba(255,91,30,calc(var(--dmf-overdrive,0) * .45)),inset 0 -1px 0 rgba(255,91,30,calc(var(--dmf-overdrive,0) * .25))}
 .dmf-relic-state.is-overdrive{color:#fff1e6;text-shadow:0 0 12px rgba(255,91,30,.75),0 0 2px rgba(255,91,30,.9)}
 .dmf-signal-band.is-overdrive .dmf-signal-corner strong{color:#fff1e6;text-shadow:0 0 14px rgba(255,91,30,.55)}
