@@ -73,7 +73,8 @@
         track(entries[i].target.getAttribute('data-track-view'), null, { once: true });
         io.unobserve(entries[i].target);
       }
-    }, { threshold: 0.35 });
+    // Threshold 0 + a margin, not a ratio: sections taller than the viewport can never reach a 35 % ratio.
+    }, { threshold: 0, rootMargin: '0px 0px -35% 0px' });
     for (var j = 0; j < views.length; j++) io.observe(views[j]);
   }
 
