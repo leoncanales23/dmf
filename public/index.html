@@ -5897,15 +5897,16 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       }, { passive: true });
       doc.addEventListener('pointerleave', function () { ptrX = 0; ptrY = 0; ptrClientX = -1; ptrDirty = true; });
     }
-    // V7 MICROINTERACTIONS — a click on a magnetic control releases one short signal wave (the bus
-    // rate-limits it to one per 1.5 s) and a ring on the control; cards (never the pricing tiers) carry a
+    // V7 MICROINTERACTIONS — a click on a magnetic control (never a pricing tier) releases one short signal
+    // wave (the bus rate-limits it to one per 1.5 s) and a ring on the control; cards (never the tiers) carry a
     // bounded pointer light. Desktop fine pointers only for the light; the click wave works everywhere.
     var CARDS = '.release-card, .rider-card, .contact-card, .fly-card';
     var litCard = null, litX = 0.5, litY = 0.5, litDirty = false;
     if (!still) {
       doc.addEventListener('click', function (e) {
         var el = e.target && e.target.closest ? e.target.closest(MAGNETS) : null;
-        if (!el || st.performanceTier === 'static') return;
+        // Pricing tiers never get the ring or the wave: the offer stays undistracted.
+        if (!el || st.performanceTier === 'static' || el.classList.contains('tier-cta')) return;
         var r = el.getBoundingClientRect();
         if (hub.pulse) hub.pulse(r.top + r.height / 2 + (root.pageYOffset || 0));
         el.classList.remove('hv-fire');

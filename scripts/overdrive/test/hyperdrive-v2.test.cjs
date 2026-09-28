@@ -428,6 +428,9 @@ test('page: offer stays calm; pricing tiers get no V7 microinteraction; analytic
   }
   const cards = EH.slice(EH.indexOf("var CARDS = '"), EH.indexOf(';', EH.indexOf("var CARDS = '")));
   assert.ok(!/tier/.test(cards), 'no pricing card');
+  assert.ok(EH.includes("el.classList.contains('tier-cta')) return;"), 'no click ring or wave on a pricing CTA');
+  const fire = SRC.slice(SRC.indexOf('.hv-fire'), SRC.indexOf('}', SRC.indexOf('.hv-fire')));
+  assert.ok(!/tier/.test(fire), 'the ring style targets no pricing tier');
   const A = require(path.join(ROOT, 'public/commerce/analytics.js'));
   for (const e of ['hyperdrive_triggered', 'singularity_triggered', 'relic_interaction', 'drop_triggered']) assert.ok(A.EVENTS.includes(e), e);
   assert.ok(EH.includes("root.dmfTrack(name, { placement: st.section, tier: st.performanceTier }, { once: true })"), 'section + tier only, once per page');
