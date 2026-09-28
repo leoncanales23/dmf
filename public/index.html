@@ -2547,6 +2547,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     this.lastBeatIndex = null;
     this.lastFiredBeat = -1e9;
     this.prevSection = '';
+    this.prevForced = false;
     this.energySlow = 0;
     this.bodyStage = 0;
     this.audioCalm = 0;
@@ -2708,8 +2709,12 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       var cycleBeat = ((beats % cycleBeats) + cycleBeats) % cycleBeats;
       o.timeToDrop = (cycleBeat < 96 ? 96 - cycleBeat : cycleBeats - cycleBeat + 96) * interval;
     }
-    o.dropHit = section === 'drop' && this.prevSection !== 'drop' && this.prevSection !== '' && !audioLed;
+    // A forced drop always lands its hit on the armed downbeat, even when the clock arrangement is already in
+    // its own drop section (otherwise its precompression would play and no impact would ever arrive).
+    var forceEdge = forced && !this.prevForced;
+    o.dropHit = !audioLed && ((section === 'drop' && this.prevSection !== 'drop' && this.prevSection !== '') || forceEdge);
     this.prevSection = section;
+    this.prevForced = forced;
     // An analyser drop must be earned: ≥4 s of calm, then sustained drop energy; it lands on the next beat.
     if (audioLed) {
       if (o.dropEnergy < 0.45) this.audioCalm += dt;
@@ -5147,7 +5152,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   function DMFSingularityTreatment() {
     this.t = 9;
     this.since = 99;
-    this.lastId = -1;
+    this.lastHitId = -1;
     this.shots = 0;
     this.firedNow = false;
     this.flashOK = false;
@@ -5158,13 +5163,14 @@ if (window.__DMF_FIREBASE_CONFIG__) {
   DMFSingularityTreatment.prototype.update = function (sing, dt, authority) {
     this.since += dt;
     this.firedNow = false;
+    // kinetic.js numbers an event when its precompression starts; the impact is the frame `hit` is set.
+    // One treatment per event id, whatever repeats upstream.
     var sid = sing ? sing.id : 0;
-    if (this.lastId < 0) this.lastId = sid;
-    if (sing && sing.hit && sid !== this.lastId) {
+    if (sing && sing.hit && sid !== this.lastHitId) {
+      this.lastHitId = sid;
       this.flashOK = this.since >= SING.gap;
       if (this.flashOK) { this.t = 0; this.since = 0; this.shots++; this.firedNow = authority > 0; }
     }
-    this.lastId = sid;
     var inEvent = this.t < SING.end;
     if (inEvent) this.t += dt;
     var t = inEvent ? this.t : -1;

@@ -179,7 +179,7 @@
   function DMFSingularityTreatment() {
     this.t = 9;
     this.since = 99;
-    this.lastId = -1;
+    this.lastHitId = -1;
     this.shots = 0;
     this.firedNow = false;
     this.flashOK = false;
@@ -190,13 +190,14 @@
   DMFSingularityTreatment.prototype.update = function (sing, dt, authority) {
     this.since += dt;
     this.firedNow = false;
+    // kinetic.js numbers an event when its precompression starts; the impact is the frame `hit` is set.
+    // One treatment per event id, whatever repeats upstream.
     var sid = sing ? sing.id : 0;
-    if (this.lastId < 0) this.lastId = sid;
-    if (sing && sing.hit && sid !== this.lastId) {
+    if (sing && sing.hit && sid !== this.lastHitId) {
+      this.lastHitId = sid;
       this.flashOK = this.since >= SING.gap;
       if (this.flashOK) { this.t = 0; this.since = 0; this.shots++; this.firedNow = authority > 0; }
     }
-    this.lastId = sid;
     var inEvent = this.t < SING.end;
     if (inEvent) this.t += dt;
     var t = inEvent ? this.t : -1;

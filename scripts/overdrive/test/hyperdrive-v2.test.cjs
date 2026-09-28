@@ -207,8 +207,10 @@ test('singularity: rare — the kinetic event cannot restart within 12 s, and th
   const sing = { id: 0, active: false, hit: false, pre: 0, ignition: 0, t: 0 };
   let flashes = 0, wasFlash = false, longest = 0, runStart = -1;
   for (let i = 0; i < 60 * 30; i++) {
+    // Like kinetic.js: the event is numbered when its precompression starts, the hit comes ~0.7 s later.
+    if (i % (60 * 5) === 18) { sing.id++; sing.active = true; }
     const hitNow = i % (60 * 5) === 60;
-    if (hitNow) { sing.id++; sing.hit = true; sing.active = true; } else sing.hit = false;
+    sing.hit = hitNow;
     T.update(sing, DT, 1);
     const on = T.flash > 0;
     if (on && !wasFlash) flashes++;
@@ -221,20 +223,61 @@ test('singularity: rare — the kinetic event cannot restart within 12 s, and th
   assert.ok(longest >= 1.5 && longest <= H.SING.end + 0.05, 'treatment lasts 1.5–3 s: ' + longest.toFixed(2));
 });
 
+test('regression: a forced drop requested during the clock\'s own drop section still lands its hit (no run-up without an impact)', () => {
+  const O = require(path.join(ROOT, 'scripts/overdrive/engine.js'));
+  const e = new O.DMFSignalEngine({ startBar: 8 });
+  let t = 0;
+  while (e.out.section !== 'drop' || t < 32) { e.update(DT); t += DT; }
+  assert.equal(e.out.section, 'drop');
+  e.setForceDrop(true, 0.72);
+  let hits = 0, sawLead = false;
+  for (let i = 0; i < 60 * 6; i++) { e.update(DT); if (e.out.timeToDrop > 0) sawLead = true; if (e.out.dropHit) hits++; }
+  assert.ok(sawLead, 'the predictor announced the forced drop');
+  assert.equal(hits, 1, 'and exactly one hit landed');
+});
+
+test('end to end with the real engine and kinetic SINGULARITY: a forced drop yields run-up, one flash, one impact', () => {
+  const O = require(path.join(ROOT, 'scripts/overdrive/engine.js'));
+  const e = new O.DMFSignalEngine({ startBar: 8 }), sg = new KN.DMFSingularity(), hd = new O.DMFHyperdrive();
+  const hv = new H.DMFHyperdriveV2();
+  const st = stage({ low: 0.6, mid: 0.5, high: 0.4, energy: 0.7 });
+  let t = 0;
+  const frame = () => { e.update(DT); hd.update(e.out, DT); sg.update(e.out, DT); hv.update(st, { s: e.out, hyper: hd, sing: sg, fps: 60 }, ['relic'], DT); t += DT; };
+  while (t < 5) frame();
+  sg.arm(sg.canStart());
+  e.setForceDrop(true, 0.72);
+  const seen = { pre: false, compress: false, flash: 0, impact: 0, pull: 0 };
+  let wasFlash = false;
+  for (let i = 0; i < 60 * 6; i++) {
+    frame();
+    if (st.singPhase === 'precompression') seen.pre = true;
+    if (st.dropPhase === 'compress' || st.dropPhase === 'edge') seen.compress = true;
+    if (st.singFlash > 0 && !wasFlash) seen.flash++;
+    wasFlash = st.singFlash > 0;
+    if (st.dropPhase === 'impact') seen.impact = 1;
+    seen.pull = Math.max(seen.pull, st.singPull);
+  }
+  assert.ok(seen.pre && seen.compress, 'precompression and drop run-up');
+  assert.equal(seen.flash, 1, 'exactly one flash');
+  assert.equal(seen.impact, 1, 'the drop impact landed');
+  assert.ok(seen.pull > 0.9, 'the camera was pulled in');
+  assert.equal(hv.sing.shots, 1);
+});
+
 test('singularity: precompression collapses reflections to the centre and compresses light before the impact', () => {
   const hv = new H.DMFHyperdriveV2();
   const st = stage({ low: 0.6, high: 0.6, energy: 0.6 });
   const w = world();
   step(hv, st, w, 90);
   const before = { warmW: st.rfWarmWidth, key: st.hvKey };
-  w.sing.active = true; w.sing.t = -0.3; w.sing.pre = 1; w.sing.ignition = 0.4;
+  w.sing.active = true; w.sing.t = -0.3; w.sing.pre = 1; w.sing.ignition = 0.4; w.sing.id = 1;   // numbered at precompression
   step(hv, st, w, 20);
   assert.equal(st.singPhase, 'precompression');
   assert.equal(st.camMode, 'SINGULARITY');
   assert.ok(st.rfCollapse > 0.8 && st.rfWarmWidth < before.warmW * 0.5, 'reflections compress');
   assert.ok(Math.abs(st.rfWarmPos - 0.5) < 0.1 && Math.abs(st.rfColdPos - 0.5) < 0.1, 'toward the centre');
   assert.ok(st.hvKey < before.key, 'light compresses');
-  w.sing.t = 0; w.sing.pre = 0; w.sing.hit = true; w.sing.id = 1;
+  w.sing.t = 0; w.sing.pre = 0; w.sing.hit = true;                                               // same id at impact
   step(hv, st, w, 2);
   w.sing.hit = false;
   assert.ok(st.singFlash > 0 && st.singPull > 0, 'one flash, the camera is pulled in');
