@@ -24,7 +24,8 @@ Si un Worker ve la clave del otro entorno, responde `503 klap-not-configured` y 
 
 1. Confirmar en developers.klap.cl la URL base, el esquema de creación de orden
    (`buildOrderRequest` en `src/klap.js`), la ruta de consulta y los nombres de estado.
-2. Definir los montos CLP en `src/catalog.js`.
+2. ~~Definir los montos CLP en `src/catalog.js`~~ → hecho: USD × 1.000 − 10 (Starter $99.990 de lanzamiento,
+   Pro $496.990, Elite $996.990, Labels $79.990). Ver `docs/IMMERSIVE_COMMERCE.md` §5.1.
 3. Configurar:
 
 ```bash
