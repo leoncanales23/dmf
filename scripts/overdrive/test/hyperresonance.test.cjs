@@ -213,7 +213,7 @@ test('build: public/index.html carries the same runtime, after the bus and befor
 
 test('payments, Auth, Firestore, Academy, Klap, Mercado Pago and Workers untouched', () => {
   let base = null;
-  try { base = execSync('git merge-base HEAD origin/main', { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch (e) { base = null; }
+  base = require('./visual-base.cjs')(ROOT);   // null unless this branch changes a visual layer module
   if (base) {
     const frozen = ['workers', 'firestore.rules', 'firebase.json', '.firebaserc', 'public/login.html', 'public/payment-result.html', 'public/academy.html',
       'public/academy-config.js', 'public/commerce', 'server.js', 'functions', 'assets'];

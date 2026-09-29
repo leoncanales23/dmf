@@ -308,7 +308,7 @@ test('36 · source and generated output are synchronized; inlined once after the
 const FROZEN = ['workers/dmf-payments', 'workers/dmf-stream-signer', 'firestore.rules', 'firebase.json', 'firebase.academy.json', '.firebaserc', 'public/academy-config.js', 'server.js', 'functions', 'assets', "':!assets/models/dmf-studio-web.glb'"];
 function changedFrozen() {
   let base = null;
-  try { base = execSync('git merge-base HEAD origin/main', { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch (e) { base = null; }
+  base = require('./visual-base.cjs')(ROOT);   // null unless this branch changes a visual layer module
   if (!base) return null;   // shallow CI checkout: the content invariants below still hold
   return execSync('git diff --name-only ' + base + ' -- ' + FROZEN.join(' '), { cwd: ROOT }).toString().trim();
 }

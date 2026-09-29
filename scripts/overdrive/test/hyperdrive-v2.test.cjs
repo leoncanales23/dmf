@@ -439,7 +439,7 @@ test('page: offer stays calm; pricing tiers get no V7 microinteraction; analytic
 
 test('payments and commerce untouched (behaviour): Workers, rules, Academy pages, router payment config', () => {
   let base = null;
-  try { base = execSync('git merge-base HEAD origin/main', { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch (e) { base = null; }
+  base = require('./visual-base.cjs')(ROOT);   // null unless this branch changes a visual layer module
   if (base) {
     const frozen = ['workers', 'firestore.rules', 'firebase.json', '.firebaserc', 'public/login.html', 'public/payment-result.html', 'public/academy.html',
       'public/academy-config.js', 'server.js', 'functions', 'assets'];
