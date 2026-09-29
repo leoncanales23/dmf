@@ -682,7 +682,8 @@ jobs:
                 process.exit(1);
               }
             }
-            if (src.includes('247') && src.includes('497') && src.includes('997') && /price:\s*80/.test(src)) {
+            // Starter carries its launch price (USD 100); scripts/overdrive/test/commerce.test.cjs keeps Klap's CLP in step.
+            if (/starter:[^\n]*price:\s*100,/.test(src) && /pro:[^\n]*price:\s*497,/.test(src) && /elite:[^\n]*price:\s*997,/.test(src) && /addon:[^\n]*price:\s*80,/.test(src)) {
               console.log('8. Products defined server-side with correct prices — OK');
             } else {
               console.error('FAIL: Product prices not found in Worker');
