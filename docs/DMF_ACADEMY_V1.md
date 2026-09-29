@@ -489,7 +489,7 @@ Landing page (buy button)
 
 | ID | Title | Price |
 |----|-------|-------|
-| `starter` | DMF Academy — Starter | $247 USD |
+| `starter` | DMF Academy — Starter | $100 USD (lanzamiento) |
 | `pro` | DMF Academy — Pro | $497 USD |
 | `elite` | DMF Academy — Elite | $997 USD |
 | `addon` | DMF Academy — Labels | $80 USD |
