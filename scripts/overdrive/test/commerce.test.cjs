@@ -188,6 +188,72 @@ test('registered in npm run test:hyperdrive and in CI', () => {
   assert.ok(read('.github/workflows/validate-3d.yml').includes('node scripts/overdrive/test/commerce.test.cjs'));
 });
 
+// --- Prices: one source per provider, and the landing shows exactly what each one charges ---
+function mpCatalog() {
+  const src = read('workers/dmf-payments/src/index.js');
+  const out = {};
+  for (const m of src.matchAll(/^\s*(\w+):\s*\{ title: '[^']+',\s*price: (\d+),\s*currency: 'USD' \}/gm)) out[m[1]] = +m[2];
+  return out;
+}
+function klapCatalog() {
+  const src = read('workers/dmf-klap-payments/src/catalog.js');
+  const out = {};
+  for (const m of src.matchAll(/(\w+): Object\.freeze\(\{ title: '[^']+', amount: (\d+), currency: 'CLP', usd: (\d+) \}\)/g)) out[m[1]] = { clp: +m[2], usd: +m[3] };
+  return out;
+}
+const PAGE = read('index.html');
+
+test('prices: Klap CLP = the Mercado Pago USD list price × 1.000 − 10, for every product', () => {
+  const mp = mpCatalog(), kl = klapCatalog();
+  assert.deepEqual(Object.keys(kl).sort(), Object.keys(mp).sort(), 'same products in both providers');
+  for (const id of Object.keys(mp)) {
+    assert.equal(kl[id].usd, mp[id], id + ': Klap is priced from the same USD list price');
+    assert.equal(kl[id].clp, mp[id] * 1000 - 10, id + ': CLP retail form');
+  }
+  assert.equal(mp.starter, 100, 'Starter launch price USD 100');
+  assert.equal(kl.starter.clp, 99990, 'Starter ≈ $99.990 CLP');
+});
+
+test('landing: shown prices match what the providers charge (USD cards, CLP Klap line)', () => {
+  const mp = mpCatalog(), kl = klapCatalog();
+  for (const [key, id] of [['tierStarterPrice', 'starter'], ['tierProPrice', 'pro'], ['tierElitePrice', 'elite']]) {
+    const shown = [...PAGE.matchAll(new RegExp(key + ":'\\$(\\d+)'", 'g'))].map((m) => +m[1]);
+    assert.equal(shown.length, 2, key + ' in EN and ES');
+    assert.ok(shown.every((v) => v === mp[id]), key + ' = USD ' + mp[id]);
+  }
+  assert.ok(/tierStarterPeriod:'USD \\u00b7 pago \\u00fanico \\u00b7 precio de lanzamiento'/.test(PAGE), 'ES launch label');
+  assert.ok(/tierStarterPeriod:'USD \\u00b7 one-time \\u00b7 launch price'/.test(PAGE), 'EN launch label');
+  const table = JSON.parse(PAGE.match(/var KLAP_CLP=(\{[^}]+\});/)[1].replace(/(\w+):/g, '"$1":'));
+  for (const id of Object.keys(kl)) assert.equal(table[id], kl[id].clp, id + ': landing CLP = Klap catalog');
+});
+
+test('landing: the CLP line follows the router rule exactly, and only then', () => {
+  const src = PAGE.slice(PAGE.indexOf('var KLAP_CLP='), PAGE.indexOf('  function renderTiers(){'));
+  const run = (commerce, search, withRouter, lang) => {
+    const win = { __DMF_COMMERCE__: commerce, location: { search }, DMFCommerce: withRouter ? R : undefined };
+    const env = /(^|[?&])payments=sandbox(&|$)/.test(search) ? 'sandbox' : 'production';
+    const f = new Function('window', 'getPaymentEnvironment', 'lang', src + '; return { active: klapActive(), line: clpLine("starter"), addon: clpLine("addon") };');
+    return f(win, () => env, lang || 'es');
+  };
+  const cases = [
+    [{}, ''], [{ payments: { provider: 'klap' } }, ''], [{ payments: { provider: 'klap', klapEnabled: true } }, ''],
+    [{}, '?provider=klap'], [{}, '?provider=klap&payments=sandbox'], [{ payments: { klapEnabled: true } }, '']
+  ];
+  for (const [c, q] of cases) {
+    const want = R.selectProvider(R.readConfig({ __DMF_COMMERCE__: c }), q, R.environmentFrom(q)) === 'klap';
+    for (const withRouter of [true, false]) {
+      const r = run(c, q, withRouter);
+      assert.equal(r.active, want, JSON.stringify(c) + q + (withRouter ? ' (router)' : ' (inline)'));
+      assert.equal(r.line === '', !want, 'CLP line only when Klap charges');
+    }
+  }
+  const on = run({ payments: { provider: 'klap', klapEnabled: true } }, '', true, 'es');
+  assert.ok(on.line.includes('$99.990 CLP') && on.line.includes('pago fácil en pesos con Klap'), on.line);
+  assert.ok(on.addon.includes('$79.990 CLP'), on.addon);
+  assert.ok(run({ payments: { provider: 'klap', klapEnabled: true } }, '', true, 'en').line.includes('$99,990 CLP'));
+  assert.ok(PAGE.includes("if(ac) ac.innerHTML=clpLine('addon');") && PAGE.includes("'+clpLine(t.productId)+'"), 'wired into the cards and the add-on');
+});
+
 (async () => {
   for (const [name, fn] of queue) {
     try { await fn(); console.log('PASS: ' + name); passed++; }

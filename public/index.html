@@ -239,6 +239,8 @@ ul{list-style:none}
 .tier-card.tier-featured .tier-price{text-shadow:0 0 24px rgba(255,91,30,.3)}
 .tier-price span{font-size:.35em;color:#8a8178;letter-spacing:.04em}
 .tier-period{font-size:12px;color:#8a8178;margin-top:6px}
+.tier-clp{margin-top:10px;font-size:12px;letter-spacing:.04em;color:#d9a18c}
+.tier-clp b{color:#f2ede6;font-weight:600}
 .tier-body{padding:clamp(20px,3vw,28px);flex:1;display:flex;flex-direction:column}
 .tier-features{display:flex;flex-direction:column;gap:12px;margin-bottom:24px;flex:1}
 .tier-feat{font-size:14px;color:#d8d0c6;padding-left:22px;position:relative;line-height:1.5}
@@ -1560,6 +1562,7 @@ html.eh-calm .dmf-signal-title{scale:none}
   <div class="acad-addon">
     <p data-i18n="acadAddon">Add-on · How to reach labels — a focused session (~USD $80) on presenting your music and contacting labels: approach strategy and track presentation.</p>
     <button class="tier-cta mp-buy-btn" data-product="addon" onclick="buyWithMP(this)" style="margin-top:14px;display:inline-block"><span data-i18n="addonCta">Buy add-on</span> →</button>
+    <div id="addonClp"></div>
   </div>
 
   <div class="acad-close">
@@ -1741,7 +1744,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       proofStat3Num:'15+', proofStat3Label:'Labels reached by students',
       tiersHead:'Choose your path',
       tierStarterName:'Starter', tierStarterTag:'Self-paced foundation',
-      tierStarterPrice:'$247', tierStarterPeriod:'USD \u00b7 one-time',
+      tierStarterPrice:'$100', tierStarterPeriod:'USD \u00b7 one-time \u00b7 launch price',
       tierStarterF1:'4 recorded core modules', tierStarterF2:'Private community access',
       tierStarterF3:'Downloadable templates & presets', tierStarterF4:'Email support',
       tierStarterCta:'Get started',
@@ -1834,7 +1837,7 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       proofStat3Num:'15+', proofStat3Label:'Sellos alcanzados por alumnos',
       tiersHead:'Elige tu camino',
       tierStarterName:'Starter', tierStarterTag:'Base a tu ritmo',
-      tierStarterPrice:'$247', tierStarterPeriod:'USD \u00b7 pago \u00fanico',
+      tierStarterPrice:'$100', tierStarterPeriod:'USD \u00b7 pago \u00fanico \u00b7 precio de lanzamiento',
       tierStarterF1:'4 m\u00f3dulos core grabados', tierStarterF2:'Acceso a comunidad privada',
       tierStarterF3:'Templates y presets descargables', tierStarterF4:'Soporte por email',
       tierStarterCta:'Empezar',
@@ -2105,6 +2108,23 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     }).join('');
   }
 
+  // KLAP · PAGO FÁCIL EN PESOS — the CLP amounts Klap charges (workers/dmf-klap-payments/src/catalog.js; a test
+  // keeps them identical). Shown only when Klap is the active provider, with the router's own rule: the build
+  // enables it (academy-env.js), or QA forces it on sandbox. The server decides the amount, never this table.
+  var KLAP_CLP={starter:99990,pro:496990,elite:996990,addon:79990};
+  function klapActive(){
+    var c=window.DMFCommerce, env=getPaymentEnvironment(), q=window.location.search||'';
+    if(c) return c.selectProvider(c.readConfig(window),q,env)==='klap';
+    var p=(window.__DMF_COMMERCE__&&window.__DMF_COMMERCE__.payments)||{};
+    return (p.provider==='klap'&&p.klapEnabled===true)||(env==='sandbox'&&/(^|[?&])provider=klap(&|$)/.test(q));
+  }
+  function clpLine(productId){
+    var n=KLAP_CLP[productId];
+    if(!n||!klapActive()) return '';
+    var txt=n.toLocaleString(lang==='es'?'es-CL':'en-US');
+    return '<div class="tier-clp"><b>$'+txt+' CLP</b> \u00b7 '+(lang==='es'?'pago f\u00e1cil en pesos con Klap':'easy pay in Chilean pesos with Klap')+'</div>';
+  }
+
   function renderTiers(){
     var d=dict[lang];
     var tiers=[
@@ -2115,11 +2135,13 @@ if (window.__DMF_FIREBASE_CONFIG__) {
       {name:d.tierEliteName,tag:d.tierEliteTag,price:d.tierElitePrice,period:d.tierElitePeriod,featured:false,productId:'elite',
        feats:[d.tierEliteF1,d.tierEliteF2,d.tierEliteF3,d.tierEliteF4,d.tierEliteF5,d.tierEliteF6],cta:d.tierEliteCta}
     ];
+    var ac=document.getElementById('addonClp');
+    if(ac) ac.innerHTML=clpLine('addon');
     var g=document.getElementById('tiersGrid');
     g.innerHTML=tiers.map(function(t){
       var cls='tier-card'+(t.featured?' tier-featured':'');
       var badge=t.featured?'<div class="tier-featured-tag">'+t.tag+'</div>':'';
-      return '<div class="'+cls+'">'+badge+'<div class="tier-head"><div class="tier-name">'+t.name+'</div><div class="tier-tagline">'+t.tag+'</div><div class="tier-price">'+t.price+' <span>USD</span></div><div class="tier-period">'+t.period+'</div></div><div class="tier-body"><div class="tier-features">'+t.feats.map(function(f){return '<div class="tier-feat checked">'+f+'</div>';}).join('')+'</div><button class="tier-cta mp-buy-btn" data-product="'+t.productId+'" onclick="buyWithMP(this)">'+t.cta+' \u2192</button></div></div>';
+      return '<div class="'+cls+'">'+badge+'<div class="tier-head"><div class="tier-name">'+t.name+'</div><div class="tier-tagline">'+t.tag+'</div><div class="tier-price">'+t.price+' <span>USD</span></div><div class="tier-period">'+t.period+'</div>'+clpLine(t.productId)+'</div><div class="tier-body"><div class="tier-features">'+t.feats.map(function(f){return '<div class="tier-feat checked">'+f+'</div>';}).join('')+'</div><button class="tier-cta mp-buy-btn" data-product="'+t.productId+'" onclick="buyWithMP(this)">'+t.cta+' \u2192</button></div></div>';
     }).join('');
   }
 
