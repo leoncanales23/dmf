@@ -34,8 +34,16 @@ await test('catalog: unknown products and products without a CLP amount are refu
   assert.equal(resolveProduct('platinum').error, 'unknown-product');
   assert.equal(resolveProduct('__proto__').error, 'unknown-product');
   assert.equal(resolveProduct(42).error, 'unknown-product');
-  for (const id of Object.keys(PRODUCTS)) assert.equal(resolveProduct(id).error, 'product-not-available', id + ' has no CLP price decided yet');
-  const cat = { starter: { title: 'S', amount: 150000, currency: 'CLP' }, bad: { title: 'B', amount: 99.5, currency: 'CLP' }, usd: { title: 'U', amount: 247, currency: 'USD' } };
+  // Every product is sold in whole CLP: the USD list price at 1 USD ≈ 1.000 CLP, in retail form (…990).
+  for (const id of Object.keys(PRODUCTS)) {
+    const r = resolveProduct(id);
+    assert.equal(r.ok, true, id + ' is sellable through Klap');
+    assert.ok(Number.isInteger(r.product.amount) && r.product.currency === 'CLP', id + ' in whole CLP');
+    assert.equal(r.product.amount, r.product.usd * 1000 - 10, id + ' = USD ' + r.product.usd + ' × 1.000 − 10');
+  }
+  assert.equal(PRODUCTS.starter.amount, 99990, 'Starter launch price: USD 100 ≈ $99.990');
+  const cat = { starter: { title: 'S', amount: 150000, currency: 'CLP' }, bad: { title: 'B', amount: 99.5, currency: 'CLP' }, usd: { title: 'U', amount: 247, currency: 'USD' }, none: { title: 'N', amount: null, currency: 'CLP' } };
+  assert.equal(resolveProduct('none', cat).error, 'product-not-available', 'no CLP amount → refused');
   assert.equal(resolveProduct('starter', cat).ok, true);
   assert.equal(resolveProduct('bad', cat).error, 'product-not-available');
   assert.equal(resolveProduct('usd', cat).error, 'product-not-available');

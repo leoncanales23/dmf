@@ -24,7 +24,7 @@ const PRODUCTS = {
   starter: {
     title: 'DMF Academy — Starter',
     description: '4 recorded core modules, private community, templates & presets, email support',
-    price: 247,
+    price: 100,
     currency: 'USD'
   },
   pro: {

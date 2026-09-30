@@ -104,7 +104,7 @@ webhooks de confirmación y rechazo. **Pendiente de confirmar con la documentaci
 - Esquema exacto del cuerpo de creación de orden → aislado en `buildOrderRequest()` (un solo lugar).
 - Ruta de consulta de orden y nombres de estado → `KLAP_ORDER_PATH`, `normalizeKlapStatus()`.
 - URL del SDK de Checkout Flex → `DMF_KLAP_FLEX_SDK_URL`; sin ella se usa `redirect_url`.
-- Montos en CLP por producto → `src/catalog.js` (hoy `null`: un producto sin monto no se vende por Klap).
+- ~~Montos en CLP por producto~~ → definidos en `src/catalog.js` (ver §5.1).
 
 ## 4. Seguridad
 
@@ -119,12 +119,35 @@ webhooks de confirmación y rechazo. **Pendiente de confirmar con la documentaci
 ## 5. Sandbox (plan)
 
 1. Crear credenciales sandbox en Klap y confirmar endpoints (§3).
-2. `cd workers/klap-payments && npx wrangler secret put KLAP_API_KEY_SANDBOX --env sandbox`
+2. `cd workers/dmf-klap-payments && npx wrangler secret put KLAP_API_KEY_SANDBOX --env sandbox`
    (+ `DMF_FIREBASE_PRIVATE_KEY`, `DMF_FIREBASE_WEB_API_KEY`).
-3. `npx wrangler deploy --env sandbox` → `klap-payments-sandbox`.
-4. Definir montos CLP en `src/catalog.js` (decisión comercial).
-5. Probar con `https://dmf.vibraalto.cl/?payments=sandbox&provider=klap#academy`.
-6. Completar la tabla de aceptación (§8). Solo entonces producción.
+3. `npx wrangler deploy --env sandbox` → `dmf-klap-payments-sandbox`.
+4. ~~Definir montos CLP~~ → hecho (§5.1).
+5. Probar con `https://dmf.vibraalto.cl/?payments=sandbox&provider=klap#academy`: las tarjetas muestran el
+   precio en pesos ("pago fácil en pesos con Klap") y el pago se crea en CLP.
+6. Completar la tabla de aceptación (§8). Solo entonces producción (§5.2).
+
+### 5.1 Precios
+
+| Producto | Mercado Pago (USD) | Klap (CLP) |
+|---|---|---|
+| Starter (precio de lanzamiento) | 100 | $99.990 |
+| Pro | 497 | $496.990 |
+| Elite | 997 | $996.990 |
+| Labels (adicional) | 80 | $79.990 |
+
+Regla: USD × 1.000 − 10 (tipo comercial 1 USD ≈ 1.000 CLP, en formato retail …990). Cada Worker decide su
+monto; la landing muestra las mismas cifras (`KLAP_CLP` en `index.html`) y `commerce.test.cjs` exige que los
+tres coincidan. Para cambiar un precio se editan los dos catálogos y `KLAP_CLP`; el test falla si no.
+
+### 5.2 Activación en producción
+
+1. Redeploy de `workers/dmf-payments` (el Starter pasa a USD 100) y deploy de `workers/dmf-klap-payments`
+   con `KLAP_API_KEY_PRODUCTION`, `KLAP_API_BASE`, `KLAP_WEBHOOK_BASE` y los secrets de Firebase.
+2. Variables del repositorio: `DMF_PAYMENT_PROVIDER=klap`, `DMF_KLAP_ENABLED=true`,
+   `DMF_KLAP_PAYMENTS_URL` (y `DMF_KLAP_FLEX_SDK_URL` si se usa el modal Flex; sin ella, redirección).
+3. Siguiente deploy de la landing: el botón de compra cobra por Klap en pesos, con Mercado Pago como respaldo
+   automático si Klap no puede tomar la orden. Revertir = `DMF_KLAP_ENABLED=false`.
 
 ## 6. Rendimiento 3D
 

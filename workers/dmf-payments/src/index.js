@@ -7,7 +7,7 @@ const ALLOWED_ORIGINS = new Set([
 ]);
 
 const PRODUCTS = {
-  starter: { title: 'DMF Academy — Starter', price: 247, currency: 'USD' },
+  starter: { title: 'DMF Academy — Starter', price: 100, currency: 'USD' },   // launch price
   pro:     { title: 'DMF Academy — Pro',     price: 497, currency: 'USD' },
   elite:   { title: 'DMF Academy — Elite',   price: 997, currency: 'USD' },
   addon:   { title: 'DMF Academy — Labels',  price: 80,  currency: 'USD' }
