@@ -31,6 +31,8 @@ on:
       - 'firestore.rules'
       - '.github/workflows/deploy.yml'
       - '.github/workflows/validate-3d.yml'
+      - '.github/workflows/monitor.yml'
+      - 'scripts/monitor/**'
 
 jobs:
   validate:
@@ -1069,3 +1071,19 @@ jobs:
           grep -q "libs/meshopt_decoder.js" scripts/overdrive/relic.js || { echo "FAIL: Meshopt decoder not loaded"; exit 1; }
           grep -q "assets/models/dmf-studio-optimized.glb" scripts/overdrive/relic.js || { echo "FAIL: original GLB fallback/download removed"; exit 1; }
           echo "Immersive engine assets — OK"
+
+  validate-monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Production monitor (fake HTTP; the scheduled run lives in monitor.yml)
+        run: |
+          node --check scripts/monitor/prod-smoke.cjs
+          node scripts/monitor/test/prod-smoke.test.cjs

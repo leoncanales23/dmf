@@ -1,0 +1,70 @@
+name: Monitor de producción DMF
+
+# Every 3 hours (and on demand): read-only smoke checks of the landing, the Academy / payment / video services and
+# support (scripts/monitor/prod-smoke.cjs). A critical failure opens — or comments on — one issue labelled
+# "monitor"; the next healthy run comments and closes it. Warnings appear in the run summary only.
+on:
+  schedule:
+    - cron: '17 */3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: prod-monitor
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Smoke checks (landing · técnica · soporte)
+        id: smoke
+        continue-on-error: true
+        run: node scripts/monitor/prod-smoke.cjs --summary "$GITHUB_STEP_SUMMARY" --json monitor.json
+
+      - name: Open or update the monitor issue on failure
+        if: steps.smoke.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create monitor --color B60205 --description "Monitor de producción" --force >/dev/null 2>&1 || true
+          node -e '
+            const r = require("./monitor.json");
+            const lines = r.failed.map((c) => "- ❌ **" + c.name + "** — " + c.detail);
+            require("fs").writeFileSync("issue.md", r.head + "\n\n" + lines.join("\n") + "\n\nRun: " + process.env.RUN_URL + "\n");
+          '
+          num=$(gh issue list --label monitor --state open --json number --jq '.[0].number')
+          if [ -n "$num" ]; then
+            gh issue comment "$num" --body-file issue.md
+          else
+            gh issue create --title "🔴 Monitor de producción: fallas detectadas" --label monitor --body-file issue.md
+          fi
+
+      - name: Close the monitor issue once production is healthy again
+        if: steps.smoke.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          num=$(gh issue list --label monitor --state open --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -n "$num" ]; then
+            gh issue comment "$num" --body "🟢 Producción recuperada. Run: $RUN_URL"
+            gh issue close "$num"
+          fi
+
+      - name: Fail the run when a critical check failed
+        if: steps.smoke.outcome == 'failure'
+        run: exit 1
