@@ -62,6 +62,9 @@ async function runChecks(opts, fetchImpl) {
   const add = (group, name, level, ok, detail) => out.push({ group, name, level, ok: !!ok, detail: detail || '' });
   const page = async (path) => get(base + path);
   const status = (r) => (r.error ? r.error : 'HTTP ' + r.status) + ' · ' + r.ms + ' ms';
+  // The Workers answer only the landing's own origin (403 "Origin not allowed" otherwise), so every Worker
+  // request carries the Origin header a visitor's browser would send.
+  const landingOrigin = new URL(base).origin;
 
   // ---------------- landing ----------------
   const home = await page('/');
@@ -106,16 +109,16 @@ async function runChecks(opts, fetchImpl) {
   add('tecnica', 'Todas las lecciones tienen video', 'warn', ac.status === 200 && emptyLessons === 0, emptyLessons + ' sin video');
 
   if (!cfg.skipWorkers) {
-    const mp = await get(cfg.payments + '/health');
+    const mp = await get(cfg.payments + '/health', { headers: { Origin: landingOrigin } });
     let mpJson = null; try { mpJson = JSON.parse(mp.body); } catch (e) { mpJson = null; }
     add('tecnica', 'Pagos Mercado Pago (Worker)', 'error', mp.status === 200 && mpJson && mpJson.ok === true, status(mp));
     const klapActive = !!(commerce && commerce.payments && commerce.payments.provider === 'klap' && commerce.payments.klapEnabled);
-    const kl = await get(cfg.klap + '/health');
+    const kl = await get(cfg.klap + '/health', { headers: { Origin: landingOrigin } });
     let klJson = null; try { klJson = JSON.parse(kl.body); } catch (e) { klJson = null; }
     add('tecnica', 'Pagos Klap (Worker)' + (klapActive ? '' : ' — no activo en la landing'), klapActive ? 'error' : 'warn',
       kl.status === 200 && klJson && klJson.ok === true && (!klapActive || klJson.configured === true), status(kl) + (klJson ? ' · configured=' + klJson.configured : ''));
     const signer = (signerFromEnv || cfg.signer).replace(/\/+$/, '');
-    const sg = await get(signer + '/stream-token', { method: 'POST', headers: { Origin: base, 'Content-Type': 'application/json' }, body: '{}' });
+    const sg = await get(signer + '/stream-token', { method: 'POST', headers: { Origin: landingOrigin, 'Content-Type': 'application/json' }, body: '{}' });
     add('tecnica', 'Firma de video (Stream signer) responde y exige sesión', 'error', sg.status === 401, status(sg) + ' (se espera 401)');
   }
 
