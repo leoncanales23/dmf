@@ -136,6 +136,7 @@ jobs:
           node scripts/overdrive/test/hyperdrive-v2.test.cjs
           node scripts/overdrive/test/relic-fallback.test.cjs
           node scripts/overdrive/test/hyperresonance.test.cjs
+          node scripts/overdrive/test/launch-readiness.test.cjs
           node scripts/overdrive/test/dev-hyperdrive.test.cjs
 
   validate-academy:

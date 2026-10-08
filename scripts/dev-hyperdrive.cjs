@@ -238,7 +238,10 @@ const MIME = {
 const REWRITES = [
   [/^\/login\/?$/, 'login.html'],
   [/^\/academy(\/.*)?$/, 'academy.html'],
-  [/^\/payment-result\/?$/, 'payment-result.html']
+  [/^\/payment-result\/?$/, 'payment-result.html'],
+  [/^\/terminos\/?$/, 'terminos.html'],
+  [/^\/privacidad\/?$/, 'privacidad.html'],
+  [/^\/reembolsos\/?$/, 'reembolsos.html']
 ];
 
 function staticFile(dir, pathname) {

@@ -40,7 +40,6 @@ window.DMF_I18N = (function () {
       "invalidTitle": "Enlace no válido",
       "invalidMsg": "Este enlace de pago no es válido. Inicia una nueva compra desde el sitio de DMF.",
       "expiredTitle": "Sesión expirada",
-      "signInMsg": "Inicia sesión para ver el estado de tu pago.",
       "inProcessTitle": "Pago en proceso",
       "inProcessMsg": "Tu pago se está procesando. Tendrás acceso en cuanto se confirme. Vuelve a revisar más tarde.",
       "welcomeTitle": "Te damos la bienvenida a DMF Academy",
@@ -55,7 +54,13 @@ window.DMF_I18N = (function () {
       "connMsg": "No pudimos verificar el estado del pago. Revisa tu email o intenta entrar a la Academy más tarde.",
       "authTitle": "Inicio de sesión requerido",
       "configTitle": "Error de configuración",
-      "configMsg": "El servicio de autenticación no está disponible. Inténtalo más tarde.",
+      "stSignIn": "Inicia sesión",
+      "stInvalid": "Enlace no válido",
+      "signInPaidMsg": "Si ya pagaste, no vuelvas a pagar: inicia sesión con la misma cuenta con la que compraste y tu acceso se activa solo. Si algo no cuadra, escríbenos.",
+      "configPaidMsg": "No pudimos conectar con el servicio de cuentas. Si ya pagaste, tu pago queda registrado: vuelve a intentarlo en unos minutos o escríbenos.",
+      "btnReload": "Reintentar →",
+      "liveMsg": "Tu plan incluye clases en vivo: te escribiremos a tu email en menos de 24 horas para agendarlas.",
+      "btnSchedule": "Agendar mis clases →",
       "back": "← Volver a DMF",
       "langSwitch": "English",
       "langSwitchAria": "Ver esta página en inglés",
@@ -85,7 +90,6 @@ window.DMF_I18N = (function () {
       "invalidTitle": "Invalid Link",
       "invalidMsg": "This payment link is not valid. Please start a new purchase from the DMF website.",
       "expiredTitle": "Session Expired",
-      "signInMsg": "Please sign in to view your payment status.",
       "inProcessTitle": "Payment Processing",
       "inProcessMsg": "Your payment is being processed. You will receive access once it is confirmed. Check back later.",
       "welcomeTitle": "Welcome to DMF Academy",
@@ -100,7 +104,13 @@ window.DMF_I18N = (function () {
       "connMsg": "Could not verify payment status. Please check your email or try accessing the academy later.",
       "authTitle": "Authentication Required",
       "configTitle": "Configuration Error",
-      "configMsg": "Authentication service is not available. Please try again later.",
+      "stSignIn": "Sign in",
+      "stInvalid": "Invalid link",
+      "signInPaidMsg": "If you already paid, do not pay again: sign in with the account you used to buy and your access activates on its own. If something looks wrong, write to us.",
+      "configPaidMsg": "We could not reach the account service. If you already paid, your payment is recorded: try again in a few minutes or write to us.",
+      "btnReload": "Try again →",
+      "liveMsg": "Your plan includes live classes: we will email you within 24 hours to schedule them.",
+      "btnSchedule": "Schedule my classes →",
       "back": "← Back to DMF",
       "langSwitch": "Español",
       "langSwitchAria": "View this page in Spanish",
@@ -287,7 +297,9 @@ button.result-btn{font:inherit;font-family:'Anton',sans-serif;font-size:16px;let
     clearActions();
     titleEl.textContent = title;
     msgEl.textContent = msg;
-    statusEl.className = 'result-status ' + ({ cancelled: 'rejected', refunded: 'rejected', error: 'pending' }[state] || state);
+    // Only a provider's own "rejected" is shown as declined. Missing session, a down auth service or a bad link are
+    // neutral: the buyer may already have paid, so they are never told to pay again.
+    statusEl.className = 'result-status ' + ({ cancelled: 'rejected', refunded: 'rejected', error: 'pending', signin: 'pending', config: 'pending', invalid: 'pending' }[state] || state);
 
     if (state === 'approved') {
       statusEl.textContent = T('stApproved');
@@ -309,11 +321,31 @@ button.result-btn{font:inherit;font-family:'Anton',sans-serif;font-size:16px;let
       statusEl.textContent = T('stError');
       addAction(T('btnRecheck'), start);
       addButton(SUPPORT_URL, T('btnSupport'), '#665f58');
+    } else if (state === 'signin') {
+      statusEl.textContent = T('stSignIn');
+      addButton('/login', T('btnSignIn'));
+      addButton(SUPPORT_URL, T('btnSupport'), '#665f58');
+    } else if (state === 'config') {
+      statusEl.textContent = T('stError');
+      addAction(T('btnReload'), function () { window.location.reload(); });
+      addButton(SUPPORT_URL, T('btnSupport'), '#665f58');
+    } else if (state === 'invalid') {
+      statusEl.textContent = T('stInvalid');
+      addButton('/#academy', T('btnBack'));
+      addButton(SUPPORT_URL, T('btnSupport'), '#665f58');
     }
   }
 
+  // Pro and Elite include live classes: after an approved payment the buyer learns the next step right away.
+  var LIVE_PLANS = { pro: 'Pro', elite: 'Elite' };
+  function liveNextStep(productId) {
+    if (!Object.prototype.hasOwnProperty.call(LIVE_PLANS, productId)) return;
+    msgEl.textContent = msgEl.textContent + ' ' + T('liveMsg');
+    addButton(SUPPORT_URL.replace('pago', encodeURIComponent('clases en vivo ' + LIVE_PLANS[productId])), T('btnSchedule'), '#665f58');
+  }
+
   if (!purchaseId) {
-    showState('rejected', T('invalidTitle'), T('invalidMsg'));
+    showState('invalid', T('invalidTitle'), T('invalidMsg'));
     return;
   }
 
@@ -353,8 +385,7 @@ button.result-btn{font:inherit;font-family:'Anton',sans-serif;font-size:16px;let
 
     var user = typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser;
     if (!user) {
-      showState('rejected', T('expiredTitle'), T('signInMsg'));
-      addButton('/login', T('btnSignIn'), '#665f58');
+      showState('signin', T('expiredTitle'), T('signInPaidMsg'));
       return;
     }
 
@@ -371,6 +402,7 @@ button.result-btn{font:inherit;font-family:'Anton',sans-serif;font-size:16px;let
 
           if (data.enrolled) {
             showState('approved', T('welcomeTitle'), T('welcomeMsg'));
+            liveNextStep(data.productId);
             track('payment_approved', { product: data.productId });
             track('conversion_complete', { product: data.productId });
             return;
@@ -379,7 +411,7 @@ button.result-btn{font:inherit;font-family:'Anton',sans-serif;font-size:16px;let
           var status = normalize(data.status);
           if (status === 'approved') {
             statusEl.textContent = T('activating');
-            if (!schedule()) showState('approved', T('confirmedTitle'), T('confirmedMsg'));
+            if (!schedule()) { showState('approved', T('confirmedTitle'), T('confirmedMsg')); liveNextStep(data.productId); }
             return;
           }
           if (status === 'rejected') {
@@ -414,12 +446,11 @@ button.result-btn{font:inherit;font-family:'Anton',sans-serif;font-size:16px;let
       if (user) {
         start();
       } else {
-        showState('rejected', T('authTitle'), T('signInMsg'));
-        addButton('/login', T('btnSignIn'), '#665f58');
+        showState('signin', T('authTitle'), T('signInPaidMsg'));
       }
     });
   } else {
-    showState('rejected', T('configTitle'), T('configMsg'));
+    showState('config', T('configTitle'), T('configPaidMsg'));
   }
 })();
 </script>

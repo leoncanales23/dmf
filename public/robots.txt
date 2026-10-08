@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /academy
+Disallow: /login
+Disallow: /payment-result
+
+Sitemap: https://dmf.vibraalto.cl/sitemap.xml

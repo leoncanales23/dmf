@@ -35,6 +35,18 @@
         "destination": "/payment-result.html"
       },
       {
+        "source": "/terminos",
+        "destination": "/terminos.html"
+      },
+      {
+        "source": "/privacidad",
+        "destination": "/privacidad.html"
+      },
+      {
+        "source": "/reembolsos",
+        "destination": "/reembolsos.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
