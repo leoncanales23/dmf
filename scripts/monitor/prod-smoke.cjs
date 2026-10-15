@@ -20,6 +20,7 @@ const DEFAULTS = {
   payments: 'https://dmf-payments.vibraalto-cl.workers.dev',
   klap: 'https://dmf-klap-payments.vibraalto-cl.workers.dev',
   signer: 'https://dmf-stream-signer.vibraalto-cl.workers.dev',
+  firebaseSite: 'https://dmf-vibraalto.web.app',
   timeoutMs: 15000,
   slowMs: 8000
 };
@@ -62,10 +63,28 @@ async function runChecks(opts, fetchImpl) {
   const add = (group, name, level, ok, detail) => out.push({ group, name, level, ok: !!ok, detail: detail || '' });
   const page = async (path) => get(base + path);
   const status = (r) => (r.error ? r.error : 'HTTP ' + r.status) + ' · ' + r.ms + ' ms';
+  // The Workers answer only the landing's own origin (403 "Origin not allowed" otherwise), so every Worker
+  // request carries the Origin header a visitor's browser would send.
+  const landingOrigin = new URL(base).origin;
 
   // ---------------- landing ----------------
   const home = await page('/');
-  add('landing', 'Landing responde', 'error', home.status === 200, status(home));
+  let homeDetail = status(home);
+  if (home.status !== 200) {
+    const title = (home.body.match(/<title>([^<]{0,80})<\/title>/i) || [])[1];
+    if (title) homeDetail += ' · título "' + title.trim() + '"';
+    if (header(home, 'server')) homeDetail += ' · server ' + header(home, 'server');
+    // The site's own Firebase domain tells a domain/DNS problem from missing published content. Only against
+    // production: a --base run checks a local build, never the live site.
+    const fbSite = opts && opts.base && !opts.firebaseSite ? null : cfg.firebaseSite;
+    if (fbSite && new URL(fbSite).origin !== landingOrigin) {
+      const fb = await get(fbSite.replace(/\/+$/, '') + '/');
+      homeDetail += ' · ' + new URL(fbSite).host + ': ' + status(fb) + ' → ' + (fb.status === 200 && fb.body.includes('DMF RELIC RUNTIME')
+        ? 'el contenido está publicado; falla el dominio: revisar Firebase Hosting → Dominios y el DNS de ' + new URL(base).host
+        : 'el sitio publicado no tiene la landing: revertir a la última versión buena en Firebase Hosting o volver a desplegar main');
+    }
+  }
+  add('landing', 'Landing responde', 'error', home.status === 200, homeDetail);
   add('landing', 'Landing carga en < ' + cfg.slowMs / 1000 + ' s', 'warn', home.status === 200 && home.ms < cfg.slowMs, home.ms + ' ms');
   const markers = [['runtime 3D (relic)', 'DMF RELIC RUNTIME'], ['capa de audio', 'DMF HYPERRESONANCE'], ['grilla de precios', 'id="tiersGrid"'],
     ['botón de compra', 'buyWithMP'], ['router de pagos', '/commerce/payment-router.js']];
@@ -106,16 +125,16 @@ async function runChecks(opts, fetchImpl) {
   add('tecnica', 'Todas las lecciones tienen video', 'warn', ac.status === 200 && emptyLessons === 0, emptyLessons + ' sin video');
 
   if (!cfg.skipWorkers) {
-    const mp = await get(cfg.payments + '/health');
+    const mp = await get(cfg.payments + '/health', { headers: { Origin: landingOrigin } });
     let mpJson = null; try { mpJson = JSON.parse(mp.body); } catch (e) { mpJson = null; }
     add('tecnica', 'Pagos Mercado Pago (Worker)', 'error', mp.status === 200 && mpJson && mpJson.ok === true, status(mp));
     const klapActive = !!(commerce && commerce.payments && commerce.payments.provider === 'klap' && commerce.payments.klapEnabled);
-    const kl = await get(cfg.klap + '/health');
+    const kl = await get(cfg.klap + '/health', { headers: { Origin: landingOrigin } });
     let klJson = null; try { klJson = JSON.parse(kl.body); } catch (e) { klJson = null; }
     add('tecnica', 'Pagos Klap (Worker)' + (klapActive ? '' : ' — no activo en la landing'), klapActive ? 'error' : 'warn',
       kl.status === 200 && klJson && klJson.ok === true && (!klapActive || klJson.configured === true), status(kl) + (klJson ? ' · configured=' + klJson.configured : ''));
     const signer = (signerFromEnv || cfg.signer).replace(/\/+$/, '');
-    const sg = await get(signer + '/stream-token', { method: 'POST', headers: { Origin: base, 'Content-Type': 'application/json' }, body: '{}' });
+    const sg = await get(signer + '/stream-token', { method: 'POST', headers: { Origin: landingOrigin, 'Content-Type': 'application/json' }, body: '{}' });
     add('tecnica', 'Firma de video (Stream signer) responde y exige sesión', 'error', sg.status === 401, status(sg) + ' (se espera 401)');
   }
 
