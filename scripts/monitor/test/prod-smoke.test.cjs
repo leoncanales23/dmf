@@ -72,6 +72,22 @@ test('healthy production: no failure, no warning', async () => {
   assert.ok(rep.head.includes('Todo OK'));
 });
 
+test('landing 404: the Firebase site tells a domain problem from missing content', async () => {
+  const FB = D.firebaseSite + '/';
+  const down = (r) => { r[B + '/'] = { status: 404, body: '<html><title>Page Not Found</title></html>', headers: { server: 'Google Frontend' } }; };
+  const domain = (await run((r) => { down(r); r[FB] = { body: 'DMF RELIC RUNTIME' }; })).byName('Landing responde');
+  assert.equal(domain.ok, false);
+  assert.match(domain.detail, /^HTTP 404 .*título "Page Not Found" · server Google Frontend · dmf-vibraalto\.web\.app: HTTP 200 .*falla el dominio/);
+  const content = (await run((r) => { down(r); r[FB] = { status: 404, body: '' }; })).byName('Landing responde');
+  assert.match(content.detail, /dmf-vibraalto\.web\.app: HTTP 404 .*revertir/);
+  const other = (await run((r) => { down(r); r[FB] = { body: '<html>otro sitio</html>' }; })).byName('Landing responde');
+  assert.match(other.detail, /dmf-vibraalto\.web\.app: HTTP 200 .*revertir/);
+  // Healthy, or checking a local build: the live Firebase site is never fetched.
+  assert.ok(!(await run()).calls.some((c) => c.url.startsWith(D.firebaseSite)));
+  const local = await run(down, { base: B, skipWorkers: true });
+  assert.ok(!local.calls.some((c) => c.url.startsWith(D.firebaseSite)));
+});
+
 test('landing down or broken is critical', async () => {
   assert.ok((await run((r) => { r[B + '/'] = { status: 503, body: '' }; })).rep.failed.some((c) => c.name === 'Landing responde'));
   const noRuntime = await run((r) => { r[B + '/'].body = r[B + '/'].body.replace('DMF RELIC RUNTIME', ''); });
