@@ -35,9 +35,9 @@ function healthy() {
     [B + '/payment-result']: { body: page('DMF Academy — Resultado del pago') },
     [B + '/academy-env.js']: { body: ENV },
     [B + '/academy-config.js']: { body: "streamUid: '9bb8ec71e5f2cf3054979e77b65c1bba', streamUid: '50498c021ed78bf0913f4cac9fca9abf'" },
-    [D.payments + '/health']: { body: '{"ok":true,"service":"dmf-payments"}' },
-    [D.klap + '/health']: { body: '{"ok":true,"service":"dmf-klap-payments","configured":false}' },
-    [D.signer + '/stream-token']: { status: 401, body: '{"ok":false,"error":"Authentication required"}' },
+    [D.payments + '/health']: { origin: B, body: '{"ok":true,"service":"dmf-payments"}' },
+    [D.klap + '/health']: { origin: B, body: '{"ok":true,"service":"dmf-klap-payments","configured":false}' },
+    [D.signer + '/stream-token']: { origin: B, status: 401, body: '{"ok":false,"error":"Authentication required"}' },
     [B + '/terminos']: { body: legal('Términos y condiciones') },
     [B + '/privacidad']: { body: legal('Política de privacidad') },
     [B + '/reembolsos']: { body: legal('Política de reembolsos') },
@@ -51,6 +51,8 @@ function fakeFetch(routes, calls) {
     const r = routes[url];
     if (r === 'hang') return new Promise((resolve, reject) => init.signal.addEventListener('abort', () => { const e = new Error('aborted'); e.name = 'AbortError'; reject(e); }));
     if (!r) return { status: 200, text: async () => '<html><!-- SPA catch-all --></html>', headers: { get: () => null } };
+    // Like the real Workers: a request without the landing's Origin is refused before any route runs.
+    if (r.origin && ((init && init.headers) || {}).Origin !== r.origin) return { status: 403, text: async () => '{"ok":false,"error":"Origin not allowed"}', headers: { get: () => null } };
     const h = r.headers || {};
     return { status: r.status || 200, text: async () => r.body || '', headers: { get: (k) => h[k.toLowerCase()] || null } };
   };
@@ -68,6 +70,22 @@ test('healthy production: no failure, no warning', async () => {
   assert.deepEqual(rep.failed.map((c) => c.name), []);
   assert.deepEqual(rep.warned.map((c) => c.name), []);
   assert.ok(rep.head.includes('Todo OK'));
+});
+
+test('landing 404: the Firebase site tells a domain problem from missing content', async () => {
+  const FB = D.firebaseSite + '/';
+  const down = (r) => { r[B + '/'] = { status: 404, body: '<html><title>Page Not Found</title></html>', headers: { server: 'Google Frontend' } }; };
+  const domain = (await run((r) => { down(r); r[FB] = { body: 'DMF RELIC RUNTIME' }; })).byName('Landing responde');
+  assert.equal(domain.ok, false);
+  assert.match(domain.detail, /^HTTP 404 .*título "Page Not Found" · server Google Frontend · dmf-vibraalto\.web\.app: HTTP 200 .*falla el dominio/);
+  const content = (await run((r) => { down(r); r[FB] = { status: 404, body: '' }; })).byName('Landing responde');
+  assert.match(content.detail, /dmf-vibraalto\.web\.app: HTTP 404 .*revertir/);
+  const other = (await run((r) => { down(r); r[FB] = { body: '<html>otro sitio</html>' }; })).byName('Landing responde');
+  assert.match(other.detail, /dmf-vibraalto\.web\.app: HTTP 200 .*revertir/);
+  // Healthy, or checking a local build: the live Firebase site is never fetched.
+  assert.ok(!(await run()).calls.some((c) => c.url.startsWith(D.firebaseSite)));
+  const local = await run(down, { base: B, skipWorkers: true });
+  assert.ok(!local.calls.some((c) => c.url.startsWith(D.firebaseSite)));
 });
 
 test('landing down or broken is critical', async () => {
@@ -109,6 +127,14 @@ test('read-only: GET/HEAD only, plus one unauthenticated POST to the signer', as
   assert.equal(writes[0].url, D.signer + '/stream-token');
   assert.ok(!Object.keys(writes[0].headers).some((h) => /authorization/i.test(h)), 'never authenticated');
   assert.ok(!/fetch\([^)]*(create-preference|create-order|webhook)/.test(fs.readFileSync(path.join(ROOT, 'scripts/monitor/prod-smoke.cjs'), 'utf8')), 'never touches checkout or webhooks');
+});
+
+test('Worker requests carry the landing Origin (the Workers refuse any other with 403)', async () => {
+  const { calls, rep } = await run();
+  const workerCalls = calls.filter((c) => c.url.startsWith(D.payments) || c.url.startsWith(D.klap) || c.url.startsWith(D.signer));
+  assert.equal(workerCalls.length, 3);
+  for (const c of workerCalls) assert.equal(c.headers.Origin, B, c.url);
+  assert.equal(rep.failed.length, 0);
 });
 
 test('--skip-workers runs the page checks only', async () => {
