@@ -8,8 +8,8 @@ const ALLOWED_ORIGINS = new Set([
 
 const PRODUCTS = {
   starter: { title: 'DMF Academy — Starter', price: 100, currency: 'USD' },   // launch price
-  pro:     { title: 'DMF Academy — Pro',     price: 497, currency: 'USD' },
-  elite:   { title: 'DMF Academy — Elite',   price: 997, currency: 'USD' },
+  pro:     { title: 'DMF Academy — Pro',     price: 497, currency: 'USD', available: false },
+  elite:   { title: 'DMF Academy — Elite',   price: 997, currency: 'USD', available: false },
   addon:   { title: 'DMF Academy — Labels',  price: 80,  currency: 'USD' }
 };
 
@@ -248,8 +248,8 @@ async function handleCreatePreference(request, origin, env) {
 
   const productId = typeof body.productId === 'string' ? body.productId.trim() : '';
   const product = PRODUCTS[productId];
-  if (!product) {
-    return json(origin, 400, { ok: false, error: 'Unknown product' });
+  if (!product || product.available === false) {
+    return json(origin, 400, { ok: false, error: product ? 'Product not available' : 'Unknown product' });
   }
 
   let user;

@@ -31,13 +31,15 @@ const PRODUCTS = {
     title: 'DMF Academy — Pro',
     description: '8 live 1-on-1 classes on Zoom, personalized feedback, free mastering, WhatsApp access, labels session',
     price: 497,
-    currency: 'USD'
+    currency: 'USD',
+    available: false
   },
   elite: {
     title: 'DMF Academy — Elite',
     description: '12 extended sessions, co-production EP, label pitch strategy, 6-month mentoring, lifetime community',
     price: 997,
-    currency: 'USD'
+    currency: 'USD',
+    available: false
   },
   addon: {
     title: 'DMF Academy — How to Reach Labels',
@@ -51,7 +53,7 @@ app.post('/api/create-preference', async (req, res) => {
   const { productId, buyerEmail } = req.body;
 
   const product = PRODUCTS[productId];
-  if (!product) {
+  if (!product || product.available === false) {
     return res.status(400).json({ error: 'Invalid product' });
   }
 

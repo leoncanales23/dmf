@@ -8,8 +8,8 @@
 export const USD_TO_CLP = 1000;
 export const PRODUCTS = Object.freeze({
   starter: Object.freeze({ title: 'DMF Academy — Starter', amount: 99990, currency: 'CLP', usd: 100 }),
-  pro: Object.freeze({ title: 'DMF Academy — Pro', amount: 496990, currency: 'CLP', usd: 497 }),
-  elite: Object.freeze({ title: 'DMF Academy — Elite', amount: 996990, currency: 'CLP', usd: 997 }),
+  pro: Object.freeze({ title: 'DMF Academy — Pro', amount: 496990, currency: 'CLP', usd: 497, available: false }),
+  elite: Object.freeze({ title: 'DMF Academy — Elite', amount: 996990, currency: 'CLP', usd: 997, available: false }),
   addon: Object.freeze({ title: 'DMF Academy — Labels', amount: 79990, currency: 'CLP', usd: 80 })
 });
 
@@ -18,7 +18,7 @@ export function resolveProduct(productId, catalog = PRODUCTS) {
     return { ok: false, error: 'unknown-product' };
   }
   const product = catalog[productId];
-  if (!Number.isInteger(product.amount) || product.amount <= 0 || product.currency !== 'CLP') {
+  if (product.available === false || !Number.isInteger(product.amount) || product.amount <= 0 || product.currency !== 'CLP') {
     return { ok: false, error: 'product-not-available' };
   }
   return { ok: true, productId, product };
