@@ -1735,9 +1735,11 @@ if (window.__DMF_FIREBASE_CONFIG__) {
     if(ac) ac.innerHTML=clpLine('addon');
     var g=document.getElementById('tiersGrid');
     g.innerHTML=tiers.map(function(t){
-      var cls='tier-card'+(t.featured?' tier-featured':'');
+      var soldOut=t.productId==='pro'||t.productId==='elite';
+      var cls='tier-card'+(t.featured?' tier-featured':'')+(soldOut?' tier-sold-out':'');
       var badge=t.featured?'<div class="tier-featured-tag">'+t.tag+'</div>':'';
-      return '<div class="'+cls+'">'+badge+'<div class="tier-head"><div class="tier-name">'+t.name+'</div><div class="tier-tagline">'+t.tag+'</div><div class="tier-price">'+t.price+' <span>USD</span></div><div class="tier-period">'+t.period+'</div>'+clpLine(t.productId)+'</div><div class="tier-body"><div class="tier-features">'+t.feats.map(function(f){return '<div class="tier-feat checked">'+f+'</div>';}).join('')+'</div><button class="tier-cta mp-buy-btn" data-product="'+t.productId+'" onclick="buyWithMP(this)">'+t.cta+' \u2192</button></div></div>';
+      var cta=soldOut?(lang==='es'?'Agotado':'Sold out'):t.cta;
+      return '<div class="'+cls+'">'+badge+'<div class="tier-head"><div class="tier-name">'+t.name+'</div><div class="tier-tagline">'+t.tag+'</div><div class="tier-price">'+t.price+' <span>USD</span></div><div class="tier-period">'+t.period+'</div>'+clpLine(t.productId)+'</div><div class="tier-body"><div class="tier-features">'+t.feats.map(function(f){return '<div class="tier-feat checked">'+f+'</div>';}).join('')+'</div><button class="tier-cta mp-buy-btn" data-product="'+t.productId+'" onclick="buyWithMP(this)"'+(soldOut?' disabled aria-disabled="true"':'')+'>'+cta+(soldOut?'':' \u2192')+'</button></div></div>';
     }).join('');
   }
 
