@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  # Permite re-desplegar main a mano (Actions → Run workflow) si el sitio
+  # de Hosting queda sin versión publicada, sin necesidad de un commit nuevo.
+  workflow_dispatch:
 
 jobs:
   deploy:
